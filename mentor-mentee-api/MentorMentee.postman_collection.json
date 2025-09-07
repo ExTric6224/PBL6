@@ -1,0 +1,562 @@
+{
+  "info": {
+    "name": "MentorMentee API",
+    "description": "Complete API collection for the MentorMentee platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mentor@example.com\",\n  \"password\": \"mentor123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {
+          "name": "Create/Update Mentor Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"school\": \"MIT\",\n  \"expertise\": [\"Backend\", \"Mobile\", \"DevOps\"],\n  \"degree\": \"Master of Computer Science\",\n  \"yearsExp\": 5,\n  \"bio\": \"Experienced software engineer with expertise in backend development.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profiles/mentor",
+              "host": ["{{baseUrl}}"],
+              "path": ["profiles", "mentor"]
+            }
+          }
+        },
+        {
+          "name": "Get Mentor Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profiles/mentor/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["profiles", "mentor", "2"]
+            }
+          }
+        },
+        {
+          "name": "Create/Update Mentee Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Smith\",\n  \"goals\": \"Learn backend development and best practices\",\n  \"interests\": [\"Web\", \"AI\", \"Career\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profiles/mentee",
+              "host": ["{{baseUrl}}"],
+              "path": ["profiles", "mentee"]
+            }
+          }
+        },
+        {
+          "name": "Get Mentee Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profiles/mentee/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["profiles", "mentee", "3"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schedules",
+      "item": [
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Backend Development Fundamentals\",\n  \"startAt\": \"2024-12-01T14:00:00.000Z\",\n  \"endAt\": \"2024-12-01T15:00:00.000Z\",\n  \"capacity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules?status=AVAILABLE",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "AVAILABLE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Advanced Backend Concepts\",\n  \"capacity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedules/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get My Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/my-schedules?status=AVAILABLE&from=2024-12-01&to=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "my-schedules"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "AVAILABLE",
+                  "description": "Filter by schedule status (AVAILABLE, FULL, CANCELLED)"
+                },
+                {
+                  "key": "from",
+                  "value": "2024-12-01",
+                  "description": "Filter schedules from this date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2024-12-31",
+                  "description": "Filter schedules to this date (YYYY-MM-DD)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Schedule by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedules by Mentor ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules?mentorId=2&status=AVAILABLE&from=2024-12-01&to=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules"],
+              "query": [
+                {
+                  "key": "mentorId",
+                  "value": "2",
+                  "description": "Filter by mentor ID"
+                },
+                {
+                  "key": "status",
+                  "value": "AVAILABLE",
+                  "description": "Filter by schedule status (AVAILABLE, FULL, CANCELLED)"
+                },
+                {
+                  "key": "from",
+                  "value": "2024-12-01",
+                  "description": "Filter schedules from this date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2024-12-31",
+                  "description": "Filter schedules to this date (YYYY-MM-DD)"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduleId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/1/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "1", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/1/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Start Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions", "start"]
+            }
+          }
+        },
+        {
+          "name": "End Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": 1,\n  \"notes\": \"Great session! Covered backend fundamentals and answered questions about database design.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions", "end"]
+            }
+          }
+        },
+        {
+          "name": "Get My Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sessions/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedbacks",
+      "item": [
+        {
+          "name": "Create Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Excellent session! Very informative and well-structured.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"]
+            }
+          }
+        },
+        {
+          "name": "Get Feedbacks by Mentor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/mentor/2?ratingMin=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "mentor", "2"],
+              "query": [
+                {
+                  "key": "ratingMin",
+                  "value": "4"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Feedbacks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?isRead=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "isRead",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/1/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    }
+  ]
+}

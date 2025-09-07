@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MENTOR
+  MENTEE
+}
+
+enum ScheduleStatus {
+  AVAILABLE
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  role      Role      @default(MENTEE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  mentorProfile MentorProfile?
+  menteeProfile MenteeProfile?
+  bookings      Booking[]
+  notifications Notification[]
+  feedbacks     Feedback[]   @relation("FeedbackByUser") // mentee feedbacks
+  
+  // Session relations
+  sessionsAsMentor Session[] @relation("SessionMentor")
+  sessionsAsMentee Session[] @relation("SessionMentee")
+  
+  // Feedback relations
+  feedbacksToMentor Feedback[] @relation("FeedbackToMentor")
+
+  // Post relations
+  posts Post[] @relation("UserPosts")
+  likes Like[] @relation("UserLikes")
+
+  // Schedule relation
+  schedules Schedule[] @relation("ScheduleMentor")
+
+  @@index([role])
+}
+
+model MentorProfile {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  fullName       String
+  school         String?
+  expertise      Json    // storing as JSON array for MySQL compatibility
+  degree         String?  // Cử nhân/Thạc sĩ/…
+  yearsExp       Int?     // kinh nghiệm
+  bio            String?
+
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@fulltext([fullName])
+}
+
+model MenteeProfile {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  fullName  String
+  goals     String?  // nhu cầu học hỏi
+  interests Json     // storing as JSON array for MySQL compatibility
+
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Schedule {
+  id          Int            @id @default(autoincrement())
+  mentorId    Int            // User.id của mentor
+  topic       String
+  startAt     DateTime
+  endAt       DateTime
+  capacity    Int            @default(1) // slot
+  status      ScheduleStatus @default(AVAILABLE)
+  createdAt   DateTime       @default(now())
+
+  mentor   User @relation("ScheduleMentor", fields: [mentorId], references: [id])
+  bookings Booking[]
+
+  @@index([mentorId, startAt])
+  @@index([status])
+}
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  scheduleId  Int
+  menteeId    Int           // User.id của mentee
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  mentee   User     @relation(fields: [menteeId], references: [id])
+
+  session  Session?
+
+  @@unique([scheduleId, menteeId]) // 1 mentee không đăng ký trùng slot
+  @@index([menteeId])
+}
+
+model Session {
+  id         Int       @id @default(autoincrement())
+  bookingId  Int       @unique
+  mentorId   Int
+  menteeId   Int
+  startedAt  DateTime?
+  endedAt    DateTime?
+  notes      String?
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  mentor  User    @relation("SessionMentor", fields: [mentorId], references: [id])
+  mentee  User    @relation("SessionMentee", fields: [menteeId], references: [id])
+
+  feedback Feedback?
+}
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  sessionId Int      @unique
+  mentorId  Int
+  menteeId  Int
+  rating    Int      // 1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id])
+  mentor  User    @relation("FeedbackToMentor", fields: [mentorId], references: [id])
+  mentee  User    @relation("FeedbackByUser", fields: [menteeId], references: [id])
+
+  @@index([mentorId])
+  @@index([menteeId])
+  @@index([rating])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String   // EMAIL|APP|WEB
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  authorId  Int      // User.id của tác giả
+  title     String
+  content   String   @db.Text
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User   @relation("UserPosts", fields: [authorId], references: [id])
+  likes  Like[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([isPublic])
+}
+
+model Like {
+  id     Int @id @default(autoincrement())
+  postId Int
+  userId Int
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation("UserLikes", fields: [userId], references: [id])
+
+  @@unique([postId, userId]) // Một user chỉ like 1 lần/post
+  @@index([postId])
+  @@index([userId])
+}
