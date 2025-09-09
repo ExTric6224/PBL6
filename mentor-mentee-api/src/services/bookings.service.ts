@@ -51,13 +51,10 @@ export class BookingsService {
         schedule: {
           include: {
             mentor: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                  },
-                },
+              select: {
+                id: true,
+                email: true,
+                mentorProfile: true,
               },
             },
           },
@@ -66,6 +63,7 @@ export class BookingsService {
           select: {
             id: true,
             email: true,
+            menteeProfile: true,
           },
         },
       },
@@ -73,21 +71,12 @@ export class BookingsService {
   }
 
   async confirmBooking(bookingId: number, mentorUserId: number) {
-    // Get mentor profile
-    const mentorProfile = await prisma.mentorProfile.findUnique({
-      where: { userId: mentorUserId },
-    });
-
-    if (!mentorProfile) {
-      throw new Error('Mentor profile not found');
-    }
-
     // Check if booking exists and belongs to mentor's schedule
     const booking = await prisma.booking.findFirst({
       where: {
         id: bookingId,
         schedule: {
-          mentorId: mentorProfile.id,
+          mentorId: mentorUserId,
         },
       },
       include: {
@@ -116,13 +105,10 @@ export class BookingsService {
         schedule: {
           include: {
             mentor: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                  },
-                },
+              select: {
+                id: true,
+                email: true,
+                mentorProfile: true,
               },
             },
           },
@@ -131,6 +117,7 @@ export class BookingsService {
           select: {
             id: true,
             email: true,
+            menteeProfile: true,
           },
         },
       },
@@ -146,7 +133,7 @@ export class BookingsService {
           include: {
             mentor: {
               select: {
-                userId: true,
+                id: true,
               },
             },
           },
@@ -165,7 +152,7 @@ export class BookingsService {
 
     // Check if user is the mentee who made the booking or the mentor who owns the schedule
     const isBookingOwner = booking.menteeId === userId;
-    const isScheduleOwner = booking.schedule.mentor.userId === userId;
+    const isScheduleOwner = booking.schedule.mentor.id === userId;
 
     if (!isBookingOwner && !isScheduleOwner) {
       throw new Error('Access denied');
@@ -182,13 +169,10 @@ export class BookingsService {
         schedule: {
           include: {
             mentor: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                  },
-                },
+              select: {
+                id: true,
+                email: true,
+                mentorProfile: true,
               },
             },
           },
@@ -197,6 +181,7 @@ export class BookingsService {
           select: {
             id: true,
             email: true,
+            menteeProfile: true,
           },
         },
       },
@@ -210,13 +195,10 @@ export class BookingsService {
         schedule: {
           include: {
             mentor: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                  },
-                },
+              select: {
+                id: true,
+                email: true,
+                mentorProfile: true,
               },
             },
           },
@@ -229,18 +211,10 @@ export class BookingsService {
   }
 
   async getBookingsByMentor(mentorUserId: number) {
-    const mentorProfile = await prisma.mentorProfile.findUnique({
-      where: { userId: mentorUserId },
-    });
-
-    if (!mentorProfile) {
-      throw new Error('Mentor profile not found');
-    }
-
     return await prisma.booking.findMany({
       where: {
         schedule: {
-          mentorId: mentorProfile.id,
+          mentorId: mentorUserId,
         },
       },
       include: {
@@ -249,6 +223,7 @@ export class BookingsService {
           select: {
             id: true,
             email: true,
+            menteeProfile: true,
           },
         },
       },

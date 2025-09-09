@@ -42,7 +42,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"testmentee@example.com\",\n  \"password\": \"password123\"\n,  \"role\": \"MENTEE\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
@@ -76,7 +76,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"mentor@example.com\",\n  \"password\": \"mentor123\"\n}"
+              "raw": "{\n  \"email\": \"testmentee@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -185,7 +185,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"topic\": \"Backend Development Fundamentals\",\n  \"startAt\": \"2024-12-01T14:00:00.000Z\",\n  \"endAt\": \"2024-12-01T15:00:00.000Z\",\n  \"capacity\": 3\n}"
+              "raw": "{\n  \"topic\": \"Backend Development Fundamentals\",\n  \"startAt\": \"2025-12-01T14:00:00.000Z\",\n  \"endAt\": \"2025-12-01T15:00:00.000Z\",\n  \"capacity\": 3\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/schedules",
@@ -251,7 +251,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/schedules/my-schedules?status=AVAILABLE&from=2024-12-01&to=2024-12-31",
+              "raw": "{{baseUrl}}/schedules/my-schedules?status=AVAILABLE&from=2024-12-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z",
               "host": ["{{baseUrl}}"],
               "path": ["schedules", "my-schedules"],
               "query": [
@@ -262,13 +262,13 @@
                 },
                 {
                   "key": "from",
-                  "value": "2024-12-01",
-                  "description": "Filter schedules from this date (YYYY-MM-DD)"
+                  "value": "2024-12-01T00:00:00.000Z",
+                  "description": "Filter schedules from this date (YYYY-MM-DDTHH:mm:ss.sssZ)"
                 },
                 {
                   "key": "to",
-                  "value": "2024-12-31",
-                  "description": "Filter schedules to this date (YYYY-MM-DD)"
+                  "value": "2024-12-31T23:59:59.999Z",
+                  "description": "Filter schedules to this date (YYYY-MM-DDTHH:mm:ss.sssZ)"
                 }
               ]
             }
@@ -292,7 +292,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/schedules?mentorId=2&status=AVAILABLE&from=2024-12-01&to=2024-12-31",
+              "raw": "{{baseUrl}}/schedules?mentorId=2&status=AVAILABLE&from=2024-12-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z",
               "host": ["{{baseUrl}}"],
               "path": ["schedules"],
               "query": [
@@ -308,13 +308,13 @@
                 },
                 {
                   "key": "from",
-                  "value": "2024-12-01",
-                  "description": "Filter schedules from this date (YYYY-MM-DD)"
+                  "value": "2024-12-01T00:00:00.000Z",
+                  "description": "Filter schedules from this date (YYYY-MM-DDTHH:mm:ss.sssZ)"
                 },
                 {
                   "key": "to",
-                  "value": "2024-12-31",
-                  "description": "Filter schedules to this date (YYYY-MM-DD)"
+                  "value": "2024-12-31T23:59:59.999Z",
+                  "description": "Filter schedules to this date (YYYY-MM-DDTHH:mm:ss.sssZ)"
                 }
               ]
             }
@@ -541,6 +541,191 @@
               "raw": "{{baseUrl}}/notifications/read-all",
               "host": ["{{baseUrl}}"],
               "path": ["notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My First Post\",\n  \"content\": \"This is the content of my first post. It can be quite long and detailed.\",\n  \"isPublic\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"]
+            }
+          }
+        },
+        {
+          "name": "Get All Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Posts per page (default: 10)"
+                },
+                {
+                  "key": "authorId",
+                  "value": "",
+                  "description": "Filter by author ID",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search in title and content",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Post by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Post Title\",\n  \"content\": \"This is the updated content of my post.\",\n  \"isPublic\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Like/Unlike Post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "1", "like"]
+            }
+          }
+        },
+        {
+          "name": "Get Post Likes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1/likes",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "1", "likes"]
+            }
+          }
+        },
+        {
+          "name": "Get Posts by Author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?authorId=2&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [
+                {
+                  "key": "authorId",
+                  "value": "2",
+                  "description": "Filter by author ID"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?search=backend&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "backend",
+                  "description": "Search in title and content"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
             }
           }
         }

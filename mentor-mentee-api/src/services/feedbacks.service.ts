@@ -16,7 +16,7 @@ export class FeedbacksService {
               include: {
                 mentor: {
                   select: {
-                    userId: true,
+                    id: true,  // Sửa từ userId thành id
                   },
                 },
               },
@@ -46,7 +46,7 @@ export class FeedbacksService {
     return await prisma.feedback.create({
       data: {
         sessionId: data.sessionId,
-        mentorId: session.booking.schedule.mentor.userId,
+        mentorId: session.booking.schedule.mentor.id,  // Sửa từ userId thành id
         menteeId: menteeId,
         rating: data.rating,
         comment: data.comment,

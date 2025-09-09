@@ -3,22 +3,13 @@ import { StartSessionDto, EndSessionDto } from '../schemas/sessions.schema';
 
 export class SessionsService {
   async startSession(mentorUserId: number, data: StartSessionDto) {
-    // Get mentor profile
-    const mentorProfile = await prisma.mentorProfile.findUnique({
-      where: { userId: mentorUserId },
-    });
-
-    if (!mentorProfile) {
-      throw new Error('Mentor profile not found');
-    }
-
     // Check if booking exists and is confirmed
     const booking = await prisma.booking.findFirst({
       where: {
         id: data.bookingId,
         status: 'CONFIRMED',
         schedule: {
-          mentorId: mentorProfile.id,
+          mentorId: mentorUserId,  // Sử dụng User.id thay vì MentorProfile.id
         },
       },
       include: {
