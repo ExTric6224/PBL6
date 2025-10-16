@@ -51,3 +51,11 @@ export const conflictError = (res: Response, message: string, details?: any): Re
 export const internalError = (res: Response, message: string = 'Internal server error'): Response => {
   return error(res, 'INTERNAL', message, null, 500);
 };
+
+export const tooManyRequestError = (res: Response, message: string = 'Too many requests'): Response => {
+  return error(res, 'VALIDATION_ERROR', message, null, 429);
+};
+
+export const badRequestError = (res: Response, message: string = 'Bad request'): Response => {
+  return error(res, 'VALIDATION_ERROR', message, null, 400);
+};

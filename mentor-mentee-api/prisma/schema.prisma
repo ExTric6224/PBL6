@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextIndex"]
 }
 
@@ -11,187 +8,201 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  MENTOR
-  MENTEE
+model EmailVerification {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique(map: "EmailVerification_email_key")
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int       @default(0)
+  lastSentAt   DateTime  @default(now())
+  role         user_role
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime
+
+  @@index([email], map: "EmailVerification_email_idx")
+  @@index([expiresAt], map: "EmailVerification_expiresAt_idx")
 }
 
-enum ScheduleStatus {
-  AVAILABLE
-  CANCELLED
+model PasswordReset {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique(map: "PasswordReset_email_key")
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  lastSentAt DateTime @default(now())
+  isUsed     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+
+  @@index([email], map: "PasswordReset_email_idx")
+  @@index([expiresAt], map: "PasswordReset_expiresAt_idx")
 }
 
-enum BookingStatus {
+model booking {
+  id         Int            @id @default(autoincrement())
+  scheduleId Int
+  menteeId   Int
+  status     booking_status @default(PENDING)
+  createdAt  DateTime       @default(now())
+  user       user           @relation(fields: [menteeId], references: [id], map: "Booking_menteeId_fkey")
+  schedule   schedule       @relation(fields: [scheduleId], references: [id], map: "Booking_scheduleId_fkey")
+  session    session?
+
+  @@unique([scheduleId, menteeId], map: "Booking_scheduleId_menteeId_key")
+  @@index([menteeId], map: "Booking_menteeId_idx")
+}
+
+model feedback {
+  id                           Int      @id @default(autoincrement())
+  sessionId                    Int      @unique(map: "Feedback_sessionId_key")
+  mentorId                     Int
+  menteeId                     Int
+  rating                       Int
+  comment                      String?
+  createdAt                    DateTime @default(now())
+  user_feedback_menteeIdTouser user     @relation("feedback_menteeIdTouser", fields: [menteeId], references: [id], map: "Feedback_menteeId_fkey")
+  user_feedback_mentorIdTouser user     @relation("feedback_mentorIdTouser", fields: [mentorId], references: [id], map: "Feedback_mentorId_fkey")
+  session                      session  @relation(fields: [sessionId], references: [id], map: "Feedback_sessionId_fkey")
+
+  @@index([menteeId], map: "Feedback_menteeId_idx")
+  @@index([mentorId], map: "Feedback_mentorId_idx")
+  @@index([rating], map: "Feedback_rating_idx")
+}
+
+model like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  post      post     @relation(fields: [postId], references: [id], onDelete: Cascade, map: "Like_postId_fkey")
+  user      user     @relation(fields: [userId], references: [id], map: "Like_userId_fkey")
+
+  @@unique([postId, userId], map: "Like_postId_userId_key")
+  @@index([postId], map: "Like_postId_idx")
+  @@index([userId], map: "Like_userId_idx")
+}
+
+model menteeprofile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique(map: "MenteeProfile_userId_key")
+  fullName  String
+  goals     String?
+  interests String  @db.LongText
+  user      user    @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
+}
+
+model mentorprofile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique(map: "MentorProfile_userId_key")
+  fullName  String
+  school    String?
+  expertise String  @db.LongText
+  degree    String?
+  yearsExp  Int?
+  bio       String?
+  user      user    @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
+
+  @@fulltext([fullName], map: "MentorProfile_fullName_idx")
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], map: "Notification_userId_fkey")
+
+  @@index([userId, isRead], map: "Notification_userId_isRead_idx")
+}
+
+model post {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  title     String
+  content   String   @db.Text
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  like      like[]
+  user      user     @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey")
+
+  @@index([authorId], map: "Post_authorId_idx")
+  @@index([createdAt], map: "Post_createdAt_idx")
+  @@index([isPublic], map: "Post_isPublic_idx")
+}
+
+model schedule {
+  id        Int             @id @default(autoincrement())
+  mentorId  Int
+  topic     String
+  startAt   DateTime
+  endAt     DateTime
+  capacity  Int             @default(1)
+  status    schedule_status @default(AVAILABLE)
+  createdAt DateTime        @default(now())
+  booking   booking[]
+  user      user            @relation(fields: [mentorId], references: [id], map: "Schedule_mentorId_fkey")
+
+  @@index([mentorId, startAt], map: "Schedule_mentorId_startAt_idx")
+  @@index([status], map: "Schedule_status_idx")
+}
+
+model session {
+  id                          Int       @id @default(autoincrement())
+  bookingId                   Int       @unique(map: "Session_bookingId_key")
+  mentorId                    Int
+  menteeId                    Int
+  startedAt                   DateTime?
+  endedAt                     DateTime?
+  notes                       String?
+  feedback                    feedback?
+  booking                     booking   @relation(fields: [bookingId], references: [id], map: "Session_bookingId_fkey")
+  user_session_menteeIdTouser user      @relation("session_menteeIdTouser", fields: [menteeId], references: [id], map: "Session_menteeId_fkey")
+  user_session_mentorIdTouser user      @relation("session_mentorIdTouser", fields: [mentorId], references: [id], map: "Session_mentorId_fkey")
+
+  @@index([menteeId], map: "Session_menteeId_fkey")
+  @@index([mentorId], map: "Session_mentorId_fkey")
+}
+
+model user {
+  id                               Int            @id @default(autoincrement())
+  email                            String         @unique(map: "User_email_key")
+  password                         String
+  role                             user_role      @default(MENTEE)
+  createdAt                        DateTime       @default(now())
+  updatedAt                        DateTime
+  booking                          booking[]
+  feedback_feedback_menteeIdTouser feedback[]     @relation("feedback_menteeIdTouser")
+  feedback_feedback_mentorIdTouser feedback[]     @relation("feedback_mentorIdTouser")
+  like                             like[]
+  menteeprofile                    menteeprofile?
+  mentorprofile                    mentorprofile?
+  notification                     notification[]
+  post                             post[]
+  schedule                         schedule[]
+  session_session_menteeIdTouser   session[]      @relation("session_menteeIdTouser")
+  session_session_mentorIdTouser   session[]      @relation("session_mentorIdTouser")
+
+  @@index([role], map: "User_role_idx")
+}
+
+enum booking_status {
   PENDING
   CONFIRMED
   CANCELLED
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  role      Role      @default(MENTEE)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  mentorProfile MentorProfile?
-  menteeProfile MenteeProfile?
-  bookings      Booking[]
-  notifications Notification[]
-  feedbacks     Feedback[]   @relation("FeedbackByUser") // mentee feedbacks
-  
-  // Session relations
-  sessionsAsMentor Session[] @relation("SessionMentor")
-  sessionsAsMentee Session[] @relation("SessionMentee")
-  
-  // Feedback relations
-  feedbacksToMentor Feedback[] @relation("FeedbackToMentor")
-
-  // Post relations
-  posts Post[] @relation("UserPosts")
-  likes Like[] @relation("UserLikes")
-
-  // Schedule relation
-  schedules Schedule[] @relation("ScheduleMentor")
-
-  @@index([role])
+enum user_role {
+  ADMIN
+  MENTOR
+  MENTEE
 }
 
-model MentorProfile {
-  id             Int     @id @default(autoincrement())
-  userId         Int     @unique
-  fullName       String
-  school         String?
-  expertise      Json    // storing as JSON array for MySQL compatibility
-  degree         String?  // Cử nhân/Thạc sĩ/…
-  yearsExp       Int?     // kinh nghiệm
-  bio            String?
-
-  user      User       @relation(fields: [userId], references: [id])
-
-  @@fulltext([fullName])
-}
-
-model MenteeProfile {
-  id        Int    @id @default(autoincrement())
-  userId    Int    @unique
-  fullName  String
-  goals     String?  // nhu cầu học hỏi
-  interests Json     // storing as JSON array for MySQL compatibility
-
-  user   User @relation(fields: [userId], references: [id])
-}
-
-model Schedule {
-  id          Int            @id @default(autoincrement())
-  mentorId    Int            // User.id của mentor
-  topic       String
-  startAt     DateTime
-  endAt       DateTime
-  capacity    Int            @default(1) // slot
-  status      ScheduleStatus @default(AVAILABLE)
-  createdAt   DateTime       @default(now())
-
-  mentor   User @relation("ScheduleMentor", fields: [mentorId], references: [id])
-  bookings Booking[]
-
-  @@index([mentorId, startAt])
-  @@index([status])
-}
-
-model Booking {
-  id          Int           @id @default(autoincrement())
-  scheduleId  Int
-  menteeId    Int           // User.id của mentee
-  status      BookingStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-  mentee   User     @relation(fields: [menteeId], references: [id])
-
-  session  Session?
-
-  @@unique([scheduleId, menteeId]) // 1 mentee không đăng ký trùng slot
-  @@index([menteeId])
-}
-
-model Session {
-  id         Int       @id @default(autoincrement())
-  bookingId  Int       @unique
-  mentorId   Int
-  menteeId   Int
-  startedAt  DateTime?
-  endedAt    DateTime?
-  notes      String?
-
-  booking Booking @relation(fields: [bookingId], references: [id])
-  mentor  User    @relation("SessionMentor", fields: [mentorId], references: [id])
-  mentee  User    @relation("SessionMentee", fields: [menteeId], references: [id])
-
-  feedback Feedback?
-}
-
-model Feedback {
-  id        Int      @id @default(autoincrement())
-  sessionId Int      @unique
-  mentorId  Int
-  menteeId  Int
-  rating    Int      // 1..5
-  comment   String?
-  createdAt DateTime @default(now())
-
-  session Session @relation(fields: [sessionId], references: [id])
-  mentor  User    @relation("FeedbackToMentor", fields: [mentorId], references: [id])
-  mentee  User    @relation("FeedbackByUser", fields: [menteeId], references: [id])
-
-  @@index([mentorId])
-  @@index([menteeId])
-  @@index([rating])
-}
-
-model Notification {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  type      String   // EMAIL|APP|WEB
-  title     String
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId, isRead])
-}
-
-model Post {
-  id        Int      @id @default(autoincrement())
-  authorId  Int      // User.id của tác giả
-  title     String
-  content   String   @db.Text
-  isPublic  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  author User   @relation("UserPosts", fields: [authorId], references: [id])
-  likes  Like[]
-
-  @@index([authorId])
-  @@index([createdAt])
-  @@index([isPublic])
-}
-
-model Like {
-  id     Int @id @default(autoincrement())
-  postId Int
-  userId Int
-  createdAt DateTime @default(now())
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation("UserLikes", fields: [userId], references: [id])
-
-  @@unique([postId, userId]) // Một user chỉ like 1 lần/post
-  @@index([postId])
-  @@index([userId])
+enum schedule_status {
+  AVAILABLE
+  CANCELLED
 }

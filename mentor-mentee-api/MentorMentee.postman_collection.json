@@ -31,7 +31,7 @@
       "name": "Authentication",
       "item": [
         {
-          "name": "Register",
+          "name": "Register (Legacy)",
           "request": {
             "method": "POST",
             "header": [
@@ -48,6 +48,84 @@
               "raw": "{{baseUrl}}/auth/register",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Request OTP Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newtestuser@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"MENTEE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/request-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "request-code"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data.token) {",
+                  "        pm.collectionVariables.set('token', response.data.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newtestuser@example.com\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newtestuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/resend",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "resend"]
             }
           }
         },

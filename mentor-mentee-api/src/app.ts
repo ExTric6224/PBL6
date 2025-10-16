@@ -35,6 +35,15 @@ app.use('/api/auth', rateLimit({
   legacyHeaders: false,
 }));
 
+// Stricter rate limiting for OTP registration endpoints
+app.use('/api/auth/register', rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // limit each IP to 10 OTP requests per 5 minutes
+  message: 'Too many OTP requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
+
 app.use('/api/health', limiter);
 
 // Logging middleware

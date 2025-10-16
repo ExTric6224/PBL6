@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
+import registrationOtpRoutes from './registration-otp.routes';
+import forgotPasswordRoutes from './forgot-password.routes';
 import profilesRoutes from './profiles.routes';
 import schedulesRoutes from './schedules.routes';
 import bookingsRoutes from './bookings.routes';
@@ -12,6 +14,8 @@ const router = Router();
 
 // Mount all routes
 router.use('/auth', authRoutes);
+router.use('/auth/register', registrationOtpRoutes);
+router.use('/auth/forgot-password', forgotPasswordRoutes);
 router.use('/profiles', profilesRoutes);
 router.use('/schedules', schedulesRoutes);
 router.use('/bookings', bookingsRoutes);
