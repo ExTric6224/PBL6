@@ -100,4 +100,55 @@ export const authAPI = {
   },
 };
 
+// Forgot Password APIs
+export const forgotPasswordAPI = {
+  requestResetCode: async (data: { email: string }): Promise<{ email: string; ttlMinutes: number }> => {
+    console.log('Request reset code with data:', data);
+    try {
+      const response = await api.post('/auth/forgot-password/request-code', data);
+      console.log('Reset code request response:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Reset code request error:', error.response?.data);
+      throw error;
+    }
+  },
+
+  verifyResetCode: async (data: { email: string; code: string }): Promise<{ valid: boolean }> => {
+    console.log('Verify reset code for email:', data.email);
+    try {
+      const response = await api.post('/auth/forgot-password/verify-code', data);
+      console.log('Reset code verify response:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Reset code verify error:', error.response?.data);
+      throw error;
+    }
+  },
+
+  resetPassword: async (data: { email: string; code: string; newPassword: string }): Promise<{ message: string }> => {
+    console.log('Reset password for email:', data.email);
+    try {
+      const response = await api.post('/auth/forgot-password/reset-password', data);
+      console.log('Reset password response:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Reset password error:', error.response?.data);
+      throw error;
+    }
+  },
+
+  resendResetCode: async (data: { email: string }): Promise<{ email: string; ttlMinutes: number }> => {
+    console.log('Resend reset code for email:', data.email);
+    try {
+      const response = await api.post('/auth/forgot-password/resend', data);
+      console.log('Resend reset code response:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Resend reset code error:', error.response?.data);
+      throw error;
+    }
+  },
+};
+
 export default api;

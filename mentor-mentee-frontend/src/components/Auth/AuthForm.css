@@ -264,3 +264,145 @@
     flex-direction: column;
   }
 }
+
+/* Forgot Password specific styles */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 0 20px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #e2e8f0;
+  z-index: -1;
+}
+
+.step.completed:not(:last-child)::after {
+  background: #667eea;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #a0aec0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: scale(1.1);
+}
+
+.step.completed .step-number {
+  background: #667eea;
+  color: white;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 500;
+  text-align: center;
+}
+
+.step.active .step-label {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.form-hint {
+  color: #718096;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.disabled-input {
+  background-color: #f7fafc !important;
+  cursor: not-allowed;
+  color: #718096;
+}
+
+.success-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin: 0 auto 24px;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-message.large {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+
+.forgot-password-link {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 8px;
+}
+
+.forgot-password-link .auth-link {
+  font-size: 14px;
+}
+
+.resend-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.resend-section p {
+  color: #718096;
+  font-size: 14px;
+  margin-bottom: 12px;
+}

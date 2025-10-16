@@ -93,6 +93,12 @@ const Login: React.FC = () => {
             />
           </div>
 
+          <div className="forgot-password-link">
+            <Link to="/forgot-password" className="auth-link">
+              Forgot your password?
+            </Link>
+          </div>
+
           <button 
             type="submit" 
             className="auth-button primary"
