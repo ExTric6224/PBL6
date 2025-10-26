@@ -14,12 +14,6 @@ export class SessionsService {
       },
       include: {
         schedule: true,
-        mentee: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
       },
     });
 
@@ -49,18 +43,6 @@ export class SessionsService {
             schedule: true,
           },
         },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
       },
     });
   }
@@ -76,18 +58,6 @@ export class SessionsService {
         booking: {
           include: {
             schedule: true,
-          },
-        },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
           },
         },
       },
@@ -113,18 +83,6 @@ export class SessionsService {
             schedule: true,
           },
         },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
       },
     });
   }
@@ -136,12 +94,6 @@ export class SessionsService {
         booking: {
           include: {
             schedule: true,
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
           },
         },
         feedback: true,
@@ -159,12 +111,6 @@ export class SessionsService {
         booking: {
           include: {
             schedule: true,
-          },
-        },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
           },
         },
         feedback: true,

@@ -169,25 +169,79 @@ model session {
 }
 
 model user {
-  id                               Int            @id @default(autoincrement())
-  email                            String         @unique(map: "User_email_key")
+  id                               Int              @id @default(autoincrement())
+  email                            String           @unique(map: "User_email_key")
   password                         String
-  role                             user_role      @default(MENTEE)
-  createdAt                        DateTime       @default(now())
+  role                             user_role        @default(MENTEE)
+  roleId                           Int?
+  createdAt                        DateTime         @default(now())
   updatedAt                        DateTime
   booking                          booking[]
-  feedback_feedback_menteeIdTouser feedback[]     @relation("feedback_menteeIdTouser")
-  feedback_feedback_mentorIdTouser feedback[]     @relation("feedback_mentorIdTouser")
+  feedback_feedback_menteeIdTouser feedback[]       @relation("feedback_menteeIdTouser")
+  feedback_feedback_mentorIdTouser feedback[]       @relation("feedback_mentorIdTouser")
   like                             like[]
   menteeprofile                    menteeprofile?
   mentorprofile                    mentorprofile?
   notification                     notification[]
   post                             post[]
   schedule                         schedule[]
-  session_session_menteeIdTouser   session[]      @relation("session_menteeIdTouser")
-  session_session_mentorIdTouser   session[]      @relation("session_mentorIdTouser")
+  session_session_menteeIdTouser   session[]        @relation("session_menteeIdTouser")
+  session_session_mentorIdTouser   session[]        @relation("session_mentorIdTouser")
+  roleRelation                     Role?            @relation(fields: [roleId], references: [id])
+  userPermissions                  UserPermission[]
 
   @@index([role], map: "User_role_idx")
+  @@index([roleId], map: "User_roleId_idx")
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  rolePermissions RolePermission[]
+  users           user[]
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  code            String           @unique
+  resource        String
+  action          String
+  description     String?
+  createdAt       DateTime         @default(now())
+  rolePermissions RolePermission[]
+  userPermissions UserPermission[]
+
+  @@index([resource], map: "Permission_resource_idx")
+  @@index([action], map: "Permission_action_idx")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId], map: "RolePermission_roleId_idx")
+  @@index([permissionId], map: "RolePermission_permissionId_idx")
+}
+
+model UserPermission {
+  userId       Int
+  permissionId Int
+  isGranted    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime
+  user         user       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@index([userId], map: "UserPermission_userId_idx")
+  @@index([permissionId], map: "UserPermission_permissionId_idx")
 }
 
 enum booking_status {

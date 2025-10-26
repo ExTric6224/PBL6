@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { PostsController } from '../controllers/posts.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { authorizePermissions } from '../middleware/permission.middleware';
+import prisma from '../db/client';
 
 const router = Router();
 const postsController = new PostsController();
@@ -9,24 +11,46 @@ const postsController = new PostsController();
 router.use(authenticate);
 
 // GET /api/posts - Lấy danh sách posts (public hoặc của user)
-router.get('/', postsController.getPosts);
+router.get('/', authorizePermissions('post:view_any'), postsController.getPosts);
 
 // GET /api/posts/:id - Lấy chi tiết một post
-router.get('/:id', postsController.getPostById);
+router.get('/:id', authorizePermissions('post:view_any'), postsController.getPostById);
 
 // POST /api/posts - Tạo post mới
-router.post('/', postsController.createPost);
+router.post('/', authorizePermissions('post:create'), postsController.createPost);
 
 // PUT /api/posts/:id - Cập nhật post (chỉ author)
-router.put('/:id', postsController.updatePost);
+router.put('/:id', 
+  authorizePermissions('post:update', {
+    scope: 'own',
+    getResourceOwnerId: async (req) => {
+      const post = await prisma.post.findUnique({ 
+        where: { id: Number(req.params.id) } 
+      });
+      return post?.authorId ?? null;
+    }
+  }), 
+  postsController.updatePost
+);
 
 // DELETE /api/posts/:id - Xóa post (chỉ author)
-router.delete('/:id', postsController.deletePost);
+router.delete('/:id', 
+  authorizePermissions('post:delete', {
+    scope: 'own',
+    getResourceOwnerId: async (req) => {
+      const post = await prisma.post.findUnique({ 
+        where: { id: Number(req.params.id) } 
+      });
+      return post?.authorId ?? null;
+    }
+  }), 
+  postsController.deletePost
+);
 
 // POST /api/posts/:id/like - Like/Unlike post
-router.post('/:id/like', postsController.toggleLike);
+router.post('/:id/like', authorizePermissions('post:like'), postsController.toggleLike);
 
 // GET /api/posts/:id/likes - Lấy danh sách likes của post
-router.get('/:id/likes', postsController.getPostLikes);
+router.get('/:id/likes', authorizePermissions('post:view_any'), postsController.getPostLikes);
 
 export default router;

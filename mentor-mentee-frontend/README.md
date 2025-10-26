@@ -1,33 +1,96 @@
-# MentorMentee Frontend
+# 🎓 MentorMentee Frontend - Complete Platform
 
-Frontend React.js application for the MentorMentee platform.
+Beautiful, responsive React.js application for the MentorMentee platform with full feature set.
 
-## Features
+## ✨ Features
 
-- 🔐 User Authentication (Login/Register)
-- 👥 Role-based access (Mentor/Mentee)
-- 🛡️ Protected routes
-- 📱 Responsive design
-- 🎨 Modern UI with animations
-- ⚡ TypeScript support
-- 🔄 Automatic token refresh
-- 🧪 Test accounts included
+### 🔐 Authentication & Security
+- User Authentication (Login/Register with OTP)
+- Forgot Password flow
+- JWT token management
+- Role-based access control (RBAC)
+- Protected routes
 
-## Tech Stack
+### 📝 Posts Management
+- View all community posts
+- Create posts (Mentor/Admin)
+- Edit/Delete own posts
+- Like/Unlike posts
+- Pagination support
 
-- React 18
-- TypeScript
-- React Router v6
-- Axios for API calls
-- Context API for state management
-- CSS3 with modern features
+### 🗓️ Schedules System
+- **Mentors**: Create and manage availability schedules
+- **Mentees**: Browse available mentors and time slots
+- Filter by status (Available/Booked/Cancelled)
+- Real-time status updates
 
-## Getting Started
+### 📅 Bookings Management
+- **Mentees**: Book mentor sessions with notes
+- **Mentors**: View, confirm, or cancel bookings
+- Track booking status (Pending/Confirmed/Cancelled/Completed)
+- Complete booking history
+
+### ⭐ Feedback System
+- Star rating (1-5 stars) with interactive UI
+- Written feedback/comments
+- View feedback history
+- Mentee can give feedback after completed sessions
+
+### 👤 Profile Management
+- **Mentor Profile**: Bio, expertise tags, years of experience
+- **Mentee Profile**: Interest tags, learning goals
+- Create and update profiles anytime
+- Beautiful tag input interface
+
+### � Admin - Permission Management
+- Grant/Revoke user permissions
+- Manage role-based permissions
+- Bulk edit role permissions
+- Visual override indicators (green/red)
+- Complete RBAC system with 52 permissions
+
+### � Navigation
+- Responsive navigation bar with mobile menu
+- Quick access to all features
+- User info display
+- Role-based menu items
+
+## 🚀 Tech Stack
+
+- **React 18** - Modern React with hooks
+- **TypeScript** - Type-safe code
+- **React Router v6** - Client-side routing
+- **Axios** - HTTP client
+- **Context API** - State management
+- **CSS3** - Gradients, animations, flexbox, grid
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── Auth/              # Authentication components
+│   ├── Navigation/        # Navigation bar
+│   ├── Posts/             # Posts management
+│   ├── Schedules/         # Schedule management
+│   ├── Bookings/          # Booking system
+│   ├── Feedbacks/         # Feedback system
+│   ├── Profile/           # Profile management
+│   ├── Permissions/       # Admin permission management
+│   └── Dashboard.tsx      # Main dashboard
+├── services/              # API integration layer
+├── types/                 # TypeScript definitions
+├── context/               # React Context
+└── App.tsx                # Main app with routes
+```
+
+## 🎯 Getting Started
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
 - npm or yarn
+- Backend API running on port 3000
 - MentorMentee API running on http://localhost:3000
 
 ### Installation

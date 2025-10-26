@@ -7,7 +7,7 @@ export class BookingsService {
     const schedule = await prisma.schedule.findUnique({
       where: { id: data.scheduleId },
       include: {
-        bookings: true,
+        booking: true,
       },
     });
 
@@ -20,7 +20,7 @@ export class BookingsService {
     }
 
     // Check capacity
-    const confirmedBookings = schedule.bookings.filter(
+    const confirmedBookings = schedule.booking.filter(
       (booking: any) => booking.status === 'CONFIRMED' || booking.status === 'PENDING'
     );
 
@@ -50,20 +50,20 @@ export class BookingsService {
       include: {
         schedule: {
           include: {
-            mentor: {
+            user: {
               select: {
                 id: true,
                 email: true,
-                mentorProfile: true,
+                mentorprofile: true,
               },
             },
           },
         },
-        mentee: {
+        user: {
           select: {
             id: true,
             email: true,
-            menteeProfile: true,
+            menteeprofile: true,
           },
         },
       },
@@ -81,7 +81,7 @@ export class BookingsService {
       },
       include: {
         schedule: true,
-        mentee: {
+        user: {
           select: {
             id: true,
             email: true,
@@ -104,20 +104,20 @@ export class BookingsService {
       include: {
         schedule: {
           include: {
-            mentor: {
+            user: {
               select: {
                 id: true,
                 email: true,
-                mentorProfile: true,
+                mentorprofile: true,
               },
             },
           },
         },
-        mentee: {
+        user: {
           select: {
             id: true,
             email: true,
-            menteeProfile: true,
+            menteeprofile: true,
           },
         },
       },
@@ -131,14 +131,14 @@ export class BookingsService {
       include: {
         schedule: {
           include: {
-            mentor: {
+            user: {
               select: {
                 id: true,
               },
             },
           },
         },
-        mentee: {
+        user: {
           select: {
             id: true,
           },
@@ -152,7 +152,7 @@ export class BookingsService {
 
     // Check if user is the mentee who made the booking or the mentor who owns the schedule
     const isBookingOwner = booking.menteeId === userId;
-    const isScheduleOwner = booking.schedule.mentor.id === userId;
+    const isScheduleOwner = booking.schedule.user.id === userId;
 
     if (!isBookingOwner && !isScheduleOwner) {
       throw new Error('Access denied');
@@ -168,20 +168,20 @@ export class BookingsService {
       include: {
         schedule: {
           include: {
-            mentor: {
+            user: {
               select: {
                 id: true,
                 email: true,
-                mentorProfile: true,
+                mentorprofile: true,
               },
             },
           },
         },
-        mentee: {
+        user: {
           select: {
             id: true,
             email: true,
-            menteeProfile: true,
+            menteeprofile: true,
           },
         },
       },
@@ -194,11 +194,11 @@ export class BookingsService {
       include: {
         schedule: {
           include: {
-            mentor: {
+            user: {
               select: {
                 id: true,
                 email: true,
-                mentorProfile: true,
+                mentorprofile: true,
               },
             },
           },
@@ -219,11 +219,11 @@ export class BookingsService {
       },
       include: {
         schedule: true,
-        mentee: {
+        user: {
           select: {
             id: true,
             email: true,
-            menteeProfile: true,
+            menteeprofile: true,
           },
         },
       },

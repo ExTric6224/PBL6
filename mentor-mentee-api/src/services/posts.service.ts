@@ -3,33 +3,34 @@ import { CreatePostDto, UpdatePostDto, PostQueryDto } from '../schemas/posts.sch
 
 export class PostsService {
   async createPost(authorId: number, data: CreatePostDto) {
-    return await (prisma as any).post.create({
+    return await prisma.post.create({
       data: {
         authorId,
         title: data.title,
         content: data.content,
         isPublic: data.isPublic,
+        updatedAt: new Date(),
       },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             email: true,
             role: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 fullName: true,
                 school: true,
               },
             },
-            menteeProfile: {
+            menteeprofile: {
               select: {
                 fullName: true,
               },
             },
           },
         },
-        likes: {
+        like: {
           include: {
             user: {
               select: {
@@ -41,7 +42,7 @@ export class PostsService {
         },
         _count: {
           select: {
-            likes: true,
+            like: true,
           },
         },
       },
@@ -75,28 +76,28 @@ export class PostsService {
     }
 
     const [posts, total] = await Promise.all([
-      (prisma as any).post.findMany({
+      prisma.post.findMany({
         where,
         include: {
-          author: {
+          user: {
             select: {
               id: true,
               email: true,
               role: true,
-              mentorProfile: {
+              mentorprofile: {
                 select: {
                   fullName: true,
                   school: true,
                 },
               },
-              menteeProfile: {
+              menteeprofile: {
                 select: {
                   fullName: true,
                 },
               },
             },
           },
-          likes: currentUserId ? {
+          like: currentUserId ? {
             where: {
               userId: currentUserId,
             },
@@ -107,7 +108,7 @@ export class PostsService {
           } : false,
           _count: {
             select: {
-              likes: true,
+              like: true,
             },
           },
         },
@@ -117,14 +118,14 @@ export class PostsService {
         skip,
         take: limit,
       }),
-      (prisma as any).post.count({ where }),
+      prisma.post.count({ where }),
     ]);
 
     return {
       posts: posts.map((post: any) => ({
         ...post,
-        isLikedByCurrentUser: currentUserId ? post.likes.length > 0 : false,
-        likesCount: post._count.likes,
+        isLikedByCurrentUser: currentUserId ? post.like.length > 0 : false,
+        likesCount: post._count.like,
       })),
       pagination: {
         page,
@@ -136,28 +137,28 @@ export class PostsService {
   }
 
   async getPostById(postId: number, currentUserId?: number) {
-    const post = await (prisma as any).post.findUnique({
+    const post = await prisma.post.findUnique({
       where: { id: postId },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             email: true,
             role: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 fullName: true,
                 school: true,
               },
             },
-            menteeProfile: {
+            menteeprofile: {
               select: {
                 fullName: true,
               },
             },
           },
         },
-        likes: currentUserId ? {
+        like: currentUserId ? {
           where: {
             userId: currentUserId,
           },
@@ -177,7 +178,7 @@ export class PostsService {
         },
         _count: {
           select: {
-            likes: true,
+            like: true,
           },
         },
       },
@@ -194,14 +195,14 @@ export class PostsService {
 
     return {
       ...post,
-      isLikedByCurrentUser: currentUserId ? post.likes.some((like: any) => like.userId === currentUserId) : false,
-      likesCount: post._count.likes,
+      isLikedByCurrentUser: currentUserId ? post.like.some((like: any) => like.userId === currentUserId) : false,
+      likesCount: post._count.like,
     };
   }
 
   async updatePost(postId: number, authorId: number, data: UpdatePostDto) {
     // Kiểm tra quyền sở hữu
-    const post = await (prisma as any).post.findFirst({
+    const post = await prisma.post.findFirst({
       where: {
         id: postId,
         authorId: authorId,
@@ -212,22 +213,25 @@ export class PostsService {
       throw new Error('Post not found or access denied');
     }
 
-    return await (prisma as any).post.update({
+    return await prisma.post.update({
       where: { id: postId },
-      data,
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             email: true,
             role: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 fullName: true,
                 school: true,
               },
             },
-            menteeProfile: {
+            menteeprofile: {
               select: {
                 fullName: true,
               },
@@ -236,7 +240,7 @@ export class PostsService {
         },
         _count: {
           select: {
-            likes: true,
+            like: true,
           },
         },
       },
@@ -245,7 +249,7 @@ export class PostsService {
 
   async deletePost(postId: number, authorId: number) {
     // Kiểm tra quyền sở hữu
-    const post = await (prisma as any).post.findFirst({
+    const post = await prisma.post.findFirst({
       where: {
         id: postId,
         authorId: authorId,
@@ -256,14 +260,14 @@ export class PostsService {
       throw new Error('Post not found or access denied');
     }
 
-    return await (prisma as any).post.delete({
+    return await prisma.post.delete({
       where: { id: postId },
     });
   }
 
   async toggleLike(postId: number, userId: number) {
     // Kiểm tra post có tồn tại và public không
-    const post = await (prisma as any).post.findUnique({
+    const post = await prisma.post.findUnique({
       where: { id: postId },
     });
 
@@ -276,7 +280,7 @@ export class PostsService {
     }
 
     // Kiểm tra đã like chưa
-    const existingLike = await (prisma as any).like.findUnique({
+    const existingLike = await prisma.like.findUnique({
       where: {
         postId_userId: {
           postId,
@@ -287,13 +291,13 @@ export class PostsService {
 
     if (existingLike) {
       // Unlike
-      await (prisma as any).like.delete({
+      await prisma.like.delete({
         where: { id: existingLike.id },
       });
       return { action: 'unliked' };
     } else {
       // Like
-      await (prisma as any).like.create({
+      await prisma.like.create({
         data: {
           postId,
           userId,
@@ -304,7 +308,7 @@ export class PostsService {
   }
 
   async getPostLikes(postId: number) {
-    const post = await (prisma as any).post.findUnique({
+    const post = await prisma.post.findUnique({
       where: { id: postId },
     });
 
@@ -312,7 +316,7 @@ export class PostsService {
       throw new Error('Post not found');
     }
 
-    const likes = await (prisma as any).like.findMany({
+    const likes = await prisma.like.findMany({
       where: { postId },
       include: {
         user: {
@@ -320,12 +324,12 @@ export class PostsService {
             id: true,
             email: true,
             role: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 fullName: true,
               },
             },
-            menteeProfile: {
+            menteeprofile: {
               select: {
                 fullName: true,
               },

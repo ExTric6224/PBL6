@@ -6,14 +6,14 @@ export class SchedulesService {
     // Check if user is mentor and has mentor profile
     const user = await prisma.user.findUnique({
       where: { id: mentorUserId },
-      include: { mentorProfile: true },
+      include: { mentorprofile: true },
     });
 
     if (!user || user.role !== 'MENTOR') {
       throw new Error('User is not a mentor');
     }
 
-    if (!user.mentorProfile) {
+    if (!user.mentorprofile) {
       throw new Error('Mentor profile not found');
     }
 
@@ -26,11 +26,11 @@ export class SchedulesService {
         capacity: data.capacity,
       },
       include: {
-        mentor: {
+        user: {
           select: {
             id: true,
             email: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 id: true,
                 fullName: true,
@@ -71,11 +71,11 @@ export class SchedulesService {
     const schedules = await prisma.schedule.findMany({
       where,
       include: {
-        mentor: {
+        user: {
           select: {
             id: true,
             email: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 id: true,
                 fullName: true,
@@ -88,9 +88,9 @@ export class SchedulesService {
             },
           },
         },
-        bookings: {
+        booking: {
           include: {
-            mentee: {
+            user: {
               select: {
                 id: true,
                 email: true,
@@ -107,10 +107,10 @@ export class SchedulesService {
     return schedules.map((schedule) => ({
       ...schedule,
       mentor: {
-        ...schedule.mentor,
-        mentorProfile: schedule.mentor.mentorProfile ? {
-          ...schedule.mentor.mentorProfile,
-          expertise: JSON.parse(schedule.mentor.mentorProfile.expertise as string),
+        ...schedule.user,
+        mentorProfile: schedule.user.mentorprofile ? {
+          ...schedule.user.mentorprofile,
+          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
         } : null,
       },
     }));
@@ -120,14 +120,14 @@ export class SchedulesService {
     // Check if user is mentor and has mentor profile
     const user = await prisma.user.findUnique({
       where: { id: mentorUserId },
-      include: { mentorProfile: true },
+      include: { mentorprofile: true },
     });
 
     if (!user || user.role !== 'MENTOR') {
       throw new Error('User is not a mentor');
     }
 
-    if (!user.mentorProfile) {
+    if (!user.mentorprofile) {
       throw new Error('Mentor profile not found');
     }
 
@@ -155,11 +155,11 @@ export class SchedulesService {
       where: { id: scheduleId },
       data: updateData,
       include: {
-        mentor: {
+        user: {
           select: {
             id: true,
             email: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 id: true,
                 fullName: true,
@@ -180,14 +180,14 @@ export class SchedulesService {
     // Check if user is mentor and has mentor profile
     const user = await prisma.user.findUnique({
       where: { id: mentorUserId },
-      include: { mentorProfile: true },
+      include: { mentorprofile: true },
     });
 
     if (!user || user.role !== 'MENTOR') {
       throw new Error('User is not a mentor');
     }
 
-    if (!user.mentorProfile) {
+    if (!user.mentorprofile) {
       throw new Error('Mentor profile not found');
     }
 
@@ -214,14 +214,14 @@ export class SchedulesService {
     // Check if user is mentor and has mentor profile
     const user = await prisma.user.findUnique({
       where: { id: mentorUserId },
-      include: { mentorProfile: true },
+      include: { mentorprofile: true },
     });
 
     if (!user || user.role !== 'MENTOR') {
       throw new Error('User is not a mentor');
     }
 
-    if (!user.mentorProfile) {
+    if (!user.mentorprofile) {
       throw new Error('Mentor profile not found');
     }
 
@@ -246,11 +246,11 @@ export class SchedulesService {
     const schedules = await prisma.schedule.findMany({
       where,
       include: {
-        mentor: {
+        user: {
           select: {
             id: true,
             email: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 id: true,
                 fullName: true,
@@ -263,9 +263,9 @@ export class SchedulesService {
             },
           },
         },
-        bookings: {
+        booking: {
           include: {
-            mentee: {
+            user: {
               select: {
                 id: true,
                 email: true,
@@ -282,10 +282,10 @@ export class SchedulesService {
     return schedules.map((schedule) => ({
       ...schedule,
       mentor: {
-        ...schedule.mentor,
-        mentorProfile: schedule.mentor.mentorProfile ? {
-          ...schedule.mentor.mentorProfile,
-          expertise: JSON.parse(schedule.mentor.mentorProfile.expertise as string),
+        ...schedule.user,
+        mentorProfile: schedule.user.mentorprofile ? {
+          ...schedule.user.mentorprofile,
+          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
         } : null,
       },
     }));
@@ -295,11 +295,11 @@ export class SchedulesService {
     const schedule = await prisma.schedule.findUnique({
       where: { id: scheduleId },
       include: {
-        mentor: {
+        user: {
           select: {
             id: true,
             email: true,
-            mentorProfile: {
+            mentorprofile: {
               select: {
                 id: true,
                 fullName: true,
@@ -312,9 +312,9 @@ export class SchedulesService {
             },
           },
         },
-        bookings: {
+        booking: {
           include: {
-            mentee: {
+            user: {
               select: {
                 id: true,
                 email: true,
@@ -332,10 +332,10 @@ export class SchedulesService {
     return {
       ...schedule,
       mentor: {
-        ...schedule.mentor,
-        mentorProfile: schedule.mentor.mentorProfile ? {
-          ...schedule.mentor.mentorProfile,
-          expertise: JSON.parse(schedule.mentor.mentorProfile.expertise as string),
+        ...schedule.user,
+        mentorProfile: schedule.user.mentorprofile ? {
+          ...schedule.user.mentorprofile,
+          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
         } : null,
       },
     };

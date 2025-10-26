@@ -23,6 +23,7 @@ export class AuthService {
         email: data.email,
         password: hashedPassword,
         role: data.role,
+        updatedAt: new Date(),
       },
       select: {
         id: true,
@@ -79,8 +80,8 @@ export class AuthService {
         role: true,
         createdAt: true,
         updatedAt: true,
-        mentorProfile: true,
-        menteeProfile: true,
+        mentorprofile: true,
+        menteeprofile: true,
       },
     });
 

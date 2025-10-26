@@ -14,9 +14,9 @@ export class FeedbacksService {
           include: {
             schedule: {
               include: {
-                mentor: {
+                user: {
                   select: {
-                    id: true,  // Sửa từ userId thành id
+                    id: true,
                   },
                 },
               },
@@ -46,7 +46,7 @@ export class FeedbacksService {
     return await prisma.feedback.create({
       data: {
         sessionId: data.sessionId,
-        mentorId: session.booking.schedule.mentor.id,  // Sửa từ userId thành id
+        mentorId: session.booking.schedule.user.id,
         menteeId: menteeId,
         rating: data.rating,
         comment: data.comment,
@@ -59,18 +59,6 @@ export class FeedbacksService {
                 schedule: true,
               },
             },
-          },
-        },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
           },
         },
       },
@@ -100,12 +88,6 @@ export class FeedbacksService {
                 schedule: true,
               },
             },
-          },
-        },
-        mentee: {
-          select: {
-            id: true,
-            email: true,
           },
         },
       },
@@ -138,12 +120,6 @@ export class FeedbacksService {
                 schedule: true,
               },
             },
-          },
-        },
-        mentor: {
-          select: {
-            id: true,
-            email: true,
           },
         },
       },

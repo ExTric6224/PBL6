@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 export interface ApiError {
-  code: 'VALIDATION_ERROR' | 'AUTH_ERROR' | 'NOT_FOUND' | 'CONFLICT' | 'INTERNAL';
+  code: 'VALIDATION_ERROR' | 'AUTH_ERROR' | 'FORBIDDEN' | 'NOT_FOUND' | 'CONFLICT' | 'INTERNAL';
   message: string;
   details?: any;
 }
@@ -58,4 +58,8 @@ export const tooManyRequestError = (res: Response, message: string = 'Too many r
 
 export const badRequestError = (res: Response, message: string = 'Bad request'): Response => {
   return error(res, 'VALIDATION_ERROR', message, null, 400);
+};
+
+export const forbiddenError = (res: Response, message: string = 'Forbidden'): Response => {
+  return error(res, 'FORBIDDEN', message, null, 403);
 };

@@ -1,0 +1,679 @@
+{
+	"info": {
+		"name": "Permission Management API",
+		"description": "Collection để test chức năng trao quyền/cấp quyền cho user",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{admin_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_user_id",
+			"value": "5",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "0. Authentication",
+			"item": [
+				{
+					"name": "Login as ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.collectionVariables.set('admin_token', jsonData.data.token);",
+									"        console.log('Admin token saved:', jsonData.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Đăng nhập với tài khoản ADMIN để lấy token. Token sẽ tự động được lưu vào biến collection."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. View Permissions & Roles",
+			"item": [
+				{
+					"name": "List All Permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions"]
+						},
+						"description": "Xem tất cả các quyền có sẵn trong hệ thống, được nhóm theo resource (schedule, booking, post, ...)"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Roles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles"]
+						},
+						"description": "Xem tất cả các roles (ADMIN, MENTOR, MENTEE) và quyền mặc định của từng role"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Permissions for Role (MENTEE)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "MENTEE"]
+						},
+						"description": "Xem chi tiết quyền của role MENTEE"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Permissions for Role (MENTOR)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/MENTOR",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "MENTOR"]
+						},
+						"description": "Xem chi tiết quyền của role MENTOR"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Permissions for Role (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/ADMIN",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "ADMIN"]
+						},
+						"description": "Xem chi tiết quyền của role ADMIN"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. User Permission Management",
+			"item": [
+				{
+					"name": "Get User Permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/{{test_user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "{{test_user_id}}"]
+						},
+						"description": "Xem quyền hiệu lực của user (bao gồm cả override). Thay đổi test_user_id trong biến collection."
+					},
+					"response": []
+				},
+				{
+					"name": "Grant Permission to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"post:create\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/{{test_user_id}}/grant",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "{{test_user_id}}", "grant"]
+						},
+						"description": "Cấp một quyền đặc biệt cho user (override). Ví dụ: cấp quyền tạo post cho một MENTEE."
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Permission from User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"schedule:create\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/{{test_user_id}}/revoke",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "{{test_user_id}}", "revoke"]
+						},
+						"description": "Thu hồi một quyền từ user (override - deny). Ví dụ: cấm một MENTOR tạo schedule."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User Permission Override",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/{{test_user_id}}/post:create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "{{test_user_id}}", "post:create"]
+						},
+						"description": "Xóa override, user sẽ quay về quyền mặc định của role. Thay 'post:create' bằng permission code bạn muốn xóa."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Role Permission Management",
+			"item": [
+				{
+					"name": "Add Permission to Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"profile:view_any\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "MENTEE", "add"]
+						},
+						"description": "Thêm một quyền mới vào role. Ví dụ: cho phép MENTEE xem profile của người khác."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Permission from Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"post:like\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE/remove",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "MENTEE", "remove"]
+						},
+						"description": "Xóa một quyền khỏi role. Ví dụ: ngăn MENTEE like bài post."
+					},
+					"response": []
+				},
+				{
+					"name": "Replace All Role Permissions",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCodes\": [\n    \"booking:create\",\n    \"booking:view_own\",\n    \"schedule:view_any\",\n    \"post:view_any\",\n    \"post:view_own\",\n    \"post:like\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "roles", "MENTEE"]
+						},
+						"description": "⚠️ NGUY HIỂM: Thay thế TOÀN BỘ quyền của role. Tất cả quyền cũ sẽ bị xóa!"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Real-World Scenarios",
+			"item": [
+				{
+					"name": "Scenario 1 - Grant Post Permissions to Super Mentee",
+					"item": [
+						{
+							"name": "Step 1 - View Current Permissions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "10"]
+								},
+								"description": "Xem quyền hiện tại của MENTEE (userId: 10)"
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2 - Grant post:create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"post:create\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/10/grant",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "10", "grant"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 3 - Grant post:update_own",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"post:update_own\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/10/grant",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "10", "grant"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 4 - Grant post:delete_own",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"post:delete_own\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/10/grant",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "10", "grant"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 5 - Verify Permissions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "10"]
+								},
+								"description": "Kiểm tra lại quyền sau khi cấp"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Scenario 2 - Restrict Mentor Permissions",
+					"item": [
+						{
+							"name": "Step 1 - View Current Permissions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7"]
+								},
+								"description": "Xem quyền hiện tại của MENTOR (userId: 7)"
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2 - Revoke schedule:create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"schedule:create\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7/revoke",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7", "revoke"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 3 - Revoke booking:approve",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"booking:approve\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7/revoke",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7", "revoke"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 4 - Verify Restrictions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7"]
+								},
+								"description": "Kiểm tra lại quyền sau khi thu hồi"
+							},
+							"response": []
+						},
+						{
+							"name": "Step 5 - Restore schedule:create",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7/schedule:create",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7", "schedule:create"]
+								},
+								"description": "Khôi phục quyền sau khi hết thời gian phạt"
+							},
+							"response": []
+						},
+						{
+							"name": "Step 6 - Restore booking:approve",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/7/booking:approve",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "7", "booking:approve"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Scenario 3 - Adjust MENTEE Role Permissions",
+					"item": [
+						{
+							"name": "Step 1 - View Current Role Permissions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "roles", "MENTEE"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2 - Add profile:view_any",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"permissionCode\": \"profile:view_any\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE/add",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "roles", "MENTEE", "add"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 3 - Verify Role Permissions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/roles/MENTEE",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "roles", "MENTEE"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Step 4 - Test with a MENTEE User",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/users/8",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "users", "8"]
+								},
+								"description": "Kiểm tra một user MENTEE bất kỳ (userId: 8)"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "5. Error Cases",
+			"item": [
+				{
+					"name": "Invalid Permission Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"invalid:permission\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/5/grant",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "5", "grant"]
+						},
+						"description": "Expected: Error 400/500 - Permission không tồn tại"
+					},
+					"response": []
+				},
+				{
+					"name": "User Not Found",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionCode\": \"post:create\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions/users/99999/grant",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions", "users", "99999", "grant"]
+						},
+						"description": "Expected: Error 404 - User not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Unauthorized (No Token)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions"]
+						},
+						"description": "Expected: Error 401 - Unauthorized"
+					},
+					"response": []
+				},
+				{
+					"name": "Forbidden (Not Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "MENTOR_OR_MENTEE_TOKEN_HERE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "permissions"]
+						},
+						"description": "Expected: Error 403 - Forbidden (chỉ ADMIN mới được phép)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

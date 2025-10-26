@@ -1,0 +1,316 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { profileApi } from '../../services/profileApi';
+import { useAuth } from '../../context/AuthContext';
+import { CreateMentorProfileData, CreateMenteeProfileData, MentorProfile, MenteeProfile } from '../../types/profile';
+import './ProfileForm.css';
+
+const ProfileForm: React.FC = () => {
+  const { user } = useAuth();
+  const isMentor = user?.role === 'MENTOR';
+  const isMentee = user?.role === 'MENTEE';
+
+  const [loading, setLoading] = useState(false);
+  const [existingProfile, setExistingProfile] = useState<MentorProfile | MenteeProfile | null>(null);
+  const [mentorData, setMentorData] = useState<CreateMentorProfileData>({
+    fullName: '',
+    school: '',
+    expertise: [],
+    degree: '',
+    yearsExp: 0,
+    bio: '',
+  });
+  const [menteeData, setMenteeData] = useState<CreateMenteeProfileData>({
+    fullName: '',
+    interests: [],
+    goals: '',
+  });
+
+  const [expertiseInput, setExpertiseInput] = useState('');
+  const [interestsInput, setInterestsInput] = useState('');
+
+  const loadProfile = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      if (isMentor) {
+        const profile = await profileApi.getMentorProfile(user.id);
+        setExistingProfile(profile);
+        
+        // Parse expertise if it's a string (defensive coding)
+        let expertise: string[] = [];
+        if (typeof profile.expertise === 'string') {
+          try {
+            expertise = JSON.parse(profile.expertise);
+          } catch {
+            expertise = [];
+          }
+        } else if (Array.isArray(profile.expertise)) {
+          expertise = profile.expertise;
+        }
+        
+        setMentorData({
+          fullName: profile.fullName,
+          school: profile.school || '',
+          bio: profile.bio || '',
+          expertise,
+          degree: profile.degree || '',
+          yearsExp: profile.yearsExp || 0,
+        });
+      } else if (isMentee) {
+        const profile = await profileApi.getMenteeProfile(user.id);
+        setExistingProfile(profile);
+        
+        // Parse interests if it's a string (defensive coding)
+        let interests: string[] = [];
+        if (typeof profile.interests === 'string') {
+          try {
+            interests = JSON.parse(profile.interests);
+          } catch {
+            interests = [];
+          }
+        } else if (Array.isArray(profile.interests)) {
+          interests = profile.interests;
+        }
+        
+        setMenteeData({
+          fullName: profile.fullName,
+          interests,
+          goals: profile.goals || '',
+        });
+      }
+    } catch (err: any) {
+      console.log('No existing profile found');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, isMentor, isMentee]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const handleMentorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await profileApi.createOrUpdateMentorProfile(mentorData);
+      alert('Mentor profile saved successfully!');
+      loadProfile();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to save profile');
+    }
+  };
+
+  const handleMenteeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await profileApi.createOrUpdateMenteeProfile(menteeData);
+      alert('Mentee profile saved successfully!');
+      loadProfile();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to save profile');
+    }
+  };
+
+  const addExpertise = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && expertiseInput.trim()) {
+      e.preventDefault();
+      setMentorData({
+        ...mentorData,
+        expertise: [...mentorData.expertise, expertiseInput.trim()],
+      });
+      setExpertiseInput('');
+    }
+  };
+
+  const removeExpertise = (index: number) => {
+    setMentorData({
+      ...mentorData,
+      expertise: mentorData.expertise.filter((_, i) => i !== index),
+    });
+  };
+
+  const addInterest = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && interestsInput.trim()) {
+      e.preventDefault();
+      setMenteeData({
+        ...menteeData,
+        interests: [...menteeData.interests, interestsInput.trim()],
+      });
+      setInterestsInput('');
+    }
+  };
+
+  const removeInterest = (index: number) => {
+    setMenteeData({
+      ...menteeData,
+      interests: menteeData.interests.filter((_, i) => i !== index),
+    });
+  };
+
+  if (loading) {
+    return <div className="loading">Loading profile...</div>;
+  }
+
+  return (
+    <div className="profile-container">
+      <div className="profile-header">
+        <h1>👤 {isMentor ? 'Mentor' : 'Mentee'} Profile</h1>
+      </div>
+
+      <div className="profile-card">
+        <div className="profile-info">
+          <div className="info-item">
+            <span className="info-label">Email</span>
+            <span className="info-value">{user?.email}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Role</span>
+            <span className="info-value">{user?.role}</span>
+          </div>
+        </div>
+
+        {isMentor && (
+          <form className="profile-form" onSubmit={handleMentorSubmit}>
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                value={mentorData.fullName}
+                onChange={(e) => setMentorData({ ...mentorData, fullName: e.target.value })}
+                required
+                placeholder="Your full name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>School</label>
+              <input
+                type="text"
+                value={mentorData.school}
+                onChange={(e) => setMentorData({ ...mentorData, school: e.target.value })}
+                placeholder="e.g. MIT, Stanford, etc."
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Degree</label>
+              <input
+                type="text"
+                value={mentorData.degree}
+                onChange={(e) => setMentorData({ ...mentorData, degree: e.target.value })}
+                placeholder="e.g. Master of Computer Science"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Bio</label>
+              <textarea
+                value={mentorData.bio}
+                onChange={(e) => setMentorData({ ...mentorData, bio: e.target.value })}
+                placeholder="Tell mentees about yourself..."
+                rows={4}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Expertise (Press Enter to add)</label>
+              <div className="tags-input-container">
+                {mentorData.expertise.map((skill, index) => (
+                  <span key={index} className="tag">
+                    {skill}
+                    <button type="button" onClick={() => removeExpertise(index)}>
+                      ✖
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  className="tag-input"
+                  value={expertiseInput}
+                  onChange={(e) => setExpertiseInput(e.target.value)}
+                  onKeyDown={addExpertise}
+                  placeholder="Add expertise (e.g. Backend, Mobile)..."
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Years of Experience</label>
+              <div className="experience-input">
+                <input
+                  type="number"
+                  value={mentorData.yearsExp}
+                  onChange={(e) => setMentorData({ 
+                    ...mentorData, 
+                    yearsExp: parseInt(e.target.value) || 0 
+                  })}
+                  min="0"
+                  max="50"
+                />
+                <span>years</span>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary">
+              {existingProfile ? 'Update Profile' : 'Create Profile'}
+            </button>
+          </form>
+        )}
+
+        {isMentee && (
+          <form className="profile-form" onSubmit={handleMenteeSubmit}>
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                value={menteeData.fullName}
+                onChange={(e) => setMenteeData({ ...menteeData, fullName: e.target.value })}
+                required
+                placeholder="Your full name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Interests (Press Enter to add)</label>
+              <div className="tags-input-container">
+                {menteeData.interests.map((interest, index) => (
+                  <span key={index} className="tag">
+                    {interest}
+                    <button type="button" onClick={() => removeInterest(index)}>
+                      ✖
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  className="tag-input"
+                  value={interestsInput}
+                  onChange={(e) => setInterestsInput(e.target.value)}
+                  onKeyDown={addInterest}
+                  placeholder="Add interest (e.g. Web, AI, Career)..."
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Goals</label>
+              <textarea
+                value={menteeData.goals}
+                onChange={(e) => setMenteeData({ ...menteeData, goals: e.target.value })}
+                required
+                placeholder="What do you want to achieve?"
+                rows={4}
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary">
+              {existingProfile ? 'Update Profile' : 'Create Profile'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ProfileForm;

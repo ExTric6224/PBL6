@@ -3,7 +3,7 @@ import { CreateMentorProfileDto, UpdateMentorProfileDto, CreateMenteeProfileDto,
 
 export class ProfilesService {
   async createOrUpdateMentorProfile(userId: number, data: CreateMentorProfileDto | UpdateMentorProfileDto) {
-    const existingProfile = await prisma.mentorProfile.findUnique({
+    const existingProfile = await prisma.mentorprofile.findUnique({
       where: { userId },
     });
 
@@ -14,7 +14,7 @@ export class ProfilesService {
 
     if (existingProfile) {
       // Update existing profile
-      return await prisma.mentorProfile.update({
+      return await prisma.mentorprofile.update({
         where: { userId },
         data: profileData,
         include: {
@@ -33,7 +33,7 @@ export class ProfilesService {
         throw new Error('Full name is required for new mentor profile');
       }
       
-      return await prisma.mentorProfile.create({
+      return await prisma.mentorprofile.create({
         data: {
           userId,
           fullName: data.fullName,
@@ -57,7 +57,7 @@ export class ProfilesService {
   }
 
   async getMentorProfile(userId: number) {
-    const profile = await prisma.mentorProfile.findUnique({
+    const profile = await prisma.mentorprofile.findUnique({
       where: { userId },
       include: {
         user: {
@@ -83,7 +83,7 @@ export class ProfilesService {
   }
 
   async createOrUpdateMenteeProfile(userId: number, data: CreateMenteeProfileDto | UpdateMenteeProfileDto) {
-    const existingProfile = await prisma.menteeProfile.findUnique({
+    const existingProfile = await prisma.menteeprofile.findUnique({
       where: { userId },
     });
 
@@ -94,7 +94,7 @@ export class ProfilesService {
 
     if (existingProfile) {
       // Update existing profile
-      return await prisma.menteeProfile.update({
+      return await prisma.menteeprofile.update({
         where: { userId },
         data: profileData,
         include: {
@@ -113,7 +113,7 @@ export class ProfilesService {
         throw new Error('Full name is required for new mentee profile');
       }
       
-      return await prisma.menteeProfile.create({
+      return await prisma.menteeprofile.create({
         data: {
           userId,
           fullName: data.fullName,
@@ -134,7 +134,7 @@ export class ProfilesService {
   }
 
   async getMenteeProfile(userId: number) {
-    const profile = await prisma.menteeProfile.findUnique({
+    const profile = await prisma.menteeprofile.findUnique({
       where: { userId },
       include: {
         user: {

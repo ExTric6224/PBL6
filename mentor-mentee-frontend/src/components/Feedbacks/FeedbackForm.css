@@ -1,0 +1,102 @@
+.feedback-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.feedback-header h1 {
+  margin: 0 0 30px 0;
+  color: #2d3748;
+  font-size: 32px;
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.feedback-form {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.rating-input {
+  margin-bottom: 20px;
+}
+
+.rating-input label {
+  display: block;
+  margin-bottom: 12px;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.stars {
+  display: flex;
+  gap: 8px;
+  font-size: 32px;
+}
+
+.star {
+  cursor: pointer;
+  transition: all 0.2s;
+  filter: grayscale(100%);
+}
+
+.star:hover,
+.star.active {
+  filter: grayscale(0%);
+  transform: scale(1.1);
+}
+
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feedback-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.feedback-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.feedback-rating {
+  font-size: 20px;
+}
+
+.feedback-date {
+  color: #718096;
+  font-size: 14px;
+}
+
+.feedback-comment {
+  color: #4a5568;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+.feedback-meta {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #718096;
+}
+
+@media (max-width: 768px) {
+  .feedback-container {
+    padding: 16px;
+  }
+}

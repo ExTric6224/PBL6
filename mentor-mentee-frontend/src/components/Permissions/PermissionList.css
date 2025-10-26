@@ -1,0 +1,112 @@
+.permission-list {
+  padding: 20px;
+}
+
+.permission-group {
+  margin-bottom: 30px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.resource-title {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.permission-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permission-item:hover {
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+}
+
+.permission-item input[type="checkbox"] {
+  margin-right: 12px;
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.permission-item input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+
+.permission-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.permission-code {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  font-family: 'Courier New', monospace;
+}
+
+.permission-description {
+  color: #7f8c8d;
+  font-size: 0.85rem;
+}
+
+/* Override Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.badge-granted {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.badge-revoked {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Highlight overrides */
+.permission-item.override-granted {
+  border-color: #28a745;
+  background: #f0f9f4;
+}
+
+.permission-item.override-revoked {
+  border-color: #dc3545;
+  background: #fef5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .permissions-grid {
+    grid-template-columns: 1fr;
+  }
+}
