@@ -10,6 +10,7 @@ export async function getEffectivePermissions(userId: number): Promise<Set<strin
     select: {
       roleRelation: {
         select: {
+          name: true,
           rolePermissions: {
             select: {
               permission: {
@@ -33,18 +34,29 @@ export async function getEffectivePermissions(userId: number): Promise<Set<strin
   const result = new Set<string>();
 
   // 1) Add permissions from role
-  user?.roleRelation?.rolePermissions.forEach(rp => {
-    result.add(rp.permission.code);
-  });
+  if (user?.roleRelation?.rolePermissions) {
+    console.log(`[PERMISSIONS] User ${userId} role: ${user.roleRelation.name}`);
+    user.roleRelation.rolePermissions.forEach(rp => {
+      result.add(rp.permission.code);
+      console.log(`  [ROLE] Added: ${rp.permission.code}`);
+    });
+  } else {
+    console.log(`[PERMISSIONS] User ${userId} has NO role assigned`);
+  }
 
   // 2) Apply user-specific overrides (grant or revoke)
   user?.userPermissions.forEach(up => {
     if (up.isGranted) {
       result.add(up.permission.code);
+      console.log(`  [USER GRANT] Added: ${up.permission.code}`);
     } else {
       result.delete(up.permission.code);
+      console.log(`  [USER REVOKE] Removed: ${up.permission.code}`);
     }
   });
+
+  console.log(`[PERMISSIONS] Final effective permissions for user ${userId}: ${result.size} total`);
+  console.log(`  ${Array.from(result).join(', ')}`);
 
   return result;
 }

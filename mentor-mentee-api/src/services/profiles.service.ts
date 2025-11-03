@@ -1,5 +1,6 @@
 import prisma from '../db/client';
 import { CreateMentorProfileDto, UpdateMentorProfileDto, CreateMenteeProfileDto, UpdateMenteeProfileDto } from '../schemas/profiles.schema';
+import { error } from '../utils/responses';
 
 export class ProfilesService {
   async createOrUpdateMentorProfile(userId: number, data: CreateMentorProfileDto | UpdateMentorProfileDto) {
@@ -7,16 +8,19 @@ export class ProfilesService {
       where: { userId },
     });
 
-    const profileData = {
-      ...data,
-      expertise: JSON.stringify(data.expertise || []),
-    };
-
     if (existingProfile) {
       // Update existing profile
       return await prisma.mentorprofile.update({
         where: { userId },
-        data: profileData,
+        data: {
+          fullName: data.fullName,
+          avatar: data.avatar,
+          school: data.school,
+          expertise: JSON.stringify(data.expertise || []),
+          degree: data.degree,
+          yearsExp: data.yearsExp,
+          bio: data.bio,
+        },
         include: {
           user: {
             select: {
@@ -37,6 +41,7 @@ export class ProfilesService {
         data: {
           userId,
           fullName: data.fullName,
+          avatar: data.avatar,
           school: data.school,
           expertise: JSON.stringify(data.expertise || []),
           degree: data.degree,
@@ -87,16 +92,23 @@ export class ProfilesService {
       where: { userId },
     });
 
-    const profileData = {
-      ...data,
-      interests: JSON.stringify(data.interests || []),
-    };
-
     if (existingProfile) {
       // Update existing profile
+      console.log('[DEBUG] Update mentee profile:', {
+        userId,
+        data,
+        interests: data.interests,
+        stringified: JSON.stringify(data.interests || [])
+      });
+      
       return await prisma.menteeprofile.update({
         where: { userId },
-        data: profileData,
+        data: {
+          fullName: data.fullName,
+          avatar: data.avatar,
+          goals: data.goals,
+          interests: JSON.stringify(data.interests || []),
+        },
         include: {
           user: {
             select: {
@@ -117,6 +129,7 @@ export class ProfilesService {
         data: {
           userId,
           fullName: data.fullName,
+          avatar: data.avatar,
           goals: data.goals,
           interests: JSON.stringify(data.interests || []),
         },

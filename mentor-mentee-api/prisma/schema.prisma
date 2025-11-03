@@ -87,6 +87,7 @@ model menteeprofile {
   id        Int     @id @default(autoincrement())
   userId    Int     @unique(map: "MenteeProfile_userId_key")
   fullName  String
+  avatar    String? @db.VarChar(500)
   goals     String?
   interests String  @db.LongText
   user      user    @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
@@ -96,6 +97,7 @@ model mentorprofile {
   id        Int     @id @default(autoincrement())
   userId    Int     @unique(map: "MentorProfile_userId_key")
   fullName  String
+  avatar    String? @db.VarChar(500)
   school    String?
   expertise String  @db.LongText
   degree    String?

@@ -10,6 +10,7 @@ import feedbacksRoutes from './feedbacks.routes';
 import notificationsRoutes from './notifications.routes';
 import postsRoutes from './posts.routes';
 import adminPermissionsRoutes from './admin-permissions.routes';
+import debugRoutes from './debug.routes';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/feedbacks', feedbacksRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/posts', postsRoutes);
 router.use('/admin/permissions', adminPermissionsRoutes);
+router.use('/debug', debugRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

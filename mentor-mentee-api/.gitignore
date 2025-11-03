@@ -45,6 +45,9 @@ temp/
 *.sqlite3
 *.db
 
+# Uploaded files - don't commit user uploads
+uploads/
+
 # Prisma
 # Keep migrations and schema, ignore generated client if needed
 # prisma/generated/

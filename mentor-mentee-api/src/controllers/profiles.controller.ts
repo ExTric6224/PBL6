@@ -3,6 +3,7 @@ import 'express-async-errors';
 import { ProfilesService } from '../services/profiles.service';
 import { success, authError, notFoundError } from '../utils/responses';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { deleteAvatarFile } from '../middleware/upload.middleware';
 
 const profilesService = new ProfilesService();
 
@@ -13,7 +14,22 @@ export class ProfilesController {
         return authError(res, 'Only mentors can create mentor profiles');
       }
 
-      const profile = await profilesService.createOrUpdateMentorProfile(req.user!.sub, req.body);
+      // Handle file upload - get path relative to project root
+      let avatarPath = req.body.avatar;
+      if (req.file) {
+        avatarPath = `/uploads/avatars/${req.file.filename}`;
+        
+        // Delete old avatar if exists
+        const existingProfile = await profilesService.getMentorProfile(req.user!.sub).catch(() => null);
+        if (existingProfile?.avatar) {
+          deleteAvatarFile(existingProfile.avatar);
+        }
+      }
+
+      const profile = await profilesService.createOrUpdateMentorProfile(req.user!.sub, {
+        ...req.body,
+        avatar: avatarPath
+      });
       return success(res, profile);
     } catch (error: any) {
       throw error;
@@ -39,7 +55,22 @@ export class ProfilesController {
         return authError(res, 'Only mentees can create mentee profiles');
       }
 
-      const profile = await profilesService.createOrUpdateMenteeProfile(req.user!.sub, req.body);
+      // Handle file upload - get path relative to project root
+      let avatarPath = req.body.avatar;
+      if (req.file) {
+        avatarPath = `/uploads/avatars/${req.file.filename}`;
+        
+        // Delete old avatar if exists
+        const existingProfile = await profilesService.getMenteeProfile(req.user!.sub).catch(() => null);
+        if (existingProfile?.avatar) {
+          deleteAvatarFile(existingProfile.avatar);
+        }
+      }
+
+      const profile = await profilesService.createOrUpdateMenteeProfile(req.user!.sub, {
+        ...req.body,
+        avatar: avatarPath
+      });
       return success(res, profile);
     } catch (error: any) {
       throw error;

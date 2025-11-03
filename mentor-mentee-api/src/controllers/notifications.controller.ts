@@ -38,4 +38,24 @@ export class NotificationsController {
       throw error;
     }
   }
+
+  async createNotification(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { userId, type, title, content } = req.body;
+      const notification = await notificationsService.createNotification(userId, type, title, content);
+      return success(res, notification, 201);
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  async broadcastNotification(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { userIds, type, title, content } = req.body;
+      const notifications = await notificationsService.broadcastNotification(userIds, type, title, content);
+      return success(res, notifications, 201);
+    } catch (error: any) {
+      throw error;
+    }
+  }
 }

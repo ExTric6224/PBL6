@@ -101,15 +101,20 @@ export function authorizePermissions(requiredPermission: string, options?: Permi
       }
 
       // No scope specified - check for exact permission or with _any suffix
+      // SECURITY FIX: Only check exact permission and _any variant
+      // Do NOT check basePermission alone as it may be a resource name only
       const hasPermission = 
         effectivePermissions.has(requiredPermission) ||
-        effectivePermissions.has(`${basePermission}_any`) ||
-        effectivePermissions.has(basePermission);
+        effectivePermissions.has(`${basePermission}_any`);
 
       if (!hasPermission) {
+        console.log(`[PERMISSION DENIED] User ${userId} tried to access ${requiredPermission}`);
+        console.log(`  Required: ${requiredPermission}`);
+        console.log(`  User has: ${Array.from(effectivePermissions).join(', ')}`);
         return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
       }
 
+      console.log(`[PERMISSION GRANTED] User ${userId} has ${requiredPermission}`);
       return next();
     } catch (error) {
       console.error('Permission check error:', error);

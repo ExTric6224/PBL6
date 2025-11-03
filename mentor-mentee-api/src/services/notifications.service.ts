@@ -57,4 +57,21 @@ export class NotificationsService {
       },
     });
   }
+
+  async broadcastNotification(userIds: number[], type: string, title: string, content: string) {
+    // Create notifications for multiple users
+    const notifications = await Promise.all(
+      userIds.map(userId => 
+        prisma.notification.create({
+          data: {
+            userId,
+            type,
+            title,
+            content,
+          },
+        })
+      )
+    );
+    return notifications;
+  }
 }

@@ -599,6 +599,48 @@
           }
         },
         {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 2,\n  \"type\": \"INFO\",\n  \"title\": \"New Announcement\",\n  \"content\": \"This is a test notification for a specific user.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Broadcast Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [2, 3, 4],\n  \"type\": \"ANNOUNCEMENT\",\n  \"title\": \"System Maintenance\",\n  \"content\": \"The system will be under maintenance tomorrow from 2 AM to 4 AM.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/broadcast",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "broadcast"]
+            }
+          }
+        },
+        {
           "name": "Mark Notification as Read",
           "request": {
             "method": "PATCH",

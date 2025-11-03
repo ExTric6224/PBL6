@@ -11,8 +11,11 @@ const ProfileForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState<MentorProfile | MenteeProfile | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Store file instead of base64
   const [mentorData, setMentorData] = useState<CreateMentorProfileData>({
     fullName: '',
+    avatar: '',
     school: '',
     expertise: [],
     degree: '',
@@ -21,12 +24,46 @@ const ProfileForm: React.FC = () => {
   });
   const [menteeData, setMenteeData] = useState<CreateMenteeProfileData>({
     fullName: '',
+    avatar: '',
     interests: [],
     goals: '',
   });
 
   const [expertiseInput, setExpertiseInput] = useState('');
   const [interestsInput, setInterestsInput] = useState('');
+
+  // Handle avatar file selection and preview
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size should not exceed 5MB');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Store file and create preview
+      setAvatarFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarPreview('');
+    setAvatarFile(null);
+    if (isMentor) {
+      setMentorData({ ...mentorData, avatar: '' });
+    } else {
+      setMenteeData({ ...menteeData, avatar: '' });
+    }
+  };
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
@@ -50,12 +87,22 @@ const ProfileForm: React.FC = () => {
         
         setMentorData({
           fullName: profile.fullName,
+          avatar: profile.avatar || '',
           school: profile.school || '',
           bio: profile.bio || '',
           expertise,
           degree: profile.degree || '',
           yearsExp: profile.yearsExp || 0,
         });
+        // Set preview to server path if exists
+        if (profile.avatar) {
+          // Remove /api from REACT_APP_API_URL and use just the base URL
+          const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3000';
+          const avatarUrl = `${baseUrl}${profile.avatar}`;
+          console.log('[DEBUG] Avatar path from DB:', profile.avatar);
+          console.log('[DEBUG] Full avatar URL:', avatarUrl);
+          setAvatarPreview(avatarUrl);
+        }
       } else if (isMentee) {
         const profile = await profileApi.getMenteeProfile(user.id);
         setExistingProfile(profile);
@@ -74,9 +121,19 @@ const ProfileForm: React.FC = () => {
         
         setMenteeData({
           fullName: profile.fullName,
+          avatar: profile.avatar || '',
           interests,
           goals: profile.goals || '',
         });
+        // Set preview to server path if exists
+        if (profile.avatar) {
+          // Remove /api from REACT_APP_API_URL and use just the base URL
+          const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3000';
+          const avatarUrl = `${baseUrl}${profile.avatar}`;
+          console.log('[DEBUG] Avatar path from DB:', profile.avatar);
+          console.log('[DEBUG] Full avatar URL:', avatarUrl);
+          setAvatarPreview(avatarUrl);
+        }
       }
     } catch (err: any) {
       console.log('No existing profile found');
@@ -92,8 +149,9 @@ const ProfileForm: React.FC = () => {
   const handleMentorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await profileApi.createOrUpdateMentorProfile(mentorData);
+      await profileApi.createOrUpdateMentorProfile(mentorData, avatarFile || undefined);
       alert('Mentor profile saved successfully!');
+      setAvatarFile(null); // Clear file after successful upload
       loadProfile();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to save profile');
@@ -102,9 +160,12 @@ const ProfileForm: React.FC = () => {
 
   const handleMenteeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[DEBUG] Submitting mentee data:', menteeData);
+    console.log('[DEBUG] Interests array:', menteeData.interests);
     try {
-      await profileApi.createOrUpdateMenteeProfile(menteeData);
+      await profileApi.createOrUpdateMenteeProfile(menteeData, avatarFile || undefined);
       alert('Mentee profile saved successfully!');
+      setAvatarFile(null); // Clear file after successful upload
       loadProfile();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to save profile');
@@ -171,6 +232,40 @@ const ProfileForm: React.FC = () => {
 
         {isMentor && (
           <form className="profile-form" onSubmit={handleMentorSubmit}>
+            <div className="avatar-section">
+              <label>Profile Picture</label>
+              <div className="avatar-upload">
+                <div className="avatar-preview">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Avatar" />
+                  ) : (
+                    <div className="avatar-placeholder">
+                      <span>📷</span>
+                      <p>No Image</p>
+                    </div>
+                  )}
+                </div>
+                <div className="avatar-actions">
+                  <input
+                    type="file"
+                    id="mentor-avatar"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="mentor-avatar" className="btn btn-secondary">
+                    Choose Image
+                  </label>
+                  {avatarPreview && (
+                    <button type="button" className="btn btn-danger" onClick={removeAvatar}>
+                      Remove
+                    </button>
+                  )}
+                  <small className="text-muted">Max 2MB, JPG/PNG</small>
+                </div>
+              </div>
+            </div>
+
             <div className="form-group">
               <label>Full Name *</label>
               <input
@@ -259,6 +354,40 @@ const ProfileForm: React.FC = () => {
 
         {isMentee && (
           <form className="profile-form" onSubmit={handleMenteeSubmit}>
+            <div className="avatar-section">
+              <label>Profile Picture</label>
+              <div className="avatar-upload">
+                <div className="avatar-preview">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Avatar" />
+                  ) : (
+                    <div className="avatar-placeholder">
+                      <span>📷</span>
+                      <p>No Image</p>
+                    </div>
+                  )}
+                </div>
+                <div className="avatar-actions">
+                  <input
+                    type="file"
+                    id="mentee-avatar"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="mentee-avatar" className="btn btn-secondary">
+                    Choose Image
+                  </label>
+                  {avatarPreview && (
+                    <button type="button" className="btn btn-danger" onClick={removeAvatar}>
+                      Remove
+                    </button>
+                  )}
+                  <small className="text-muted">Max 2MB, JPG/PNG</small>
+                </div>
+              </div>
+            </div>
+
             <div className="form-group">
               <label>Full Name *</label>
               <input

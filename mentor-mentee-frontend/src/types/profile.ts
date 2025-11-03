@@ -2,6 +2,7 @@ export interface MentorProfile {
   id: number;
   userId: number;
   fullName: string;
+  avatar?: string;
   school?: string;
   expertise: string[];
   degree?: string;
@@ -19,6 +20,7 @@ export interface MenteeProfile {
   id: number;
   userId: number;
   fullName: string;
+  avatar?: string;
   goals?: string;
   interests: string[];
   createdAt: string;
@@ -31,6 +33,7 @@ export interface MenteeProfile {
 
 export interface CreateMentorProfileData {
   fullName: string;
+  avatar?: string;
   school?: string;
   expertise: string[];
   degree?: string;
@@ -40,6 +43,7 @@ export interface CreateMentorProfileData {
 
 export interface CreateMenteeProfileData {
   fullName: string;
+  avatar?: string;
   goals?: string;
   interests: string[];
 }

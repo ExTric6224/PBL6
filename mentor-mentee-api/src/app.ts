@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import pinoHttp from 'pino-http';
+import path from 'path';
 import 'express-async-errors';
 
 import routes from './routes';
@@ -11,7 +12,9 @@ import { errorHandler } from './middleware/error.middleware';
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images to be loaded from different origins
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
@@ -55,6 +58,9 @@ app.use(pinoHttp({
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files for uploaded avatars
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Routes
 app.use('/api', routes);
