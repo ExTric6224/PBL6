@@ -14,6 +14,11 @@ const PostList: React.FC = () => {
   const [formData, setFormData] = useState({ title: '', content: '' });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState<number | null>(null);
+
+  // Remove '/api' from URL for static files
+  const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
   const loadPosts = useCallback(async () => {
     try {
@@ -98,6 +103,55 @@ const PostList: React.FC = () => {
   const cancelEditing = () => {
     setEditingPost(null);
     setFormData({ title: '', content: '' });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      // Validate file types
+      const validFiles = files.filter(file => 
+        ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)
+      );
+      
+      if (validFiles.length !== files.length) {
+        alert('Some files were not added. Only JPEG, PNG, GIF, and WebP images are allowed.');
+      }
+      
+      // Limit to 10 images
+      if (validFiles.length > 10) {
+        alert('Maximum 10 images allowed');
+        setSelectedFiles(validFiles.slice(0, 10));
+      } else {
+        setSelectedFiles(validFiles);
+      }
+    }
+  };
+
+  const handleUploadImages = async (postId: number) => {
+    if (selectedFiles.length === 0) return;
+
+    try {
+      setUploadingImages(postId);
+      await postApi.uploadPostImages(postId, selectedFiles);
+      setSelectedFiles([]);
+      loadPosts();
+      alert('Images uploaded successfully!');
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to upload images');
+    } finally {
+      setUploadingImages(null);
+    }
+  };
+
+  const handleDeleteImage = async (postId: number, imageId: number) => {
+    if (!window.confirm('Are you sure you want to delete this image?')) return;
+
+    try {
+      await postApi.deletePostImage(postId, imageId);
+      loadPosts();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to delete image');
+    }
   };
 
   if (loading && posts.length === 0) {
@@ -202,7 +256,67 @@ const PostList: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Post Images Gallery */}
+              {post.images && post.images.length > 0 && (
+                <div className="post-images-gallery">
+                  {post.images.map((image) => {
+                    const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
+                    console.log('Loading image:', imageUrl); // Debug log
+                    return (
+                      <div key={image.id} className="post-image-wrapper">
+                        <img 
+                          src={imageUrl}
+                          alt={`Post image ${image.order + 1}`}
+                          className="post-image"
+                          onError={(e) => {
+                            console.error('Failed to load image:', imageUrl);
+                            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23ddd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">Image not found</text></svg>';
+                          }}
+                        />
+                        {post.authorId === user?.id && (
+                          <button
+                            className="delete-image-btn"
+                            onClick={() => handleDeleteImage(post.id, image.id)}
+                            title="Delete image"
+                          >
+                            ✖
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <p className="post-content">{post.content}</p>
+
+              {/* Image Upload Section for Post Owner */}
+              {post.authorId === user?.id && (
+                <div className="image-upload-section">
+                  <input
+                    type="file"
+                    id={`file-input-${post.id}`}
+                    multiple
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor={`file-input-${post.id}`} className="upload-images-btn">
+                    📷 Add Images ({selectedFiles.length}/10)
+                  </label>
+                  {selectedFiles.length > 0 && (
+                    <button
+                      className="btn-upload"
+                      onClick={() => handleUploadImages(post.id)}
+                      disabled={uploadingImages === post.id}
+                    >
+                      {uploadingImages === post.id ? 'Uploading...' : `Upload ${selectedFiles.length} image(s)`}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="post-actions">
                 <button
                   className={`like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}

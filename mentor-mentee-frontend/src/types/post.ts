@@ -1,3 +1,11 @@
+export interface PostImage {
+  id: number;
+  postId: number;
+  imageUrl: string;
+  order: number;
+  createdAt: string;
+}
+
 export interface Post {
   id: number;
   title: string;
@@ -5,6 +13,7 @@ export interface Post {
   authorId: number;
   createdAt: string;
   updatedAt: string;
+  images?: PostImage[];
   author?: {
     id: number;
     email: string;

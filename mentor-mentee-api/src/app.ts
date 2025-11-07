@@ -62,6 +62,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files for uploaded avatars
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
+// Serve static files for post images
+app.use('/storage', express.static(path.join(__dirname, '..', 'storage')));
+
 // Routes
 app.use('/api', routes);
 

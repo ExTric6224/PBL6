@@ -1,5 +1,7 @@
 import prisma from '../db/client';
 import { CreatePostDto, UpdatePostDto, PostQueryDto } from '../schemas/posts.schema';
+import { deletePostImageFile } from '../middleware/upload.middleware';
+import path from 'path';
 
 export class PostsService {
   async createPost(authorId: number, data: CreatePostDto) {
@@ -28,6 +30,11 @@ export class PostsService {
                 fullName: true,
               },
             },
+          },
+        },
+        images: {
+          orderBy: {
+            order: 'asc',
           },
         },
         like: {
@@ -97,6 +104,11 @@ export class PostsService {
               },
             },
           },
+          images: {
+            orderBy: {
+              order: 'asc',
+            },
+          },
           like: currentUserId ? {
             where: {
               userId: currentUserId,
@@ -156,6 +168,11 @@ export class PostsService {
                 fullName: true,
               },
             },
+          },
+        },
+        images: {
+          orderBy: {
+            order: 'asc',
           },
         },
         like: currentUserId ? {
@@ -347,4 +364,72 @@ export class PostsService {
       likes,
     };
   }
+
+  async uploadPostImages(postId: number, userId: number, files: Express.Multer.File[]) {
+    // Verify post exists and user is the author
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post || post.authorId !== userId) {
+      // Delete uploaded files if not authorized
+      files.forEach(file => {
+        deletePostImageFile(path.join('storage', 'posts', file.filename));
+      });
+      throw new Error('Post not found or access denied');
+    }
+
+    // Get current max order for this post
+    const maxOrderImage = await prisma.postimage.findFirst({
+      where: { postId },
+      orderBy: { order: 'desc' },
+    });
+
+    const startOrder = maxOrderImage ? maxOrderImage.order + 1 : 0;
+
+    // Create image records
+    const imagePromises = files.map((file, index) => {
+      const imageUrl = `/storage/posts/${file.filename}`;
+      return prisma.postimage.create({
+        data: {
+          postId,
+          imageUrl,
+          order: startOrder + index,
+        },
+      });
+    });
+
+    const images = await Promise.all(imagePromises);
+
+    return images;
+  }
+
+  async deletePostImage(postId: number, imageId: number, userId: number) {
+    // Verify post exists and user is the author
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post || post.authorId !== userId) {
+      throw new Error('Post not found or access denied');
+    }
+
+    // Get image
+    const image = await prisma.postimage.findUnique({
+      where: { id: imageId },
+    });
+
+    if (!image || image.postId !== postId) {
+      throw new Error('Image not found');
+    }
+
+    // Delete image file
+    deletePostImageFile(image.imageUrl);
+
+    // Delete image record
+    await prisma.postimage.delete({
+      where: { id: imageId },
+    });
+  }
 }
+

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PostsController } from '../controllers/posts.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorizePermissions } from '../middleware/permission.middleware';
+import { uploadPostImages } from '../middleware/upload.middleware';
 import prisma from '../db/client';
 
 const router = Router();
@@ -45,6 +46,35 @@ router.delete('/:id',
     }
   }), 
   postsController.deletePost
+);
+
+// POST /api/posts/:id/images - Upload images to post
+router.post('/:id/images',
+  authorizePermissions('post:update', {
+    scope: 'own',
+    getResourceOwnerId: async (req) => {
+      const post = await prisma.post.findUnique({ 
+        where: { id: Number(req.params.id) } 
+      });
+      return post?.authorId ?? null;
+    }
+  }),
+  uploadPostImages.array('images', 10),
+  postsController.uploadPostImages
+);
+
+// DELETE /api/posts/:id/images/:imageId - Delete a specific image from post
+router.delete('/:id/images/:imageId',
+  authorizePermissions('post:update', {
+    scope: 'own',
+    getResourceOwnerId: async (req) => {
+      const post = await prisma.post.findUnique({ 
+        where: { id: Number(req.params.id) } 
+      });
+      return post?.authorId ?? null;
+    }
+  }),
+  postsController.deletePostImage
 );
 
 // POST /api/posts/:id/like - Like/Unlike post

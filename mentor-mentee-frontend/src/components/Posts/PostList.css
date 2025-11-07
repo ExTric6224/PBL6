@@ -16,6 +16,7 @@
   color: #2d3748;
   font-size: 32px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -305,5 +306,135 @@
 
   .btn {
     width: 100%;
+  }
+}
+
+/* Post Images Gallery Styles */
+.post-images-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.post-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.post-image-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.delete-image-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.post-image-wrapper:hover .delete-image-btn {
+  opacity: 1;
+}
+
+.delete-image-btn:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+/* Image Upload Section */
+.image-upload-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e0;
+}
+
+.upload-images-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.upload-images-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+}
+
+.btn-upload {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-upload:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-upload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .post-images-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .image-upload-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-images-btn,
+  .btn-upload {
+    width: 100%;
+    text-align: center;
   }
 }

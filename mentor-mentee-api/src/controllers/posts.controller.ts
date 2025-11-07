@@ -274,4 +274,99 @@ export class PostsController {
       });
     }
   }
+
+  async uploadPostImages(req: AuthenticatedRequest, res: Response) {
+    try {
+      const postId = parseInt(req.params.id);
+      const userId = req.user?.sub;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (isNaN(postId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid post ID',
+        });
+      }
+
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'No images provided',
+        });
+      }
+
+      const images = await postsService.uploadPostImages(postId, userId, req.files);
+
+      res.json({
+        success: true,
+        data: images,
+        message: 'Images uploaded successfully',
+      });
+    } catch (error: any) {
+      console.error('Error uploading post images:', error);
+      
+      if (error.message === 'Post not found or access denied') {
+        return res.status(404).json({
+          success: false,
+          error: 'Post not found or access denied',
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to upload images',
+      });
+    }
+  }
+
+  async deletePostImage(req: AuthenticatedRequest, res: Response) {
+    try {
+      const postId = parseInt(req.params.id);
+      const imageId = parseInt(req.params.imageId);
+      const userId = req.user?.sub;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (isNaN(postId) || isNaN(imageId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid post ID or image ID',
+        });
+      }
+
+      await postsService.deletePostImage(postId, imageId, userId);
+
+      res.json({
+        success: true,
+        message: 'Image deleted successfully',
+      });
+    } catch (error: any) {
+      console.error('Error deleting post image:', error);
+      
+      if (error.message === 'Post not found or access denied') {
+        return res.status(404).json({
+          success: false,
+          error: 'Post not found or access denied',
+        });
+      }
+
+      if (error.message === 'Image not found') {
+        return res.status(404).json({
+          success: false,
+          error: 'Image not found',
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete image',
+      });
+    }
+  }
 }
+

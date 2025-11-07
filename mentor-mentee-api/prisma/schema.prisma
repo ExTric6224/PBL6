@@ -122,19 +122,31 @@ model notification {
 }
 
 model post {
-  id        Int      @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   authorId  Int
   title     String
-  content   String   @db.Text
-  isPublic  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  content   String      @db.Text
+  isPublic  Boolean     @default(true)
+  createdAt DateTime    @default(now())
   updatedAt DateTime
   like      like[]
-  user      user     @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey")
+  images    postimage[]
+  user      user        @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey")
 
   @@index([authorId], map: "Post_authorId_idx")
   @@index([createdAt], map: "Post_createdAt_idx")
   @@index([isPublic], map: "Post_isPublic_idx")
+}
+
+model postimage {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  imageUrl  String   @db.VarChar(500)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  post      post     @relation(fields: [postId], references: [id], onDelete: Cascade, map: "PostImage_postId_fkey")
+
+  @@index([postId], map: "PostImage_postId_idx")
 }
 
 model schedule {

@@ -1,5 +1,5 @@
 import api from './api';
-import { Post, CreatePostData, UpdatePostData, PostLike } from '../types/post';
+import { Post, CreatePostData, UpdatePostData, PostLike, PostImage } from '../types/post';
 import { ApiResponse, PaginatedResponse } from '../types/common';
 
 export const postApi = {
@@ -42,5 +42,29 @@ export const postApi = {
   getPostLikes: async (id: number): Promise<PostLike[]> => {
     const response = await api.get<ApiResponse<PostLike[]>>(`/posts/${id}/likes`);
     return response.data.data;
+  },
+
+  // Upload images to post
+  uploadPostImages: async (postId: number, files: File[]): Promise<PostImage[]> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+
+    const response = await api.post<ApiResponse<PostImage[]>>(
+      `/posts/${postId}/images`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
+  // Delete post image
+  deletePostImage: async (postId: number, imageId: number): Promise<void> => {
+    await api.delete(`/posts/${postId}/images/${imageId}`);
   },
 };
