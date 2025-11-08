@@ -84,28 +84,64 @@ model like {
 }
 
 model menteeprofile {
-  id        Int     @id @default(autoincrement())
-  userId    Int     @unique(map: "MenteeProfile_userId_key")
+  id        Int                   @id @default(autoincrement())
+  userId    Int                   @unique(map: "MenteeProfile_userId_key")
   fullName  String
-  avatar    String? @db.VarChar(500)
+  avatar    String?               @db.VarChar(500)
   goals     String?
-  interests String  @db.LongText
-  user      user    @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
+  interests MenteeTopicInterest[]
+  user      user                  @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
 }
 
 model mentorprofile {
-  id        Int     @id @default(autoincrement())
-  userId    Int     @unique(map: "MentorProfile_userId_key")
+  id        Int                    @id @default(autoincrement())
+  userId    Int                    @unique(map: "MentorProfile_userId_key")
   fullName  String
-  avatar    String? @db.VarChar(500)
+  avatar    String?                @db.VarChar(500)
   school    String?
-  expertise String  @db.LongText
+  expertise MentorTopicExpertise[]
   degree    String?
   yearsExp  Int?
   bio       String?
-  user      user    @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
+  user      user                   @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
 
   @@fulltext([fullName], map: "MentorProfile_fullName_idx")
+}
+
+model Topic {
+  id              Int                    @id @default(autoincrement())
+  name            String                 @unique
+  description     String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime
+  menteeInterests MenteeTopicInterest[]
+  mentorExpertise MentorTopicExpertise[]
+
+  @@index([name], map: "Topic_name_idx")
+}
+
+model MenteeTopicInterest {
+  menteeProfileId Int
+  topicId         Int
+  createdAt       DateTime      @default(now())
+  menteeProfile   menteeprofile @relation(fields: [menteeProfileId], references: [id], onDelete: Cascade)
+  topic           Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([menteeProfileId, topicId])
+  @@index([menteeProfileId], map: "MenteeTopicInterest_menteeProfileId_idx")
+  @@index([topicId], map: "MenteeTopicInterest_topicId_idx")
+}
+
+model MentorTopicExpertise {
+  mentorProfileId Int
+  topicId         Int
+  createdAt       DateTime      @default(now())
+  mentorProfile   mentorprofile @relation(fields: [mentorProfileId], references: [id], onDelete: Cascade)
+  topic           Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([mentorProfileId, topicId])
+  @@index([mentorProfileId], map: "MentorTopicExpertise_mentorProfileId_idx")
+  @@index([topicId], map: "MentorTopicExpertise_topicId_idx")
 }
 
 model notification {

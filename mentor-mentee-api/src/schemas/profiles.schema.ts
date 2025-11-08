@@ -1,11 +1,16 @@
 import { z } from 'zod';
 
-// Transform string to array for FormData
-const stringOrArrayTransform = z.union([
-  z.array(z.string()),
+// Transform string to array of numbers for topic IDs from FormData
+const topicIdsTransform = z.union([
+  z.array(z.number()),
+  z.array(z.string()).transform((arr) => arr.map(id => parseInt(id, 10))),
   z.string().transform((str) => {
     try {
-      return JSON.parse(str);
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return parsed.map(id => typeof id === 'string' ? parseInt(id, 10) : id);
+      }
+      return [];
     } catch {
       return [];
     }
@@ -22,7 +27,7 @@ export const createMentorProfileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   avatar: z.string().optional(),
   school: z.string().optional(),
-  expertise: stringOrArrayTransform,
+  expertise: topicIdsTransform,
   degree: z.string().optional(),
   yearsExp: stringOrNumberTransform,
   bio: z.string().optional(),
@@ -34,7 +39,7 @@ export const createMenteeProfileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   avatar: z.string().optional(),
   goals: z.string().optional(),
-  interests: stringOrArrayTransform,
+  interests: topicIdsTransform,
 });
 
 export const updateMenteeProfileSchema = createMenteeProfileSchema.partial();

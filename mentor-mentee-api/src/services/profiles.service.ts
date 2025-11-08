@@ -10,13 +10,12 @@ export class ProfilesService {
 
     if (existingProfile) {
       // Update existing profile
-      return await prisma.mentorprofile.update({
+      const updatedProfile = await prisma.mentorprofile.update({
         where: { userId },
         data: {
           fullName: data.fullName,
           avatar: data.avatar,
           school: data.school,
-          expertise: JSON.stringify(data.expertise || []),
           degree: data.degree,
           yearsExp: data.yearsExp,
           bio: data.bio,
@@ -29,21 +28,74 @@ export class ProfilesService {
               role: true,
             },
           },
+          expertise: {
+            include: {
+              topic: true,
+            },
+          },
         },
       });
+
+      // Update expertise topics if provided
+      if (data.expertise && Array.isArray(data.expertise)) {
+        // Delete existing expertise
+        await prisma.mentorTopicExpertise.deleteMany({
+          where: { mentorProfileId: existingProfile.id },
+        });
+
+        // Create new expertise
+        if (data.expertise.length > 0) {
+          await prisma.mentorTopicExpertise.createMany({
+            data: data.expertise.map(topicId => ({
+              mentorProfileId: existingProfile.id,
+              topicId: Number(topicId),
+            })),
+          });
+        }
+
+        // Fetch updated profile with new expertise
+        const profileWithExpertise = await prisma.mentorprofile.findUnique({
+          where: { id: existingProfile.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+            expertise: {
+              include: {
+                topic: true,
+              },
+            },
+          },
+        });
+
+        // Transform expertise to array of topics
+        return {
+          ...profileWithExpertise,
+          expertise: profileWithExpertise!.expertise.map(e => e.topic),
+        };
+      }
+
+      // Transform expertise to array of topics
+      return {
+        ...updatedProfile,
+        expertise: updatedProfile.expertise.map(e => e.topic),
+      };
     } else {
       // Create new profile - ensure required fields are present
       if (!data.fullName) {
         throw new Error('Full name is required for new mentor profile');
       }
       
-      return await prisma.mentorprofile.create({
+      const newProfile = await prisma.mentorprofile.create({
         data: {
           userId,
           fullName: data.fullName,
           avatar: data.avatar,
           school: data.school,
-          expertise: JSON.stringify(data.expertise || []),
           degree: data.degree,
           yearsExp: data.yearsExp,
           bio: data.bio,
@@ -58,6 +110,46 @@ export class ProfilesService {
           },
         },
       });
+
+      // Add expertise topics if provided
+      if (data.expertise && Array.isArray(data.expertise) && data.expertise.length > 0) {
+        await prisma.mentorTopicExpertise.createMany({
+          data: data.expertise.map(topicId => ({
+            mentorProfileId: newProfile.id,
+            topicId: Number(topicId),
+          })),
+        });
+
+        // Fetch profile with expertise
+        const profileWithExpertise = await prisma.mentorprofile.findUnique({
+          where: { id: newProfile.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+            expertise: {
+              include: {
+                topic: true,
+              },
+            },
+          },
+        });
+
+        // Transform expertise to array of topics
+        return {
+          ...profileWithExpertise,
+          expertise: profileWithExpertise!.expertise.map(e => e.topic),
+        };
+      }
+
+      return {
+        ...newProfile,
+        expertise: [],
+      };
     }
   }
 
@@ -73,6 +165,11 @@ export class ProfilesService {
             createdAt: true,
           },
         },
+        expertise: {
+          include: {
+            topic: true,
+          },
+        },
       },
     });
 
@@ -80,10 +177,10 @@ export class ProfilesService {
       throw new Error('Mentor profile not found');
     }
 
-    // Parse expertise from JSON
+    // Transform expertise to array of topics
     return {
       ...profile,
-      expertise: JSON.parse(profile.expertise as string),
+      expertise: profile.expertise.map(e => e.topic),
     };
   }
 
@@ -98,16 +195,14 @@ export class ProfilesService {
         userId,
         data,
         interests: data.interests,
-        stringified: JSON.stringify(data.interests || [])
       });
       
-      return await prisma.menteeprofile.update({
+      const updatedProfile = await prisma.menteeprofile.update({
         where: { userId },
         data: {
           fullName: data.fullName,
           avatar: data.avatar,
           goals: data.goals,
-          interests: JSON.stringify(data.interests || []),
         },
         include: {
           user: {
@@ -117,21 +212,74 @@ export class ProfilesService {
               role: true,
             },
           },
+          interests: {
+            include: {
+              topic: true,
+            },
+          },
         },
       });
+
+      // Update interest topics if provided
+      if (data.interests && Array.isArray(data.interests)) {
+        // Delete existing interests
+        await prisma.menteeTopicInterest.deleteMany({
+          where: { menteeProfileId: existingProfile.id },
+        });
+
+        // Create new interests
+        if (data.interests.length > 0) {
+          await prisma.menteeTopicInterest.createMany({
+            data: data.interests.map(topicId => ({
+              menteeProfileId: existingProfile.id,
+              topicId: Number(topicId),
+            })),
+          });
+        }
+
+        // Fetch updated profile with new interests
+        const profileWithInterests = await prisma.menteeprofile.findUnique({
+          where: { id: existingProfile.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+            interests: {
+              include: {
+                topic: true,
+              },
+            },
+          },
+        });
+
+        // Transform interests to array of topics
+        return {
+          ...profileWithInterests,
+          interests: profileWithInterests!.interests.map(i => i.topic),
+        };
+      }
+
+      // Transform interests to array of topics
+      return {
+        ...updatedProfile,
+        interests: updatedProfile.interests.map(i => i.topic),
+      };
     } else {
       // Create new profile - ensure required fields are present
       if (!data.fullName) {
         throw new Error('Full name is required for new mentee profile');
       }
       
-      return await prisma.menteeprofile.create({
+      const newProfile = await prisma.menteeprofile.create({
         data: {
           userId,
           fullName: data.fullName,
           avatar: data.avatar,
           goals: data.goals,
-          interests: JSON.stringify(data.interests || []),
         },
         include: {
           user: {
@@ -143,6 +291,46 @@ export class ProfilesService {
           },
         },
       });
+
+      // Add interest topics if provided
+      if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
+        await prisma.menteeTopicInterest.createMany({
+          data: data.interests.map(topicId => ({
+            menteeProfileId: newProfile.id,
+            topicId: Number(topicId),
+          })),
+        });
+
+        // Fetch profile with interests
+        const profileWithInterests = await prisma.menteeprofile.findUnique({
+          where: { id: newProfile.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+            interests: {
+              include: {
+                topic: true,
+              },
+            },
+          },
+        });
+
+        // Transform interests to array of topics
+        return {
+          ...profileWithInterests,
+          interests: profileWithInterests!.interests.map(i => i.topic),
+        };
+      }
+
+      return {
+        ...newProfile,
+        interests: [],
+      };
     }
   }
 
@@ -158,6 +346,11 @@ export class ProfilesService {
             createdAt: true,
           },
         },
+        interests: {
+          include: {
+            topic: true,
+          },
+        },
       },
     });
 
@@ -165,10 +358,10 @@ export class ProfilesService {
       throw new Error('Mentee profile not found');
     }
 
-    // Parse interests from JSON
+    // Transform interests to array of topics
     return {
       ...profile,
-      interests: JSON.parse(profile.interests as string),
+      interests: profile.interests.map(i => i.topic),
     };
   }
 }

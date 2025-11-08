@@ -1,4 +1,5 @@
 import { ScheduleStatus } from './common';
+import { Topic } from './topic';
 
 export interface Schedule {
   id: number;
@@ -15,8 +16,9 @@ export interface Schedule {
     email: string;
     mentorProfile?: {
       bio: string;
-      expertise: string[];
+      expertise: Topic[]; // Changed from string[] to Topic[]
       experience: number;
+      fullName?: string;
     };
   };
 }

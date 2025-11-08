@@ -1,10 +1,12 @@
+import { Topic } from './topic';
+
 export interface MentorProfile {
   id: number;
   userId: number;
   fullName: string;
   avatar?: string;
   school?: string;
-  expertise: string[];
+  expertise: Topic[]; // Changed from string[] to Topic[]
   degree?: string;
   yearsExp?: number;
   bio?: string;
@@ -22,7 +24,7 @@ export interface MenteeProfile {
   fullName: string;
   avatar?: string;
   goals?: string;
-  interests: string[];
+  interests: Topic[]; // Changed from string[] to Topic[]
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -35,7 +37,7 @@ export interface CreateMentorProfileData {
   fullName: string;
   avatar?: string;
   school?: string;
-  expertise: string[];
+  expertise: number[]; // Changed from string[] to number[] (topic IDs)
   degree?: string;
   yearsExp?: number;
   bio?: string;
@@ -45,5 +47,5 @@ export interface CreateMenteeProfileData {
   fullName: string;
   avatar?: string;
   goals?: string;
-  interests: string[];
+  interests: number[]; // Changed from string[] to number[] (topic IDs)
 }

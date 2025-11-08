@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { profileApi } from '../../services/profileApi';
 import { useAuth } from '../../context/AuthContext';
 import { CreateMentorProfileData, CreateMenteeProfileData, MentorProfile, MenteeProfile } from '../../types/profile';
+import TopicSelector from '../Topics/TopicSelector';
 import './ProfileForm.css';
 
 const ProfileForm: React.FC = () => {
@@ -12,12 +13,12 @@ const ProfileForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState<MentorProfile | MenteeProfile | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Store file instead of base64
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [mentorData, setMentorData] = useState<CreateMentorProfileData>({
     fullName: '',
     avatar: '',
     school: '',
-    expertise: [],
+    expertise: [], // Now number[] (topic IDs)
     degree: '',
     yearsExp: 0,
     bio: '',
@@ -25,12 +26,9 @@ const ProfileForm: React.FC = () => {
   const [menteeData, setMenteeData] = useState<CreateMenteeProfileData>({
     fullName: '',
     avatar: '',
-    interests: [],
+    interests: [], // Now number[] (topic IDs)
     goals: '',
   });
-
-  const [expertiseInput, setExpertiseInput] = useState('');
-  const [interestsInput, setInterestsInput] = useState('');
 
   // Handle avatar file selection and preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,24 +71,15 @@ const ProfileForm: React.FC = () => {
         const profile = await profileApi.getMentorProfile(user.id);
         setExistingProfile(profile);
         
-        // Parse expertise if it's a string (defensive coding)
-        let expertise: string[] = [];
-        if (typeof profile.expertise === 'string') {
-          try {
-            expertise = JSON.parse(profile.expertise);
-          } catch {
-            expertise = [];
-          }
-        } else if (Array.isArray(profile.expertise)) {
-          expertise = profile.expertise;
-        }
+        // Extract topic IDs from Topic objects
+        const expertiseIds = profile.expertise.map(topic => topic.id);
         
         setMentorData({
           fullName: profile.fullName,
           avatar: profile.avatar || '',
           school: profile.school || '',
           bio: profile.bio || '',
-          expertise,
+          expertise: expertiseIds, // Store as number[]
           degree: profile.degree || '',
           yearsExp: profile.yearsExp || 0,
         });
@@ -107,22 +96,13 @@ const ProfileForm: React.FC = () => {
         const profile = await profileApi.getMenteeProfile(user.id);
         setExistingProfile(profile);
         
-        // Parse interests if it's a string (defensive coding)
-        let interests: string[] = [];
-        if (typeof profile.interests === 'string') {
-          try {
-            interests = JSON.parse(profile.interests);
-          } catch {
-            interests = [];
-          }
-        } else if (Array.isArray(profile.interests)) {
-          interests = profile.interests;
-        }
+        // Extract topic IDs from Topic objects
+        const interestIds = profile.interests.map(topic => topic.id);
         
         setMenteeData({
           fullName: profile.fullName,
           avatar: profile.avatar || '',
-          interests,
+          interests: interestIds, // Store as number[]
           goals: profile.goals || '',
         });
         // Set preview to server path if exists
@@ -170,42 +150,6 @@ const ProfileForm: React.FC = () => {
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to save profile');
     }
-  };
-
-  const addExpertise = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && expertiseInput.trim()) {
-      e.preventDefault();
-      setMentorData({
-        ...mentorData,
-        expertise: [...mentorData.expertise, expertiseInput.trim()],
-      });
-      setExpertiseInput('');
-    }
-  };
-
-  const removeExpertise = (index: number) => {
-    setMentorData({
-      ...mentorData,
-      expertise: mentorData.expertise.filter((_, i) => i !== index),
-    });
-  };
-
-  const addInterest = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && interestsInput.trim()) {
-      e.preventDefault();
-      setMenteeData({
-        ...menteeData,
-        interests: [...menteeData.interests, interestsInput.trim()],
-      });
-      setInterestsInput('');
-    }
-  };
-
-  const removeInterest = (index: number) => {
-    setMenteeData({
-      ...menteeData,
-      interests: menteeData.interests.filter((_, i) => i !== index),
-    });
   };
 
   if (loading) {
@@ -307,27 +251,12 @@ const ProfileForm: React.FC = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label>Expertise (Press Enter to add)</label>
-              <div className="tags-input-container">
-                {mentorData.expertise.map((skill, index) => (
-                  <span key={index} className="tag">
-                    {skill}
-                    <button type="button" onClick={() => removeExpertise(index)}>
-                      ✖
-                    </button>
-                  </span>
-                ))}
-                <input
-                  type="text"
-                  className="tag-input"
-                  value={expertiseInput}
-                  onChange={(e) => setExpertiseInput(e.target.value)}
-                  onKeyDown={addExpertise}
-                  placeholder="Add expertise (e.g. Backend, Mobile)..."
-                />
-              </div>
-            </div>
+            <TopicSelector
+              selectedTopicIds={mentorData.expertise}
+              onChange={(topicIds) => setMentorData({ ...mentorData, expertise: topicIds })}
+              label="Expertise *"
+              placeholder="Select your areas of expertise..."
+            />
 
             <div className="form-group">
               <label>Years of Experience</label>
@@ -399,27 +328,12 @@ const ProfileForm: React.FC = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label>Interests (Press Enter to add)</label>
-              <div className="tags-input-container">
-                {menteeData.interests.map((interest, index) => (
-                  <span key={index} className="tag">
-                    {interest}
-                    <button type="button" onClick={() => removeInterest(index)}>
-                      ✖
-                    </button>
-                  </span>
-                ))}
-                <input
-                  type="text"
-                  className="tag-input"
-                  value={interestsInput}
-                  onChange={(e) => setInterestsInput(e.target.value)}
-                  onKeyDown={addInterest}
-                  placeholder="Add interest (e.g. Web, AI, Career)..."
-                />
-              </div>
-            </div>
+            <TopicSelector
+              selectedTopicIds={menteeData.interests}
+              onChange={(topicIds) => setMenteeData({ ...menteeData, interests: topicIds })}
+              label="Interests *"
+              placeholder="Select topics you're interested in..."
+            />
 
             <div className="form-group">
               <label>Goals</label>

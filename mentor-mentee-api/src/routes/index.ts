@@ -11,6 +11,7 @@ import notificationsRoutes from './notifications.routes';
 import postsRoutes from './posts.routes';
 import adminPermissionsRoutes from './admin-permissions.routes';
 import debugRoutes from './debug.routes';
+import topicsRoutes from './topics.routes';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use('/notifications', notificationsRoutes);
 router.use('/posts', postsRoutes);
 router.use('/admin/permissions', adminPermissionsRoutes);
 router.use('/debug', debugRoutes);
+router.use('/topics', topicsRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

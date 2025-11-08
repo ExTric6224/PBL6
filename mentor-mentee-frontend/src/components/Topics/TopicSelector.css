@@ -1,0 +1,146 @@
+.topic-selector {
+  margin-bottom: 1.5rem;
+}
+
+.topic-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.topic-selector-container {
+  position: relative;
+}
+
+.selected-topics {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.selected-topics:hover {
+  border-color: #4a90e2;
+}
+
+.selected-topics .placeholder {
+  color: #999;
+  font-size: 14px;
+}
+
+.selected-topics-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.selected-topic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #4a90e2;
+  color: white;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.remove-topic-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+
+.remove-topic-btn:hover {
+  opacity: 0.7;
+}
+
+.dropdown-arrow {
+  color: #666;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.topic-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.topic-option {
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.topic-option:last-child {
+  border-bottom: none;
+}
+
+.topic-option:hover {
+  background-color: #f5f5f5;
+}
+
+.topic-option.selected {
+  background-color: #e3f2fd;
+}
+
+.topic-option input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.topic-info {
+  flex: 1;
+}
+
+.topic-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.topic-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Close dropdown when clicking outside */
+@media (max-width: 768px) {
+  .topic-dropdown {
+    max-height: 250px;
+  }
+  
+  .selected-topics-list {
+    max-height: 80px;
+    overflow-y: auto;
+  }
+}

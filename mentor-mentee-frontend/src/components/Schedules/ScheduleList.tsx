@@ -223,9 +223,24 @@ const ScheduleList: React.FC = () => {
                 👥 Capacity: {schedule.capacity}
               </div>
               {schedule.mentor && (
-                <div className="schedule-mentor">
-                  Mentor: {schedule.mentor.email}
-                </div>
+                <>
+                  <div className="schedule-mentor">
+                    👨‍🏫 Mentor: {schedule.mentor.mentorProfile?.fullName || schedule.mentor.email}
+                  </div>
+                  {schedule.mentor.mentorProfile?.expertise && 
+                   schedule.mentor.mentorProfile.expertise.length > 0 && (
+                    <div className="mentor-expertise">
+                      <strong>Expertise:</strong>
+                      <div className="expertise-tags">
+                        {schedule.mentor.mentorProfile.expertise.map((topic) => (
+                          <span key={topic.id} className="expertise-tag" title={topic.description}>
+                            {topic.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
               <span className={`status-badge ${schedule.status.toLowerCase()}`}>
                 {schedule.status}

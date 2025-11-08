@@ -11,11 +11,13 @@ const postsController = new PostsController();
 // Tất cả routes đều cần authentication
 router.use(authenticate);
 
-// GET /api/posts - Lấy danh sách posts (public hoặc của user)
-router.get('/', authorizePermissions('post:view_any'), postsController.getPosts);
+// GET /api/posts - Lấy danh sách posts (public posts - no permission needed, authenticated users can view)
+// Service layer will handle filtering public vs private posts
+router.get('/', postsController.getPosts);
 
-// GET /api/posts/:id - Lấy chi tiết một post
-router.get('/:id', authorizePermissions('post:view_any'), postsController.getPostById);
+// GET /api/posts/:id - Lấy chi tiết một post (public posts - no permission needed)
+// Service layer will handle access control for private posts
+router.get('/:id', postsController.getPostById);
 
 // POST /api/posts - Tạo post mới
 router.post('/', authorizePermissions('post:create'), postsController.createPost);
@@ -80,7 +82,7 @@ router.delete('/:id/images/:imageId',
 // POST /api/posts/:id/like - Like/Unlike post
 router.post('/:id/like', authorizePermissions('post:like'), postsController.toggleLike);
 
-// GET /api/posts/:id/likes - Lấy danh sách likes của post
-router.get('/:id/likes', authorizePermissions('post:view_any'), postsController.getPostLikes);
+// GET /api/posts/:id/likes - Lấy danh sách likes của post (no permission needed)
+router.get('/:id/likes', postsController.getPostLikes);
 
 export default router;

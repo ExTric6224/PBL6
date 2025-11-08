@@ -1,0 +1,422 @@
+{
+  "info": {
+    "name": "Topics Feature Tests",
+    "description": "Test collection for Topics feature - Mentor/Mentee Profile with Topics selection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login as Mentor",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.data && jsonData.data.token) {",
+              "    pm.environment.set('mentor_token', jsonData.data.token);",
+              "    pm.environment.set('mentor_user_id', jsonData.data.user.id);",
+              "    console.log('Mentor token saved:', jsonData.data.token.substring(0, 20) + '...');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"mentor1@example.com\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get All Topics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Topics array exists', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    pm.expect(jsonData.data.length).to.be.at.least(1);",
+              "    console.log('Total topics:', jsonData.data.length);",
+              "});",
+              "",
+              "var topics = pm.response.json().data;",
+              "console.log('Available topics:');",
+              "topics.forEach(function(topic) {",
+              "    console.log('  ID:', topic.id, '- Name:', topic.name);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/topics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "topics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Create/Update Mentor Profile with Topics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Expertise is array of topic objects', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.expertise).to.be.an('array');",
+              "    pm.expect(jsonData.data.expertise.length).to.equal(3);",
+              "    ",
+              "    // Check first topic has required fields",
+              "    var firstTopic = jsonData.data.expertise[0];",
+              "    pm.expect(firstTopic).to.have.property('id');",
+              "    pm.expect(firstTopic).to.have.property('name');",
+              "    pm.expect(firstTopic).to.have.property('description');",
+              "});",
+              "",
+              "console.log('Profile created/updated:');",
+              "var profile = pm.response.json().data;",
+              "console.log('  Name:', profile.fullName);",
+              "console.log('  Expertise:');",
+              "profile.expertise.forEach(function(topic) {",
+              "    console.log('    -', topic.name);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentor_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"John Doe\",\n  \"school\": \"MIT\",\n  \"expertise\": [1, 3, 7],\n  \"degree\": \"Master of Computer Science\",\n  \"yearsExp\": 5,\n  \"bio\": \"Experienced software engineer specializing in web development, data science, and database systems\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/profiles/mentor",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "mentor"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Get Mentor Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Expertise topics are returned', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.expertise).to.be.an('array');",
+              "    ",
+              "    // Verify specific topics",
+              "    var topicNames = jsonData.data.expertise.map(t => t.name);",
+              "    pm.expect(topicNames).to.include('Web Development');",
+              "    pm.expect(topicNames).to.include('Data Science');",
+              "    pm.expect(topicNames).to.include('Database');",
+              "});",
+              "",
+              "console.log('Retrieved profile:');",
+              "var profile = pm.response.json().data;",
+              "console.log('  User ID:', profile.userId);",
+              "console.log('  Name:', profile.fullName);",
+              "console.log('  Topics:', profile.expertise.map(t => t.name).join(', '));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/profiles/mentor/{{mentor_user_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "mentor", "{{mentor_user_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Update Mentor Topics Only",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Topics updated successfully', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.expertise.length).to.equal(3);",
+              "    ",
+              "    var topicIds = jsonData.data.expertise.map(t => t.id);",
+              "    pm.expect(topicIds).to.include(2); // Mobile Development",
+              "    pm.expect(topicIds).to.include(4); // DevOps",
+              "    pm.expect(topicIds).to.include(8); // Software Architecture",
+              "});",
+              "",
+              "console.log('Topics updated to:');",
+              "var topics = pm.response.json().data.expertise;",
+              "topics.forEach(function(topic) {",
+              "    console.log('  -', topic.name);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentor_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expertise\": [2, 4, 8]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/profiles/mentor",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "mentor"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Login as Mentee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.data && jsonData.data.token) {",
+              "    pm.environment.set('mentee_token', jsonData.data.token);",
+              "    pm.environment.set('mentee_user_id', jsonData.data.user.id);",
+              "    console.log('Mentee token saved');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"mentee1@example.com\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Create/Update Mentee Profile with Interests",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Interests is array of topic objects', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.interests).to.be.an('array');",
+              "    pm.expect(jsonData.data.interests.length).to.equal(3);",
+              "});",
+              "",
+              "console.log('Mentee profile created:');",
+              "var profile = pm.response.json().data;",
+              "console.log('  Name:', profile.fullName);",
+              "console.log('  Goals:', profile.goals);",
+              "console.log('  Interests:');",
+              "profile.interests.forEach(function(topic) {",
+              "    console.log('    -', topic.name);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentee_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Jane Smith\",\n  \"goals\": \"Learn web development, UI/UX design, and cloud computing\",\n  \"interests\": [1, 6, 12]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/profiles/mentee",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "mentee"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Get Mentee Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Interests topics are returned', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var topicNames = jsonData.data.interests.map(t => t.name);",
+              "    pm.expect(topicNames).to.include('Web Development');",
+              "    pm.expect(topicNames).to.include('UI/UX Design');",
+              "    pm.expect(topicNames).to.include('Cloud Computing');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentee_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/profiles/mentee/{{mentee_user_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "mentee", "{{mentee_user_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Get Schedules (Verify Mentor Topics)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Schedules include mentor expertise', function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.length > 0) {",
+              "        var schedule = jsonData.data[0];",
+              "        if (schedule.mentor && schedule.mentor.mentorProfile) {",
+              "            pm.expect(schedule.mentor.mentorProfile.expertise).to.be.an('array');",
+              "            console.log('Mentor expertise in schedule:', ",
+              "                schedule.mentor.mentorProfile.expertise.map(t => t.name));",
+              "        }",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mentor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/schedules",
+          "host": ["{{base_url}}"],
+          "path": ["api", "schedules"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

@@ -62,16 +62,9 @@ export class PostsService {
 
     const where: any = {};
 
-    // Chỉ hiển thị public posts, trừ khi user xem posts của chính mình
-    if (currentUserId && authorId && authorId === currentUserId) {
-      // User xem posts của chính mình - hiển thị tất cả
+    // Tất cả users có thể xem tất cả posts (bỏ private/public logic)
+    if (authorId) {
       where.authorId = authorId;
-    } else {
-      // Xem posts của người khác hoặc feed chung - chỉ hiển thị public
-      where.isPublic = true;
-      if (authorId) {
-        where.authorId = authorId;
-      }
     }
 
     // Search trong title và content
@@ -205,10 +198,7 @@ export class PostsService {
       throw new Error('Post not found');
     }
 
-    // Kiểm tra quyền xem post
-    if (!post.isPublic && currentUserId !== post.authorId) {
-      throw new Error('Access denied');
-    }
+    // Tất cả authenticated users có thể xem tất cả posts (bỏ private/public check)
 
     return {
       ...post,
@@ -283,7 +273,7 @@ export class PostsService {
   }
 
   async toggleLike(postId: number, userId: number) {
-    // Kiểm tra post có tồn tại và public không
+    // Kiểm tra post có tồn tại không
     const post = await prisma.post.findUnique({
       where: { id: postId },
     });
@@ -292,9 +282,7 @@ export class PostsService {
       throw new Error('Post not found');
     }
 
-    if (!post.isPublic && post.authorId !== userId) {
-      throw new Error('Cannot like private post');
-    }
+    // Tất cả authenticated users có thể like bất kỳ post nào
 
     // Kiểm tra đã like chưa
     const existingLike = await prisma.like.findUnique({

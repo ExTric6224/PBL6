@@ -1,6 +1,30 @@
 import prisma from '../db/client';
 import { CreateScheduleDto, UpdateScheduleDto, ScheduleQueryDto } from '../schemas/schedules.schema';
 
+// Helper function to include mentor profile with topics
+const includeMentorProfileWithTopics = () => ({
+  select: {
+    id: true,
+    fullName: true,
+    school: true,
+    degree: true,
+    yearsExp: true,
+    bio: true,
+  },
+  include: {
+    expertise: {
+      include: {
+        topic: true,
+      },
+    },
+  },
+});
+
+// Helper function to transform expertise to topics array
+const transformExpertise = (expertise: any[]) => {
+  return expertise.map(e => e.topic);
+};
+
 export class SchedulesService {
   async createSchedule(mentorUserId: number, data: CreateScheduleDto) {
     // Check if user is mentor and has mentor profile
@@ -35,10 +59,16 @@ export class SchedulesService {
                 id: true,
                 fullName: true,
                 school: true,
-                expertise: true,
                 degree: true,
                 yearsExp: true,
                 bio: true,
+              },
+              include: {
+                expertise: {
+                  include: {
+                    topic: true,
+                  },
+                },
               },
             },
           },
@@ -75,17 +105,7 @@ export class SchedulesService {
           select: {
             id: true,
             email: true,
-            mentorprofile: {
-              select: {
-                id: true,
-                fullName: true,
-                school: true,
-                expertise: true,
-                degree: true,
-                yearsExp: true,
-                bio: true,
-              },
-            },
+            mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
@@ -110,7 +130,7 @@ export class SchedulesService {
         ...schedule.user,
         mentorProfile: schedule.user.mentorprofile ? {
           ...schedule.user.mentorprofile,
-          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
+          expertise: transformExpertise(schedule.user.mentorprofile.expertise),
         } : null,
       },
     }));
@@ -250,17 +270,7 @@ export class SchedulesService {
           select: {
             id: true,
             email: true,
-            mentorprofile: {
-              select: {
-                id: true,
-                fullName: true,
-                school: true,
-                expertise: true,
-                degree: true,
-                yearsExp: true,
-                bio: true,
-              },
-            },
+            mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
@@ -285,7 +295,7 @@ export class SchedulesService {
         ...schedule.user,
         mentorProfile: schedule.user.mentorprofile ? {
           ...schedule.user.mentorprofile,
-          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
+          expertise: transformExpertise(schedule.user.mentorprofile.expertise),
         } : null,
       },
     }));
@@ -299,17 +309,7 @@ export class SchedulesService {
           select: {
             id: true,
             email: true,
-            mentorprofile: {
-              select: {
-                id: true,
-                fullName: true,
-                school: true,
-                expertise: true,
-                degree: true,
-                yearsExp: true,
-                bio: true,
-              },
-            },
+            mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
@@ -335,7 +335,7 @@ export class SchedulesService {
         ...schedule.user,
         mentorProfile: schedule.user.mentorprofile ? {
           ...schedule.user.mentorprofile,
-          expertise: JSON.parse(schedule.user.mentorprofile.expertise as string),
+          expertise: transformExpertise(schedule.user.mentorprofile.expertise),
         } : null,
       },
     };

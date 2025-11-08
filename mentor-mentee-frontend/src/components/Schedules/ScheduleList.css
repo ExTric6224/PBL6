@@ -206,6 +206,47 @@
   border-color: #f093fb;
 }
 
+.schedule-mentor {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.mentor-expertise {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.mentor-expertise strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #2d3748;
+}
+
+.expertise-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.expertise-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: help;
+  transition: transform 0.2s;
+}
+
+.expertise-tag:hover {
+  transform: scale(1.05);
+}
+
 @media (max-width: 768px) {
   .schedules-header {
     flex-direction: column;
