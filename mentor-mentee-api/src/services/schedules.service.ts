@@ -324,11 +324,24 @@ export class SchedulesService {
       throw new Error('Schedule not found or access denied');
     }
 
-    // Set status to CANCELLED instead of deleting
-    return await prisma.schedule.update({
-      where: { id: scheduleId },
-      data: { status: 'CANCELLED' },
-    });
+    // Cancel schedule and all related bookings in a transaction
+    const [updatedSchedule] = await prisma.$transaction([
+      // Set schedule status to CANCELLED
+      prisma.schedule.update({
+        where: { id: scheduleId },
+        data: { status: 'CANCELLED' },
+      }),
+      // Cancel all PENDING and CONFIRMED bookings for this schedule
+      prisma.booking.updateMany({
+        where: {
+          scheduleId: scheduleId,
+          status: { in: ['PENDING', 'CONFIRMED'] },
+        },
+        data: { status: 'CANCELLED' },
+      }),
+    ]);
+
+    return updatedSchedule;
   }
 
   async getMentorSchedules(mentorUserId: number, query: ScheduleQueryDto) {

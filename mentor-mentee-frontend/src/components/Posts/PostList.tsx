@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { postApi } from '../../services/postApi';
 import { Post } from '../../types/post';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './PostList.css';
 
 interface PostFormData {
@@ -18,6 +19,7 @@ interface ImageUploadState {
 
 const PostList: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,10 @@ const PostList: React.FC = () => {
   const [imageUploadState, setImageUploadState] = useState<ImageUploadState>({});
   const [expandedPosts, setExpandedPosts] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
+  const [showFilters, setShowFilters] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
@@ -62,15 +68,61 @@ const PostList: React.FC = () => {
     loadPosts();
   }, [loadPosts]);
 
-  // Reset page when switching tabs
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilters]);
+
+  // Reset page when switching tabs or search
   useEffect(() => {
     setPage(1);
-  }, [activeTab]);
+  }, [activeTab, searchQuery, sortBy]);
 
-  // Filter posts based on active tab
-  const filteredPosts = activeTab === 'my' 
-    ? posts.filter(post => post.authorId === user?.id)
-    : posts;
+  // Filter and sort posts based on active tab, search, and sort
+  const getFilteredAndSortedPosts = () => {
+    let filtered = activeTab === 'my' 
+      ? posts.filter(post => post.authorId === user?.id)
+      : posts;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(post => 
+        post.title.toLowerCase().includes(query) || 
+        post.content.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'popular':
+          return (b.likesCount || 0) - (a.likesCount || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  };
+
+  const filteredPosts = getFilteredAndSortedPosts();
 
   const handleTabChange = (tab: 'all' | 'my') => {
     setActiveTab(tab);
@@ -315,6 +367,80 @@ const PostList: React.FC = () => {
         </button>
       </div>
 
+      {/* Search and Filter Bar */}
+      <div className="search-filter-bar">
+        <div className="search-box">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Tìm kiếm bài viết..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button 
+              className="clear-search-btn"
+              onClick={() => setSearchQuery('')}
+              title="Xóa tìm kiếm"
+            >
+              ✖
+            </button>
+          )}
+        </div>
+        <div className="filter-controls" ref={filterDropdownRef}>
+          <button 
+            className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <span>🎚️</span>
+            <span>Lọc</span>
+          </button>
+          {showFilters && (
+            <div className="filter-dropdown">
+              <div className="filter-group">
+                <label className="filter-label">Sắp xếp theo:</label>
+                <div className="filter-options">
+                  <button
+                    className={`filter-option ${sortBy === 'newest' ? 'active' : ''}`}
+                    onClick={() => setSortBy('newest')}
+                  >
+                    <span>🆕</span> Mới nhất
+                  </button>
+                  <button
+                    className={`filter-option ${sortBy === 'oldest' ? 'active' : ''}`}
+                    onClick={() => setSortBy('oldest')}
+                  >
+                    <span>📅</span> Cũ nhất
+                  </button>
+                  <button
+                    className={`filter-option ${sortBy === 'popular' ? 'active' : ''}`}
+                    onClick={() => setSortBy('popular')}
+                  >
+                    <span>🔥</span> Phổ biến
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Search Results Info */}
+      {searchQuery && (
+        <div className="search-results-info">
+          <span>Tìm thấy <strong>{filteredPosts.length}</strong> kết quả cho "<strong>{searchQuery}</strong>"</span>
+          {filteredPosts.length === 0 && (
+            <button 
+              className="reset-search-btn"
+              onClick={() => setSearchQuery('')}
+            >
+              Xóa tìm kiếm
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Notifications */}
       {error && (
         <div className="notification error-notification">
@@ -545,11 +671,32 @@ const PostList: React.FC = () => {
                     {/* Post Header */}
                     <div className="post-card-header">
                       <div className="author-info">
-                        <div className="avatar">
-                          {post.author?.email?.charAt(0).toUpperCase() || 'U'}
+                        <div 
+                          className="avatar clickable"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/profile/${post.authorId}`);
+                          }}
+                          style={{ cursor: 'pointer' }}
+                          title="Xem profile"
+                        >
+                          {post.user?.email?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div className="author-details">
-                          <h3 className="author-name">{post.author?.email || 'Unknown'}</h3>
+                          <h3 
+                            className="author-name clickable"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/${post.authorId}`);
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title="Xem profile"
+                          >
+                            {post.user?.mentorprofile?.fullName || 
+                             post.user?.menteeprofile?.fullName || 
+                             post.user?.email || 
+                             'Unknown'}
+                          </h3>
                           <time className="post-time">{formatDate(post.createdAt)}</time>
                         </div>
                       </div>
@@ -557,14 +704,20 @@ const PostList: React.FC = () => {
                         <div className="post-menu">
                           <button
                             className="menu-btn"
-                            onClick={() => startEditing(post)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(post);
+                            }}
                             title="Chỉnh sửa"
                           >
                             ✏️
                           </button>
                           <button
                             className="menu-btn delete"
-                            onClick={() => handleDeletePost(post.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePost(post.id);
+                            }}
                             title="Xóa"
                           >
                             🗑️
@@ -573,98 +726,63 @@ const PostList: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Post Title */}
-                    <h2 className="post-title">{post.title}</h2>
+                    {/* Clickable Post Content Area */}
+                    <div 
+                      className="post-clickable-area" 
+                      onClick={() => navigate(`/posts/${post.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {/* Post Title */}
+                      <h2 className="post-title">{post.title}</h2>
 
-                    {/* Post Content */}
-                    <div className="post-content">
-                      <p>{displayContent}</p>
-                      {shouldTruncate && (
-                        <button
-                          className="read-more-btn"
-                          onClick={() => toggleExpandPost(post.id)}
-                        >
-                          {isExpanded ? 'Thu gọn ↑' : 'Đọc thêm ↓'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Post Images */}
-                    {post.images && post.images.length > 0 && (
-                      <div className={`post-images ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
-                        {post.images.map((image) => {
-                          const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
-                          return (
-                            <div key={image.id} className="image-wrapper">
-                              <img
-                                src={imageUrl}
-                                alt={`Ảnh ${image.order + 1}`}
-                                loading="lazy"
-                                onError={(e) => {
-                                  e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
-                                }}
-                              />
-                              {post.authorId === user?.id && (
-                                <button
-                                  className="delete-image-btn"
-                                  onClick={() => handleDeleteImage(post.id, image.id)}
-                                  title="Xóa ảnh"
-                                >
-                                  ✖
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Image Upload Section */}
-                    {post.authorId === user?.id && (
-                      <div className="image-upload-section">
-                        <input
-                          type="file"
-                          id={`file-${post.id}`}
-                          multiple
-                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                          onChange={(e) => handleFileChange(post.id, e)}
-                          style={{ display: 'none' }}
-                        />
-                        <label htmlFor={`file-${post.id}`} className="upload-label">
-                          <span>📷</span>
-                          <span>
-                            {imageUploadState[post.id]?.files.length > 0
-                              ? `${imageUploadState[post.id].files.length} ảnh đã chọn`
-                              : 'Thêm ảnh'}
+                      {/* Post Content Preview */}
+                      <div className="post-content">
+                        <p>{displayContent}</p>
+                        {shouldTruncate && (
+                          <span className="read-more-indicator">
+                            {isExpanded ? '↑' : 'Đọc thêm →'}
                           </span>
-                        </label>
-                        {imageUploadState[post.id]?.files.length > 0 && (
-                          <button
-                            className="upload-btn"
-                            onClick={() => handleUploadImages(post.id)}
-                            disabled={imageUploadState[post.id]?.uploading}
-                          >
-                            {imageUploadState[post.id]?.uploading ? (
-                              <>
-                                <span className="spinner-small"></span>
-                                Đang tải...
-                              </>
-                            ) : (
-                              'Tải lên'
-                            )}
-                          </button>
                         )}
                       </div>
-                    )}
+
+                      {/* Post Images Preview */}
+                      {post.images && post.images.length > 0 && (
+                        <div className={`post-images-preview ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
+                          {post.images.slice(0, 4).map((image, index) => {
+                            const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
+                            return (
+                              <div key={image.id} className="image-wrapper-preview">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Ảnh ${image.order + 1}`}
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
+                                  }}
+                                />
+                                {index === 3 && post.images && post.images.length > 4 && (
+                                  <div className="more-images-overlay">
+                                    +{post.images.length - 4}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Post Actions */}
                     <div className="post-actions">
                       <button
                         className={`action-btn like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
-                        onClick={() => handleToggleLike(post.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleLike(post.id);
+                        }}
                       >
                         <span className="icon">{post.isLikedByCurrentUser ? '❤️' : '🤍'}</span>
-                        <span className="count">{post._count?.likes || 0}</span>
+                        <span className="count">{post.likesCount || post._count?.likes || 0}</span>
                         <span className="text">Thích</span>
                       </button>
                     </div>

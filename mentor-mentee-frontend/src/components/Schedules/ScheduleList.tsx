@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { scheduleApi } from '../../services/scheduleApi';
 import { bookingApi } from '../../services/bookingApi';
 import { Schedule, ScheduleQueryParams } from '../../types/schedule';
@@ -7,6 +8,7 @@ import './ScheduleList.css';
 
 const ScheduleList: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +20,10 @@ const ScheduleList: React.FC = () => {
     endAt: ''
   });
   const [filters, setFilters] = useState<ScheduleQueryParams>({ status: undefined });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('upcoming');
+  const [showFilters, setShowFilters] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   const isMentor = user?.role === 'MENTOR';
 
@@ -42,6 +48,54 @@ const ScheduleList: React.FC = () => {
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilters]);
+
+  // Filter and sort schedules
+  const getFilteredAndSortedSchedules = () => {
+    let filtered = schedules;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(schedule =>
+        schedule.topic.toLowerCase().includes(query) ||
+        schedule.description?.toLowerCase().includes(query) ||
+        schedule.mentor?.mentorProfile?.fullName?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt || b.startAt).getTime() - new Date(a.createdAt || a.startAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt || a.startAt).getTime() - new Date(b.createdAt || b.startAt).getTime();
+        case 'upcoming':
+          return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  };
 
   const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +169,8 @@ const ScheduleList: React.FC = () => {
     return <div className="loading">Loading schedules...</div>;
   }
 
+  const filteredSchedules = getFilteredAndSortedSchedules();
+
   return (
     <div className="schedules-container">
       <div className="schedules-header">
@@ -130,6 +186,55 @@ const ScheduleList: React.FC = () => {
       </div>
 
       {error && <div className="error">{error}</div>}
+
+      {/* Search and Filters */}
+      <div className="search-filter-section">
+        {/* Search Bar */}
+        <div className="search-box">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Tìm kiếm lịch theo chủ đề, mô tả, mentor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button className="clear-search" onClick={() => setSearchQuery('')}>
+              ✖
+            </button>
+          )}
+        </div>
+
+        {/* Filter Button and Dropdown */}
+        <div className="filter-container" ref={filterDropdownRef}>
+          <button className="filter-btn" onClick={() => setShowFilters(!showFilters)}>
+            🔽 Lọc
+          </button>
+          {showFilters && (
+            <div className="filter-dropdown">
+              <div className="filter-option" onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}>
+                <span className={`option-radio ${sortBy === 'upcoming' ? 'active' : ''}`}>
+                  {sortBy === 'upcoming' ? '●' : '○'}
+                </span>
+                <span>Sắp diễn ra</span>
+              </div>
+              <div className="filter-option" onClick={() => { setSortBy('newest'); setShowFilters(false); }}>
+                <span className={`option-radio ${sortBy === 'newest' ? 'active' : ''}`}>
+                  {sortBy === 'newest' ? '●' : '○'}
+                </span>
+                <span>Mới nhất</span>
+              </div>
+              <div className="filter-option" onClick={() => { setSortBy('oldest'); setShowFilters(false); }}>
+                <span className={`option-radio ${sortBy === 'oldest' ? 'active' : ''}`}>
+                  {sortBy === 'oldest' ? '●' : '○'}
+                </span>
+                <span>Cũ nhất</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="filters">
@@ -200,14 +305,19 @@ const ScheduleList: React.FC = () => {
       )}
 
       {/* Schedules Grid */}
-      {schedules.length === 0 && !loading ? (
+      {filteredSchedules.length === 0 && !loading ? (
         <div className="empty-state">
-          {isMentor ? 'No schedules yet. Create your first schedule!' : 'No schedules available.'}
+          {searchQuery ? 'Không tìm thấy lịch phù hợp' : isMentor ? 'No schedules yet. Create your first schedule!' : 'No schedules available.'}
         </div>
       ) : (
         <div className="schedule-grid">
-          {schedules.map((schedule) => (
-            <div key={schedule.id} className={`schedule-card ${schedule.status.toLowerCase()}`}>
+          {filteredSchedules.map((schedule) => (
+            <div 
+              key={schedule.id} 
+              className={`schedule-card ${schedule.status.toLowerCase()}`}
+              onClick={() => navigate(`/schedules/${schedule.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <h3 className="schedule-topic">{schedule.topic}</h3>
               {schedule.description && (
                 <p className="schedule-description">{schedule.description}</p>
@@ -221,7 +331,15 @@ const ScheduleList: React.FC = () => {
               {/* Capacity is always 1, no need to display */}
               {schedule.mentor && (
                 <>
-                  <div className="schedule-mentor">
+                  <div 
+                    className="schedule-mentor"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${schedule.mentorId}`);
+                    }}
+                    style={{ cursor: 'pointer', color: '#007bff' }}
+                    title="Xem profile mentor"
+                  >
                     👨‍🏫 Mentor: {schedule.mentor.mentorProfile?.fullName || schedule.mentor.email}
                   </div>
                   {schedule.mentor.mentorProfile?.expertise && 
@@ -242,7 +360,7 @@ const ScheduleList: React.FC = () => {
               <span className={`status-badge ${schedule.status.toLowerCase()}`}>
                 {schedule.status}
               </span>
-              <div className="schedule-actions">
+              <div className="schedule-actions" onClick={(e) => e.stopPropagation()}>
                 {!isMentor && schedule.status === 'AVAILABLE' && (
                   <button className="book-btn" onClick={() => handleBookSchedule(schedule.id)}>
                     📅 Book Now

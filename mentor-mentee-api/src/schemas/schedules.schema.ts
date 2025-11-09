@@ -33,7 +33,7 @@ export const updateScheduleSchema = z.object({
 });
 
 export const scheduleQuerySchema = z.object({
-  status: z.enum(['AVAILABLE', 'CANCELLED']).optional(),
+  status: z.enum(['AVAILABLE', 'BOOKED', 'CANCELLED']).optional(),
   mentorId: z.string().transform((val) => parseInt(val, 10)).optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),

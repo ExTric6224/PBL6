@@ -309,5 +309,6 @@ enum user_role {
 
 enum schedule_status {
   AVAILABLE
+  BOOKED
   CANCELLED
 }

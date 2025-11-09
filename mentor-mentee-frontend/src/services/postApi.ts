@@ -5,8 +5,25 @@ import { ApiResponse, PaginatedResponse } from '../types/common';
 export const postApi = {
   // Get all posts
   getAllPosts: async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<Post>> => {
-    const response = await api.get<PaginatedResponse<Post>>(`/posts?page=${page}&limit=${limit}`);
-    return response.data;
+    const response = await api.get<{
+      success: boolean;
+      data: Post[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>(`/posts?page=${page}&limit=${limit}`);
+    
+    // Transform backend response to match frontend PaginatedResponse type
+    return {
+      data: response.data.data,
+      total: response.data.pagination.total,
+      page: response.data.pagination.page,
+      limit: response.data.pagination.limit,
+      totalPages: response.data.pagination.totalPages,
+    };
   },
 
   // Get post by ID

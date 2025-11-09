@@ -10,10 +10,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation/Navigation';
 import PermissionDashboard from './components/Permissions/PermissionDashboard';
 import PostList from './components/Posts/PostList';
+import PostDetail from './components/Posts/PostDetail';
 import ScheduleList from './components/Schedules/ScheduleList';
+import ScheduleDetail from './components/Schedules/ScheduleDetail';
 import BookingList from './components/Bookings/BookingList';
 import FeedbackForm from './components/Feedbacks/FeedbackForm';
 import ProfileForm from './components/Profile/ProfileForm';
+import PublicProfile from './components/Profile/PublicProfile';
 import './App.css';
 
 function App() {
@@ -54,12 +57,36 @@ function App() {
             />
             
             <Route 
+              path="/posts/:id" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <PostDetail />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
               path="/schedules" 
               element={
                 <ProtectedRoute>
                   <>
                     <Navigation />
                     <ScheduleList />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/schedules/:id" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <ScheduleDetail />
                   </>
                 </ProtectedRoute>
               } 
@@ -108,6 +135,18 @@ function App() {
                   <>
                     <Navigation />
                     <ProfileForm />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/profile/:userId" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <PublicProfile />
                   </>
                 </ProtectedRoute>
               } 

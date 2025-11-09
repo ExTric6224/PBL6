@@ -98,30 +98,40 @@ export class BookingsService {
       throw new Error('Booking is not in pending status');
     }
 
-    return await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'CONFIRMED' },
-      include: {
-        schedule: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                mentorprofile: true,
+    // Update booking status and schedule status in a transaction
+    const [updatedBooking] = await prisma.$transaction([
+      prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: 'CONFIRMED' },
+        include: {
+          schedule: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  mentorprofile: true,
+                },
               },
             },
           },
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            menteeprofile: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              menteeprofile: true,
+            },
           },
         },
-      },
-    });
+      }),
+      // Update schedule status to BOOKED
+      prisma.schedule.update({
+        where: { id: booking.scheduleId },
+        data: { status: 'BOOKED' },
+      }),
+    ]);
+
+    return updatedBooking;
   }
 
   async cancelBooking(bookingId: number, userId: number) {
@@ -162,30 +172,69 @@ export class BookingsService {
       throw new Error('Booking is already cancelled');
     }
 
-    return await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'CANCELLED' },
-      include: {
-        schedule: {
+    // Cancel booking and update schedule status if booking was confirmed
+    const wasConfirmed = booking.status === 'CONFIRMED';
+    
+    if (wasConfirmed && booking.schedule.status === 'BOOKED') {
+      // If booking was confirmed and schedule is booked, update schedule back to AVAILABLE
+      const [updatedBooking] = await prisma.$transaction([
+        prisma.booking.update({
+          where: { id: bookingId },
+          data: { status: 'CANCELLED' },
           include: {
+            schedule: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: true,
+                  },
+                },
+              },
+            },
             user: {
               select: {
                 id: true,
                 email: true,
-                mentorprofile: true,
+                menteeprofile: true,
               },
             },
           },
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            menteeprofile: true,
+        }),
+        prisma.schedule.update({
+          where: { id: booking.scheduleId },
+          data: { status: 'AVAILABLE' },
+        }),
+      ]);
+      return updatedBooking;
+    } else {
+      // If booking was pending or schedule is not booked, only cancel the booking
+      return await prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: 'CANCELLED' },
+        include: {
+          schedule: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  mentorprofile: true,
+                },
+              },
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              menteeprofile: true,
+            },
           },
         },
-      },
-    });
+      });
+    }
   }
 
   async getBookingsByMentee(menteeId: number) {

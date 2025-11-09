@@ -14,11 +14,19 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   images?: PostImage[];
-  author?: {
+  user?: {
     id: number;
     email: string;
     role: string;
+    mentorprofile?: {
+      fullName: string;
+      school: string;
+    };
+    menteeprofile?: {
+      fullName: string;
+    };
   };
+  likesCount?: number; // Backend trả về likesCount thay vì _count.likes
   _count?: {
     likes: number;
   };

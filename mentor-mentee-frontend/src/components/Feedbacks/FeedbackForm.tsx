@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { feedbackApi } from '../../services/feedbackApi';
+import { sessionApi } from '../../services/sessionApi';
 import { Feedback, CreateFeedbackData } from '../../types/feedback';
+import { Session } from '../../types/session';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './FeedbackForm.css';
@@ -11,7 +13,9 @@ const FeedbackForm: React.FC = () => {
   const { user } = useAuth();
 
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSessions, setLoadingSessions] = useState(false);
   const [showForm, setShowForm] = useState(!!booking);
   const [formData, setFormData] = useState<CreateFeedbackData>({
     sessionId: 0,
@@ -26,22 +30,57 @@ const FeedbackForm: React.FC = () => {
   const loadMyFeedbacks = useCallback(async () => {
     try {
       setLoading(true);
-      const paginatedResponse = await feedbackApi.getMyFeedbacks();
-      // paginatedResponse is { data: Feedback[], total, page, ... }
-      setFeedbacks(paginatedResponse.data || []);
+      if (isMentee) {
+        // MENTEE: lấy feedback đã đánh giá
+        const paginatedResponse = await feedbackApi.getMyFeedbacks();
+        setFeedbacks(paginatedResponse.data || []);
+      } else if (isMentor && user?.id) {
+        // MENTOR: lấy feedback đã nhận
+        const paginatedResponse = await feedbackApi.getFeedbacksByMentor(user.id);
+        setFeedbacks(paginatedResponse.data || []);
+      }
     } catch (err: any) {
       console.error('Failed to load feedbacks:', err);
-      setFeedbacks([]); // Set empty array on error
+      setFeedbacks([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMentee, isMentor, user?.id]);
+
+  const loadCompletedSessions = useCallback(async () => {
+    if (!isMentee) return; // Chỉ MENTEE mới cần load sessions
+    
+    try {
+      setLoadingSessions(true);
+      const allSessions = await sessionApi.getMySessions();
+      
+      // Lọc chỉ sessions đã hoàn thành và chưa có feedback
+      const feedbackSessionIds = new Set(feedbacks.map(f => f.sessionId));
+      const completedSessions = allSessions.filter(session => 
+        session.status === 'COMPLETED' && !feedbackSessionIds.has(session.id)
+      );
+      
+      setSessions(completedSessions);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      setSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  }, [isMentee, feedbacks]);
 
   useEffect(() => {
     if (!booking) {
       loadMyFeedbacks();
     }
   }, [booking, loadMyFeedbacks]);
+
+  useEffect(() => {
+    // Load sessions sau khi đã có feedbacks
+    if (isMentee && feedbacks.length >= 0) {
+      loadCompletedSessions();
+    }
+  }, [feedbacks.length, isMentee, loadCompletedSessions]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,18 +130,40 @@ const FeedbackForm: React.FC = () => {
             {renderStars(formData.rating, true)}
           </div>
           <div className="form-group">
-            <label>Session ID</label>
-            <input
-              type="number"
-              value={formData.sessionId || ''}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                sessionId: parseInt(e.target.value) || 0 
-              })}
-              required
-              min="1"
-              placeholder="Enter session ID"
-            />
+            <label>Select Session</label>
+            {loadingSessions ? (
+              <p className="loading-text">Loading sessions...</p>
+            ) : sessions.length === 0 ? (
+              <p className="info-text">No completed sessions available for feedback</p>
+            ) : (
+              <select
+                value={formData.sessionId || ''}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  sessionId: parseInt(e.target.value) || 0 
+                })}
+                required
+              >
+                <option value="">-- Select a session to rate --</option>
+                {sessions.map((session) => {
+                  const sessionDate = new Date(session.startTime).toLocaleString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const mentorEmail = session.mentor?.email || 'Unknown mentor';
+                  const bookingNotes = session.booking?.notes ? ` - ${session.booking.notes}` : '';
+                  
+                  return (
+                    <option key={session.id} value={session.id}>
+                      {sessionDate} with {mentorEmail}{bookingNotes}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
           </div>
           <div className="form-group">
             <label>Comment (optional)</label>
@@ -116,7 +177,11 @@ const FeedbackForm: React.FC = () => {
             <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={!formData.sessionId || loadingSessions}
+            >
               Submit Feedback
             </button>
           </div>
