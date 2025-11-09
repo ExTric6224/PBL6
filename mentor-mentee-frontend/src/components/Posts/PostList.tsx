@@ -4,21 +4,45 @@ import { Post } from '../../types/post';
 import { useAuth } from '../../context/AuthContext';
 import './PostList.css';
 
+interface PostFormData {
+  title: string;
+  content: string;
+}
+
+interface ImageUploadState {
+  [postId: number]: {
+    files: File[];
+    uploading: boolean;
+  };
+}
+
 const PostList: React.FC = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [formData, setFormData] = useState<PostFormData>({ title: '', content: '' });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadingImages, setUploadingImages] = useState<number | null>(null);
+  const [imageUploadState, setImageUploadState] = useState<ImageUploadState>({});
+  const [expandedPosts, setExpandedPosts] = useState<Set<number>>(new Set());
+  const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
 
-  // Remove '/api' from URL for static files
   const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace('/api', '');
+
+  // Auto clear messages
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -28,7 +52,7 @@ const PostList: React.FC = () => {
       setTotalPages(response.totalPages);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load posts');
+      setError(err.response?.data?.error?.message || 'Không thể tải bài viết');
     } finally {
       setLoading(false);
     }
@@ -38,50 +62,73 @@ const PostList: React.FC = () => {
     loadPosts();
   }, [loadPosts]);
 
+  // Reset page when switching tabs
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+
+  // Filter posts based on active tab
+  const filteredPosts = activeTab === 'my' 
+    ? posts.filter(post => post.authorId === user?.id)
+    : posts;
+
+  const handleTabChange = (tab: 'all' | 'my') => {
+    setActiveTab(tab);
+    setShowCreateForm(false);
+    setEditingPost(null);
+  };
+
+  const validateForm = (): boolean => {
+    if (formData.title.trim().length < 3) {
+      setError('Tiêu đề phải có ít nhất 3 ký tự');
+      return false;
+    }
+    if (formData.content.trim().length < 10) {
+      setError('Nội dung phải có ít nhất 10 ký tự');
+      return false;
+    }
+    return true;
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
-    if (formData.title.trim().length < 3) {
-      alert('Title must be at least 3 characters long');
-      return;
-    }
-    
-    if (formData.content.trim().length < 10) {
-      alert('Content must be at least 10 characters long');
-      return;
-    }
-    
+    if (!validateForm()) return;
+
     try {
       await postApi.createPost(formData);
       setFormData({ title: '', content: '' });
       setShowCreateForm(false);
+      setSuccess('Tạo bài viết thành công! 🎉');
       loadPosts();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to create post');
+      setError(err.response?.data?.error?.message || 'Không thể tạo bài viết');
     }
   };
 
   const handleUpdatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingPost) return;
+    if (!editingPost || !validateForm()) return;
+
     try {
       await postApi.updatePost(editingPost.id, formData);
       setFormData({ title: '', content: '' });
       setEditingPost(null);
+      setSuccess('Cập nhật bài viết thành công! ✨');
       loadPosts();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to update post');
+      setError(err.response?.data?.error?.message || 'Không thể cập nhật bài viết');
     }
   };
 
   const handleDeletePost = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) return;
+
     try {
       await postApi.deletePost(id);
+      setSuccess('Xóa bài viết thành công! 🗑️');
       loadPosts();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to delete post');
+      setError(err.response?.data?.error?.message || 'Không thể xóa bài viết');
     }
   };
 
@@ -90,7 +137,7 @@ const PostList: React.FC = () => {
       await postApi.toggleLike(id);
       loadPosts();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to toggle like');
+      setError(err.response?.data?.error?.message || 'Không thể thích bài viết');
     }
   };
 
@@ -105,252 +152,551 @@ const PostList: React.FC = () => {
     setFormData({ title: '', content: '' });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      // Validate file types
-      const validFiles = files.filter(file => 
-        ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)
-      );
-      
-      if (validFiles.length !== files.length) {
-        alert('Some files were not added. Only JPEG, PNG, GIF, and WebP images are allowed.');
-      }
-      
-      // Limit to 10 images
-      if (validFiles.length > 10) {
-        alert('Maximum 10 images allowed');
-        setSelectedFiles(validFiles.slice(0, 10));
-      } else {
-        setSelectedFiles(validFiles);
-      }
+  const handleFileChange = (postId: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(file =>
+      ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)
+    );
+
+    if (validFiles.length !== files.length) {
+      setError('Chỉ chấp nhận file ảnh định dạng JPEG, PNG, GIF, và WebP');
     }
+
+    const limitedFiles = validFiles.slice(0, 10);
+    if (validFiles.length > 10) {
+      setError('Tối đa 10 ảnh cho mỗi bài viết');
+    }
+
+    setImageUploadState(prev => ({
+      ...prev,
+      [postId]: {
+        files: limitedFiles,
+        uploading: false
+      }
+    }));
   };
 
   const handleUploadImages = async (postId: number) => {
-    if (selectedFiles.length === 0) return;
+    const uploadState = imageUploadState[postId];
+    if (!uploadState || uploadState.files.length === 0) return;
 
     try {
-      setUploadingImages(postId);
-      await postApi.uploadPostImages(postId, selectedFiles);
-      setSelectedFiles([]);
+      setImageUploadState(prev => ({
+        ...prev,
+        [postId]: { ...prev[postId], uploading: true }
+      }));
+
+      await postApi.uploadPostImages(postId, uploadState.files);
+      
+      setImageUploadState(prev => {
+        const newState = { ...prev };
+        delete newState[postId];
+        return newState;
+      });
+
+      setSuccess(`Đã tải lên ${uploadState.files.length} ảnh thành công! 📷`);
       loadPosts();
-      alert('Images uploaded successfully!');
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to upload images');
-    } finally {
-      setUploadingImages(null);
+      setError(err.response?.data?.error || 'Không thể tải lên ảnh');
+      setImageUploadState(prev => ({
+        ...prev,
+        [postId]: { ...prev[postId], uploading: false }
+      }));
     }
   };
 
   const handleDeleteImage = async (postId: number, imageId: number) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa ảnh này?')) return;
 
     try {
       await postApi.deletePostImage(postId, imageId);
+      setSuccess('Xóa ảnh thành công! 🖼️');
       loadPosts();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete image');
+      setError(err.response?.data?.error || 'Không thể xóa ảnh');
     }
   };
 
+  const toggleExpandPost = (postId: number) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const formatDate = (date: string) => {
+    const postDate = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - postDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    
+    return postDate.toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const canUserPost = () => {
+    return user?.role === 'MENTOR' || user?.role === 'ADMIN';
+  };
+
   if (loading && posts.length === 0) {
-    return <div className="loading">Loading posts...</div>;
+    return (
+      <div className="posts-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Đang tải bài viết...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="posts-container">
+      {/* Header */}
       <div className="posts-header">
-        <h1>📝 Community Posts</h1>
-        {(user?.role === 'MENTOR' || user?.role === 'ADMIN') && !editingPost && (
+        <div className="header-content">
+          <h1>
+            <span className="icon">📝</span>
+            Cộng Đồng
+          </h1>
+          <p className="subtitle">Chia sẻ kiến thức và kết nối với mọi người</p>
+        </div>
+        {canUserPost() && !editingPost && (
           <button
-            className="create-post-btn"
+            className={`create-post-btn ${showCreateForm ? 'active' : ''}`}
             onClick={() => setShowCreateForm(!showCreateForm)}
           >
-            {showCreateForm ? '✖ Cancel' : '✚ Create Post'}
+            {showCreateForm ? (
+              <>
+                <span>✖</span> Hủy
+              </>
+            ) : (
+              <>
+                <span>✚</span> Tạo Bài Viết
+              </>
+            )}
           </button>
         )}
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {/* Tabs */}
+      <div className="tabs-container">
+        <button
+          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => handleTabChange('all')}
+        >
+          <span className="tab-icon">🌐</span>
+          <span className="tab-text">Tất Cả Bài Viết</span>
+          <span className="tab-count">{posts.length}</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'my' ? 'active' : ''}`}
+          onClick={() => handleTabChange('my')}
+        >
+          <span className="tab-icon">👤</span>
+          <span className="tab-text">Bài Viết Của Tôi</span>
+          <span className="tab-count">{posts.filter(p => p.authorId === user?.id).length}</span>
+        </button>
+      </div>
 
-      {/* Create Form */}
-      {showCreateForm && (
-        <form className="create-post-form" onSubmit={handleCreatePost}>
-          <div className="form-group">
-            <label>Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-              placeholder="Enter post title..."
-            />
-          </div>
-          <div className="form-group">
-            <label>Content</label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required
-              placeholder="Write your post content..."
-            />
-          </div>
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Create Post
-            </button>
-          </div>
-        </form>
+      {/* Notifications */}
+      {error && (
+        <div className="notification error-notification">
+          <span className="icon">⚠️</span>
+          <span>{error}</span>
+          <button className="close-btn" onClick={() => setError(null)}>✖</button>
+        </div>
+      )}
+      {success && (
+        <div className="notification success-notification">
+          <span className="icon">✓</span>
+          <span>{success}</span>
+          <button className="close-btn" onClick={() => setSuccess(null)}>✖</button>
+        </div>
       )}
 
-      {/* Edit Form */}
-      {editingPost && (
-        <form className="create-post-form" onSubmit={handleUpdatePost}>
-          <h2>Edit Post</h2>
-          <div className="form-group">
-            <label>Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Content</label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={cancelEditing}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Update Post
-            </button>
-          </div>
-        </form>
+      {/* Create/Edit Form */}
+      {showCreateForm && (
+        <div className="post-form-container">
+          <form
+            className="post-form"
+            onSubmit={handleCreatePost}
+          >
+            <div className="form-header">
+              <h2>✨ Tạo Bài Viết Mới</h2>
+            </div>
+
+            <div className="form-body">
+              <div className="form-group">
+                <label htmlFor="title">
+                  Tiêu Đề <span className="required">*</span>
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Nhập tiêu đề bài viết..."
+                  required
+                  maxLength={200}
+                />
+                <span className="char-count">{formData.title.length}/200</span>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="content">
+                  Nội Dung <span className="required">*</span>
+                </label>
+                <textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  placeholder="Chia sẻ suy nghĩ của bạn..."
+                  required
+                  rows={8}
+                  maxLength={5000}
+                />
+                <span className="char-count">{formData.content.length}/5000</span>
+              </div>
+            </div>
+
+            <div className="form-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowCreateForm(false)}
+              >
+                Hủy
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Đăng Bài
+              </button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* Posts List */}
-      {posts.length === 0 && !loading ? (
-        <div className="empty-state">No posts yet. Be the first to create one!</div>
+      {filteredPosts.length === 0 && !loading ? (
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <h3>{activeTab === 'my' ? 'Bạn chưa có bài viết nào' : 'Chưa có bài viết nào'}</h3>
+          <p>{activeTab === 'my' ? 'Hãy tạo bài viết đầu tiên của bạn!' : 'Hãy là người đầu tiên chia sẻ!'}</p>
+        </div>
       ) : (
-        <div className="posts-list">
-          {posts.map((post) => (
-            <div key={post.id} className="post-card">
-              <div className="post-header">
-                <div>
-                  <h2 className="post-title">{post.title}</h2>
-                  <div className="post-meta">
-                    <span className="author-badge">{post.author?.email || 'Unknown'}</span>
-                    <span>•</span>
-                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
+        <div className="posts-grid">
+          {filteredPosts.map((post) => {
+            const isExpanded = expandedPosts.has(post.id);
+            const shouldTruncate = post.content.length > 300;
+            const displayContent = shouldTruncate && !isExpanded
+              ? post.content.substring(0, 300) + '...'
+              : post.content;
+            const isEditing = editingPost?.id === post.id;
 
-              {/* Post Images Gallery */}
-              {post.images && post.images.length > 0 && (
-                <div className="post-images-gallery">
-                  {post.images.map((image) => {
-                    const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
-                    console.log('Loading image:', imageUrl); // Debug log
-                    return (
-                      <div key={image.id} className="post-image-wrapper">
-                        <img 
-                          src={imageUrl}
-                          alt={`Post image ${image.order + 1}`}
-                          className="post-image"
-                          onError={(e) => {
-                            console.error('Failed to load image:', imageUrl);
-                            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23ddd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">Image not found</text></svg>';
-                          }}
-                        />
-                        {post.authorId === user?.id && (
+            return (
+              <article key={post.id} className="post-card">
+                {isEditing ? (
+                  // Edit Form - Inline
+                  <div className="post-edit-form">
+                    <form onSubmit={handleUpdatePost}>
+                      <div className="form-header">
+                        <h2>✏️ Chỉnh Sửa Bài Viết</h2>
+                      </div>
+
+                      <div className="form-body">
+                        <div className="form-group">
+                          <label htmlFor={`edit-title-${post.id}`}>
+                            Tiêu Đề <span className="required">*</span>
+                          </label>
+                          <input
+                            id={`edit-title-${post.id}`}
+                            type="text"
+                            value={formData.title}
+                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            placeholder="Nhập tiêu đề bài viết..."
+                            required
+                            maxLength={200}
+                          />
+                          <span className="char-count">{formData.title.length}/200</span>
+                        </div>
+
+                        <div className="form-group">
+                          <label htmlFor={`edit-content-${post.id}`}>
+                            Nội Dung <span className="required">*</span>
+                          </label>
+                          <textarea
+                            id={`edit-content-${post.id}`}
+                            value={formData.content}
+                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                            placeholder="Chia sẻ suy nghĩ của bạn..."
+                            required
+                            rows={8}
+                            maxLength={5000}
+                          />
+                          <span className="char-count">{formData.content.length}/5000</span>
+                        </div>
+
+                        {/* Edit Images Section */}
+                        {post.images && post.images.length > 0 && (
+                          <div className="edit-images-section">
+                            <label>Ảnh Hiện Tại</label>
+                            <div className={`post-images ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
+                              {post.images.map((image) => {
+                                const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
+                                return (
+                                  <div key={image.id} className="image-wrapper">
+                                    <img
+                                      src={imageUrl}
+                                      alt={`Ảnh ${image.order + 1}`}
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="delete-image-btn"
+                                      onClick={() => handleDeleteImage(post.id, image.id)}
+                                      title="Xóa ảnh"
+                                    >
+                                      ✖
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Add More Images */}
+                        <div className="edit-upload-section">
+                          <label>Thêm Ảnh Mới</label>
+                          <div className="image-upload-section">
+                            <input
+                              type="file"
+                              id={`file-edit-${post.id}`}
+                              multiple
+                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                              onChange={(e) => handleFileChange(post.id, e)}
+                              style={{ display: 'none' }}
+                            />
+                            <label htmlFor={`file-edit-${post.id}`} className="upload-label">
+                              <span>📷</span>
+                              <span>
+                                {imageUploadState[post.id]?.files.length > 0
+                                  ? `${imageUploadState[post.id].files.length} ảnh đã chọn`
+                                  : 'Chọn ảnh để thêm'}
+                              </span>
+                            </label>
+                            {imageUploadState[post.id]?.files.length > 0 && (
+                              <button
+                                type="button"
+                                className="upload-btn"
+                                onClick={() => handleUploadImages(post.id)}
+                                disabled={imageUploadState[post.id]?.uploading}
+                              >
+                                {imageUploadState[post.id]?.uploading ? (
+                                  <>
+                                    <span className="spinner-small"></span>
+                                    Đang tải...
+                                  </>
+                                ) : (
+                                  'Tải lên ngay'
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="form-footer">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={cancelEditing}
+                        >
+                          Hủy
+                        </button>
+                        <button type="submit" className="btn btn-primary">
+                          Cập Nhật
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  // Normal Post Display
+                  <>
+                    {/* Post Header */}
+                    <div className="post-card-header">
+                      <div className="author-info">
+                        <div className="avatar">
+                          {post.author?.email?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div className="author-details">
+                          <h3 className="author-name">{post.author?.email || 'Unknown'}</h3>
+                          <time className="post-time">{formatDate(post.createdAt)}</time>
+                        </div>
+                      </div>
+                      {post.authorId === user?.id && (
+                        <div className="post-menu">
                           <button
-                            className="delete-image-btn"
-                            onClick={() => handleDeleteImage(post.id, image.id)}
-                            title="Delete image"
+                            className="menu-btn"
+                            onClick={() => startEditing(post)}
+                            title="Chỉnh sửa"
                           >
-                            ✖
+                            ✏️
+                          </button>
+                          <button
+                            className="menu-btn delete"
+                            onClick={() => handleDeletePost(post.id)}
+                            title="Xóa"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Post Title */}
+                    <h2 className="post-title">{post.title}</h2>
+
+                    {/* Post Content */}
+                    <div className="post-content">
+                      <p>{displayContent}</p>
+                      {shouldTruncate && (
+                        <button
+                          className="read-more-btn"
+                          onClick={() => toggleExpandPost(post.id)}
+                        >
+                          {isExpanded ? 'Thu gọn ↑' : 'Đọc thêm ↓'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Post Images */}
+                    {post.images && post.images.length > 0 && (
+                      <div className={`post-images ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
+                        {post.images.map((image) => {
+                          const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
+                          return (
+                            <div key={image.id} className="image-wrapper">
+                              <img
+                                src={imageUrl}
+                                alt={`Ảnh ${image.order + 1}`}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
+                                }}
+                              />
+                              {post.authorId === user?.id && (
+                                <button
+                                  className="delete-image-btn"
+                                  onClick={() => handleDeleteImage(post.id, image.id)}
+                                  title="Xóa ảnh"
+                                >
+                                  ✖
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Image Upload Section */}
+                    {post.authorId === user?.id && (
+                      <div className="image-upload-section">
+                        <input
+                          type="file"
+                          id={`file-${post.id}`}
+                          multiple
+                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                          onChange={(e) => handleFileChange(post.id, e)}
+                          style={{ display: 'none' }}
+                        />
+                        <label htmlFor={`file-${post.id}`} className="upload-label">
+                          <span>📷</span>
+                          <span>
+                            {imageUploadState[post.id]?.files.length > 0
+                              ? `${imageUploadState[post.id].files.length} ảnh đã chọn`
+                              : 'Thêm ảnh'}
+                          </span>
+                        </label>
+                        {imageUploadState[post.id]?.files.length > 0 && (
+                          <button
+                            className="upload-btn"
+                            onClick={() => handleUploadImages(post.id)}
+                            disabled={imageUploadState[post.id]?.uploading}
+                          >
+                            {imageUploadState[post.id]?.uploading ? (
+                              <>
+                                <span className="spinner-small"></span>
+                                Đang tải...
+                              </>
+                            ) : (
+                              'Tải lên'
+                            )}
                           </button>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    )}
 
-              <p className="post-content">{post.content}</p>
-
-              {/* Image Upload Section for Post Owner */}
-              {post.authorId === user?.id && (
-                <div className="image-upload-section">
-                  <input
-                    type="file"
-                    id={`file-input-${post.id}`}
-                    multiple
-                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                  <label htmlFor={`file-input-${post.id}`} className="upload-images-btn">
-                    📷 Add Images ({selectedFiles.length}/10)
-                  </label>
-                  {selectedFiles.length > 0 && (
-                    <button
-                      className="btn-upload"
-                      onClick={() => handleUploadImages(post.id)}
-                      disabled={uploadingImages === post.id}
-                    >
-                      {uploadingImages === post.id ? 'Uploading...' : `Upload ${selectedFiles.length} image(s)`}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <div className="post-actions">
-                <button
-                  className={`like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
-                  onClick={() => handleToggleLike(post.id)}
-                >
-                  {post.isLikedByCurrentUser ? '❤️' : '🤍'} {post._count?.likes || 0}
-                </button>
-                {post.authorId === user?.id && (
-                  <>
-                    <button className="edit-btn" onClick={() => startEditing(post)}>
-                      ✏️ Edit
-                    </button>
-                    <button className="delete-btn" onClick={() => handleDeletePost(post.id)}>
-                      🗑️ Delete
-                    </button>
+                    {/* Post Actions */}
+                    <div className="post-actions">
+                      <button
+                        className={`action-btn like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
+                        onClick={() => handleToggleLike(post.id)}
+                      >
+                        <span className="icon">{post.isLikedByCurrentUser ? '❤️' : '🤍'}</span>
+                        <span className="count">{post._count?.likes || 0}</span>
+                        <span className="text">Thích</span>
+                      </button>
+                    </div>
                   </>
                 )}
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
-          <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-            ← Previous
+          <button
+            className="pagination-btn"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+          >
+            ← Trước
           </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
-            Next →
+          <div className="pagination-info">
+            <span className="current-page">{page}</span>
+            <span className="separator">/</span>
+            <span className="total-pages">{totalPages}</span>
+          </div>
+          <button
+            className="pagination-btn"
+            onClick={() => setPage(page + 1)}
+            disabled={page === totalPages}
+          >
+            Sau →
           </button>
         </div>
       )}

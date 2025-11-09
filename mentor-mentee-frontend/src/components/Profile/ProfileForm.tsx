@@ -11,6 +11,7 @@ const ProfileForm: React.FC = () => {
   const isMentee = user?.role === 'MENTEE';
 
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [existingProfile, setExistingProfile] = useState<MentorProfile | MenteeProfile | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -18,7 +19,7 @@ const ProfileForm: React.FC = () => {
     fullName: '',
     avatar: '',
     school: '',
-    expertise: [], // Now number[] (topic IDs)
+    expertise: [],
     degree: '',
     yearsExp: 0,
     bio: '',
@@ -26,27 +27,23 @@ const ProfileForm: React.FC = () => {
   const [menteeData, setMenteeData] = useState<CreateMenteeProfileData>({
     fullName: '',
     avatar: '',
-    interests: [], // Now number[] (topic IDs)
+    interests: [],
     goals: '',
   });
 
-  // Handle avatar file selection and preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('File size should not exceed 5MB');
         return;
       }
 
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         return;
       }
 
-      // Store file and create preview
       setAvatarFile(file);
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
@@ -71,7 +68,6 @@ const ProfileForm: React.FC = () => {
         const profile = await profileApi.getMentorProfile(user.id);
         setExistingProfile(profile);
         
-        // Extract topic IDs from Topic objects
         const expertiseIds = profile.expertise.map(topic => topic.id);
         
         setMentorData({
@@ -79,39 +75,32 @@ const ProfileForm: React.FC = () => {
           avatar: profile.avatar || '',
           school: profile.school || '',
           bio: profile.bio || '',
-          expertise: expertiseIds, // Store as number[]
+          expertise: expertiseIds,
           degree: profile.degree || '',
           yearsExp: profile.yearsExp || 0,
         });
-        // Set preview to server path if exists
+        
         if (profile.avatar) {
-          // Remove /api from REACT_APP_API_URL and use just the base URL
           const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3000';
           const avatarUrl = `${baseUrl}${profile.avatar}`;
-          console.log('[DEBUG] Avatar path from DB:', profile.avatar);
-          console.log('[DEBUG] Full avatar URL:', avatarUrl);
           setAvatarPreview(avatarUrl);
         }
       } else if (isMentee) {
         const profile = await profileApi.getMenteeProfile(user.id);
         setExistingProfile(profile);
         
-        // Extract topic IDs from Topic objects
         const interestIds = profile.interests.map(topic => topic.id);
         
         setMenteeData({
           fullName: profile.fullName,
           avatar: profile.avatar || '',
-          interests: interestIds, // Store as number[]
+          interests: interestIds,
           goals: profile.goals || '',
         });
-        // Set preview to server path if exists
+        
         if (profile.avatar) {
-          // Remove /api from REACT_APP_API_URL and use just the base URL
           const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3000';
           const avatarUrl = `${baseUrl}${profile.avatar}`;
-          console.log('[DEBUG] Avatar path from DB:', profile.avatar);
-          console.log('[DEBUG] Full avatar URL:', avatarUrl);
           setAvatarPreview(avatarUrl);
         }
       }
@@ -126,12 +115,19 @@ const ProfileForm: React.FC = () => {
     loadProfile();
   }, [loadProfile]);
 
+  useEffect(() => {
+    if (!loading && !existingProfile) {
+      setIsEditing(true);
+    }
+  }, [loading, existingProfile]);
+
   const handleMentorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await profileApi.createOrUpdateMentorProfile(mentorData, avatarFile || undefined);
       alert('Mentor profile saved successfully!');
-      setAvatarFile(null); // Clear file after successful upload
+      setAvatarFile(null);
+      setIsEditing(false);
       loadProfile();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to save profile');
@@ -140,41 +136,168 @@ const ProfileForm: React.FC = () => {
 
   const handleMenteeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[DEBUG] Submitting mentee data:', menteeData);
-    console.log('[DEBUG] Interests array:', menteeData.interests);
     try {
       await profileApi.createOrUpdateMenteeProfile(menteeData, avatarFile || undefined);
       alert('Mentee profile saved successfully!');
-      setAvatarFile(null); // Clear file after successful upload
+      setAvatarFile(null);
+      setIsEditing(false);
       loadProfile();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to save profile');
     }
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setAvatarFile(null);
+    loadProfile();
+  };
+
   if (loading) {
-    return <div className="loading">Loading profile...</div>;
+    return <div className="loading">✨ Loading profile...</div>;
   }
+
+  const renderMentorView = () => {
+    const profile = existingProfile as MentorProfile;
+    return (
+      <div className="profile-view">
+        <div className="profile-view-header">
+          <div className="profile-avatar-large">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt={profile.fullName} />
+            ) : (
+              <div className="avatar-placeholder-large">
+                <span>👨‍🏫</span>
+              </div>
+            )}
+          </div>
+          <div className="profile-view-info">
+            <h2>{profile.fullName}</h2>
+            <p className="profile-role">🎓 {user?.role}</p>
+            <p className="profile-email">📧 {user?.email}</p>
+          </div>
+        </div>
+
+        <div className="profile-details">
+          {profile.school && (
+            <div className="detail-item">
+              <span className="detail-label">🏫 School</span>
+              <span className="detail-value">{profile.school}</span>
+            </div>
+          )}
+          
+          {profile.degree && (
+            <div className="detail-item">
+              <span className="detail-label">🎓 Degree</span>
+              <span className="detail-value">{profile.degree}</span>
+            </div>
+          )}
+          
+          {profile.yearsExp !== undefined && (
+            <div className="detail-item">
+              <span className="detail-label">💼 Experience</span>
+              <span className="detail-value">{profile.yearsExp} years</span>
+            </div>
+          )}
+          
+          {profile.bio && (
+            <div className="detail-item">
+              <span className="detail-label">📝 Bio</span>
+              <p className="detail-value">{profile.bio}</p>
+            </div>
+          )}
+          
+          {profile.expertise && profile.expertise.length > 0 && (
+            <div className="detail-item">
+              <span className="detail-label">🎯 Expertise</span>
+              <div className="topics-display">
+                {profile.expertise.map((topic) => (
+                  <span key={topic.id} className="topic-badge">
+                    {topic.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button className="btn btn-primary" onClick={handleEditClick}>
+          ✏️ Edit Profile
+        </button>
+      </div>
+    );
+  };
+
+  const renderMenteeView = () => {
+    const profile = existingProfile as MenteeProfile;
+    return (
+      <div className="profile-view">
+        <div className="profile-view-header">
+          <div className="profile-avatar-large">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt={profile.fullName} />
+            ) : (
+              <div className="avatar-placeholder-large">
+                <span>👩‍🎓</span>
+              </div>
+            )}
+          </div>
+          <div className="profile-view-info">
+            <h2>{profile.fullName}</h2>
+            <p className="profile-role">🎓 {user?.role}</p>
+            <p className="profile-email">📧 {user?.email}</p>
+          </div>
+        </div>
+
+        <div className="profile-details">
+          {profile.goals && (
+            <div className="detail-item">
+              <span className="detail-label">🎯 Goals</span>
+              <p className="detail-value">{profile.goals}</p>
+            </div>
+          )}
+          
+          {profile.interests && profile.interests.length > 0 && (
+            <div className="detail-item">
+              <span className="detail-label">💡 Interests</span>
+              <div className="topics-display">
+                {profile.interests.map((topic) => (
+                  <span key={topic.id} className="topic-badge">
+                    {topic.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button className="btn btn-primary" onClick={handleEditClick}>
+          ✏️ Edit Profile
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="profile-container">
       <div className="profile-header">
         <h1>👤 {isMentor ? 'Mentor' : 'Mentee'} Profile</h1>
+        {isEditing && existingProfile && (
+          <button className="btn btn-secondary" onClick={handleCancelEdit}>
+            ← Back to Profile
+          </button>
+        )}
       </div>
 
       <div className="profile-card">
-        <div className="profile-info">
-          <div className="info-item">
-            <span className="info-label">Email</span>
-            <span className="info-value">{user?.email}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Role</span>
-            <span className="info-value">{user?.role}</span>
-          </div>
-        </div>
+        {!isEditing && existingProfile && isMentor && renderMentorView()}
+        {!isEditing && existingProfile && isMentee && renderMenteeView()}
 
-        {isMentor && (
+        {isEditing && isMentor && (
           <form className="profile-form" onSubmit={handleMentorSubmit}>
             <div className="avatar-section">
               <label>Profile Picture</label>
@@ -185,7 +308,7 @@ const ProfileForm: React.FC = () => {
                   ) : (
                     <div className="avatar-placeholder">
                       <span>📷</span>
-                      <p>No Image</p>
+                      <p>Add Photo</p>
                     </div>
                   )}
                 </div>
@@ -198,14 +321,14 @@ const ProfileForm: React.FC = () => {
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="mentor-avatar" className="btn btn-secondary">
-                    Choose Image
+                    📁 Choose Image
                   </label>
                   {avatarPreview && (
                     <button type="button" className="btn btn-danger" onClick={removeAvatar}>
-                      Remove
+                      🗑️ Remove
                     </button>
                   )}
-                  <small className="text-muted">Max 2MB, JPG/PNG</small>
+                  <small className="text-muted">Max 5MB, JPG/PNG/WebP</small>
                 </div>
               </div>
             </div>
@@ -275,13 +398,20 @@ const ProfileForm: React.FC = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary">
-              {existingProfile ? 'Update Profile' : 'Create Profile'}
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                {existingProfile ? '💾 Save Changes' : '✨ Create Profile'}
+              </button>
+              {existingProfile && (
+                <button type="button" className="btn btn-secondary" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         )}
 
-        {isMentee && (
+        {isEditing && isMentee && (
           <form className="profile-form" onSubmit={handleMenteeSubmit}>
             <div className="avatar-section">
               <label>Profile Picture</label>
@@ -292,7 +422,7 @@ const ProfileForm: React.FC = () => {
                   ) : (
                     <div className="avatar-placeholder">
                       <span>📷</span>
-                      <p>No Image</p>
+                      <p>Add Photo</p>
                     </div>
                   )}
                 </div>
@@ -305,14 +435,14 @@ const ProfileForm: React.FC = () => {
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="mentee-avatar" className="btn btn-secondary">
-                    Choose Image
+                    📁 Choose Image
                   </label>
                   {avatarPreview && (
                     <button type="button" className="btn btn-danger" onClick={removeAvatar}>
-                      Remove
+                      🗑️ Remove
                     </button>
                   )}
-                  <small className="text-muted">Max 2MB, JPG/PNG</small>
+                  <small className="text-muted">Max 5MB, JPG/PNG/WebP</small>
                 </div>
               </div>
             </div>
@@ -346,9 +476,16 @@ const ProfileForm: React.FC = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
-              {existingProfile ? 'Update Profile' : 'Create Profile'}
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                {existingProfile ? '💾 Save Changes' : '✨ Create Profile'}
+              </button>
+              {existingProfile && (
+                <button type="button" className="btn btn-secondary" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         )}
       </div>

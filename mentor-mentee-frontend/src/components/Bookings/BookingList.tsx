@@ -109,14 +109,21 @@ const BookingList: React.FC = () => {
                   </div>
                 )}
 
+                {booking.schedule?.topic && (
+                  <div className="info-row">
+                    <strong>📚 Topic:</strong>
+                    <span>{booking.schedule.topic}</span>
+                  </div>
+                )}
+
                 <div className="info-row">
                   <strong>🕒 Start:</strong>
-                  <span>{formatDateTime(booking.schedule?.startTime || '')}</span>
+                  <span>{formatDateTime(booking.schedule?.startAt || '')}</span>
                 </div>
 
                 <div className="info-row">
                   <strong>🕒 End:</strong>
-                  <span>{formatDateTime(booking.schedule?.endTime || '')}</span>
+                  <span>{formatDateTime(booking.schedule?.endAt || '')}</span>
                 </div>
 
                 <div className="info-row">

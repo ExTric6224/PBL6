@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { feedbackApi } from '../../services/feedbackApi';
 import { Feedback, CreateFeedbackData } from '../../types/feedback';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './FeedbackForm.css';
 
 const FeedbackForm: React.FC = () => {
   const location = useLocation();
   const booking = location.state?.booking;
+  const { user } = useAuth();
 
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,13 +19,19 @@ const FeedbackForm: React.FC = () => {
     comment: '',
   });
 
+  // Check if user is MENTEE
+  const isMentee = user?.role === 'MENTEE';
+  const isMentor = user?.role === 'MENTOR';
+
   const loadMyFeedbacks = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await feedbackApi.getMyFeedbacks();
-      setFeedbacks(response.data);
+      const paginatedResponse = await feedbackApi.getMyFeedbacks();
+      // paginatedResponse is { data: Feedback[], total, page, ... }
+      setFeedbacks(paginatedResponse.data || []);
     } catch (err: any) {
       console.error('Failed to load feedbacks:', err);
+      setFeedbacks([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -68,9 +76,14 @@ const FeedbackForm: React.FC = () => {
     <div className="feedback-container">
       <div className="feedback-header">
         <h1>⭐ Feedback</h1>
+        <p className="feedback-subtitle">
+          {isMentee && 'View feedbacks you have given to mentors'}
+          {isMentor && 'View feedbacks you have received from mentees'}
+        </p>
       </div>
 
-      {showForm && (
+      {/* Only MENTEE can create feedback */}
+      {isMentee && showForm && (
         <form className="feedback-form" onSubmit={handleSubmit}>
           <h2>Give Feedback</h2>
           <div className="rating-input">
@@ -110,17 +123,27 @@ const FeedbackForm: React.FC = () => {
         </form>
       )}
 
-      {!showForm && (
+      {/* Only MENTEE can see create button */}
+      {isMentee && !showForm && (
         <button className="create-post-btn" onClick={() => setShowForm(true)}>
           ✚ Give Feedback
         </button>
       )}
 
+      {/* Display feedback list based on role */}
       <div className="feedback-list">
+        <h2>
+          {isMentee && 'Feedbacks I Have Given'}
+          {isMentor && 'Feedbacks I Have Received'}
+        </h2>
+        
         {loading ? (
           <div className="loading">Loading feedbacks...</div>
         ) : feedbacks.length === 0 ? (
-          <div className="empty-state">No feedbacks yet.</div>
+          <div className="empty-state">
+            {isMentee && 'You haven\'t given any feedback yet.'}
+            {isMentor && 'You haven\'t received any feedback yet.'}
+          </div>
         ) : (
           feedbacks.map((feedback) => (
             <div key={feedback.id} className="feedback-card">
@@ -132,7 +155,11 @@ const FeedbackForm: React.FC = () => {
               </div>
               {feedback.comment && <p className="feedback-comment">{feedback.comment}</p>}
               <div className="feedback-meta">
-                Mentor: {feedback.mentor?.email || 'Unknown'}
+                {/* MENTEE sees: Feedback for Mentor X */}
+                {isMentee && `Feedback for: ${feedback.mentor?.email || 'Unknown Mentor'}`}
+                
+                {/* MENTOR sees: Feedback from Mentee X */}
+                {isMentor && `Feedback from: ${feedback.mentee?.email || 'Anonymous Mentee'}`}
               </div>
             </div>
           ))

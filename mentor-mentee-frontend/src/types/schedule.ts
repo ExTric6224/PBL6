@@ -5,6 +5,7 @@ export interface Schedule {
   id: number;
   mentorId: number;
   topic: string;
+  description?: string;
   startAt: string;
   endAt: string;
   capacity: number;
@@ -25,6 +26,7 @@ export interface Schedule {
 
 export interface CreateScheduleData {
   topic: string;
+  description?: string;
   startAt: string;
   endAt: string;
   capacity?: number; // Optional, default is 1
@@ -32,6 +34,7 @@ export interface CreateScheduleData {
 
 export interface UpdateScheduleData {
   topic?: string;
+  description?: string;
   startAt?: string;
   endAt?: string;
   capacity?: number;

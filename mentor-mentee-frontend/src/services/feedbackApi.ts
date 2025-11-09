@@ -15,8 +15,8 @@ export const feedbackApi = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await api.get<PaginatedResponse<Feedback>>(`/feedbacks/mentor/${mentorId}?${queryParams.toString()}`);
-    return response.data;
+    const response = await api.get<ApiResponse<PaginatedResponse<Feedback>>>(`/feedbacks/mentor/${mentorId}?${queryParams.toString()}`);
+    return response.data.data;
   },
 
   // Get my feedbacks
@@ -25,7 +25,7 @@ export const feedbackApi = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await api.get<PaginatedResponse<Feedback>>(`/feedbacks/my?${queryParams.toString()}`);
-    return response.data;
+    const response = await api.get<ApiResponse<PaginatedResponse<Feedback>>>(`/feedbacks/my?${queryParams.toString()}`);
+    return response.data.data;
   },
 };

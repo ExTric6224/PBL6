@@ -186,16 +186,17 @@ model postimage {
 }
 
 model schedule {
-  id        Int             @id @default(autoincrement())
-  mentorId  Int
-  topic     String
-  startAt   DateTime
-  endAt     DateTime
-  capacity  Int             @default(1)
-  status    schedule_status @default(AVAILABLE)
-  createdAt DateTime        @default(now())
-  booking   booking[]
-  user      user            @relation(fields: [mentorId], references: [id], map: "Schedule_mentorId_fkey")
+  id          Int             @id @default(autoincrement())
+  mentorId    Int
+  topic       String
+  description String?         @db.Text
+  startAt     DateTime
+  endAt       DateTime
+  capacity    Int             @default(1)
+  status      schedule_status @default(AVAILABLE)
+  createdAt   DateTime        @default(now())
+  booking     booking[]
+  user        user            @relation(fields: [mentorId], references: [id], map: "Schedule_mentorId_fkey")
 
   @@index([mentorId, startAt], map: "Schedule_mentorId_startAt_idx")
   @@index([status], map: "Schedule_status_idx")

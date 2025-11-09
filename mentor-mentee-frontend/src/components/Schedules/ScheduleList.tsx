@@ -13,9 +13,9 @@ const ScheduleList: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({ 
     topic: '', 
+    description: '',
     startAt: '', 
-    endAt: '', 
-    capacity: 1 
+    endAt: ''
   });
   const [filters, setFilters] = useState<ScheduleQueryParams>({ status: undefined });
 
@@ -64,13 +64,14 @@ const ScheduleList: React.FC = () => {
       // Convert to ISO 8601 format for backend
       const scheduleData = {
         topic: formData.topic,
+        description: formData.description || undefined,
         startAt: start.toISOString(),
         endAt: end.toISOString(),
-        capacity: formData.capacity,
+        // Capacity is always 1, no need to send
       };
       
       await scheduleApi.createSchedule(scheduleData);
-      setFormData({ topic: '', startAt: '', endAt: '', capacity: 1 });
+      setFormData({ topic: '', description: '', startAt: '', endAt: '' });
       setShowCreateForm(false);
       loadSchedules();
     } catch (err: any) {
@@ -161,6 +162,15 @@ const ScheduleList: React.FC = () => {
             />
           </div>
           <div className="form-group">
+            <label>Description (optional)</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe what will be covered in this session..."
+              rows={3}
+            />
+          </div>
+          <div className="form-group">
             <label>Start Time</label>
             <input
               type="datetime-local"
@@ -175,20 +185,6 @@ const ScheduleList: React.FC = () => {
               type="datetime-local"
               value={formData.endAt}
               onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Capacity</label>
-            <input
-              type="number"
-              value={formData.capacity}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                capacity: parseInt(e.target.value) || 1 
-              })}
-              min="1"
-              max="100"
               required
             />
           </div>
@@ -213,15 +209,16 @@ const ScheduleList: React.FC = () => {
           {schedules.map((schedule) => (
             <div key={schedule.id} className={`schedule-card ${schedule.status.toLowerCase()}`}>
               <h3 className="schedule-topic">{schedule.topic}</h3>
+              {schedule.description && (
+                <p className="schedule-description">{schedule.description}</p>
+              )}
               <div className="schedule-time">
                 🕒 {formatDateTime(schedule.startAt)}
               </div>
               <div className="schedule-date">
                 to {formatDateTime(schedule.endAt)}
               </div>
-              <div className="schedule-capacity">
-                👥 Capacity: {schedule.capacity}
-              </div>
+              {/* Capacity is always 1, no need to display */}
               {schedule.mentor && (
                 <>
                   <div className="schedule-mentor">

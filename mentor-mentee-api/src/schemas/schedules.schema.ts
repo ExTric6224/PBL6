@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 export const createScheduleSchema = z.object({
   topic: z.string().min(1, 'Topic is required'),
+  description: z.string().optional(),
   startAt: z.string().datetime('Invalid start date format'),
   endAt: z.string().datetime('Invalid end date format'),
-  capacity: z.number().int().min(1).default(1),
+  // Capacity is removed - always set to 1 in service
 }).refine((data) => {
   const start = new Date(data.startAt);
   const end = new Date(data.endAt);
@@ -15,9 +16,10 @@ export const createScheduleSchema = z.object({
 
 export const updateScheduleSchema = z.object({
   topic: z.string().min(1).optional(),
+  description: z.string().optional(),
   startAt: z.string().datetime().optional(),
   endAt: z.string().datetime().optional(),
-  capacity: z.number().int().min(1).optional(),
+  // Capacity removed - always 1, cannot be updated
   status: z.enum(['AVAILABLE', 'CANCELLED']).optional(),
 }).refine((data) => {
   if (data.startAt && data.endAt) {

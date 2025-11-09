@@ -3,14 +3,6 @@ import { CreateScheduleDto, UpdateScheduleDto, ScheduleQueryDto } from '../schem
 
 // Helper function to include mentor profile with topics
 const includeMentorProfileWithTopics = () => ({
-  select: {
-    id: true,
-    fullName: true,
-    school: true,
-    degree: true,
-    yearsExp: true,
-    bio: true,
-  },
   include: {
     expertise: {
       include: {
@@ -41,36 +33,82 @@ export class SchedulesService {
       throw new Error('Mentor profile not found');
     }
 
+    // Validate schedule times
+    const startAt = new Date(data.startAt);
+    const endAt = new Date(data.endAt);
+    const now = new Date();
+
+    // 1. Check startAt is in the future
+    if (startAt <= now) {
+      throw new Error('Schedule start time must be in the future');
+    }
+
+    // 2. Check endAt > startAt (already validated in schema, but double-check)
+    if (endAt <= startAt) {
+      throw new Error('Schedule end time must be after start time');
+    }
+
+    // 3. Check reasonable duration (at least 30 minutes, max 8 hours)
+    const durationMs = endAt.getTime() - startAt.getTime();
+    const durationMinutes = durationMs / (1000 * 60);
+    const durationHours = durationMinutes / 60;
+
+    if (durationMinutes < 30) {
+      throw new Error('Schedule duration must be at least 30 minutes');
+    }
+
+    if (durationHours > 8) {
+      throw new Error('Schedule duration cannot exceed 8 hours');
+    }
+
+    // 4. Check for overlapping schedules
+    const overlappingSchedules = await prisma.schedule.findMany({
+      where: {
+        mentorId: mentorUserId,
+        status: 'AVAILABLE',
+        OR: [
+          // New schedule starts during existing schedule
+          {
+            AND: [
+              { startAt: { lte: startAt } },
+              { endAt: { gt: startAt } },
+            ],
+          },
+          // New schedule ends during existing schedule
+          {
+            AND: [
+              { startAt: { lt: endAt } },
+              { endAt: { gte: endAt } },
+            ],
+          },
+          // New schedule completely contains existing schedule
+          {
+            AND: [
+              { startAt: { gte: startAt } },
+              { endAt: { lte: endAt } },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (overlappingSchedules.length > 0) {
+      throw new Error('Schedule overlaps with existing schedule(s)');
+    }
+
     return await prisma.schedule.create({
       data: {
-        mentorId: mentorUserId, // Now using User.id directly
+        mentorId: mentorUserId,
         topic: data.topic,
-        startAt: new Date(data.startAt),
-        endAt: new Date(data.endAt),
-        capacity: data.capacity,
+        description: data.description,
+        startAt: startAt,
+        endAt: endAt,
+        capacity: 1, // Always set to 1 - one mentor can only meet one mentee at a time
       },
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
-            mentorprofile: {
-              select: {
-                id: true,
-                fullName: true,
-                school: true,
-                degree: true,
-                yearsExp: true,
-                bio: true,
-              },
-              include: {
-                expertise: {
-                  include: {
-                    topic: true,
-                  },
-                },
-              },
-            },
+          include: {
+            mentorprofile: includeMentorProfileWithTopics(),
           },
         },
       },
@@ -102,20 +140,13 @@ export class SchedulesService {
       where,
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
+          include: {
             mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
           include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-              },
-            },
+            user: true,
           },
         },
       },
@@ -163,12 +194,94 @@ export class SchedulesService {
       throw new Error('Schedule not found or access denied');
     }
 
-    const updateData: any = { ...data };
+    // Validate schedule times if being updated
+    const updateData: any = {};
+    let startAt = schedule.startAt;
+    let endAt = schedule.endAt;
+
     if (data.startAt) {
-      updateData.startAt = new Date(data.startAt);
+      startAt = new Date(data.startAt);
+      updateData.startAt = startAt;
     }
     if (data.endAt) {
-      updateData.endAt = new Date(data.endAt);
+      endAt = new Date(data.endAt);
+      updateData.endAt = endAt;
+    }
+
+    // Only validate times if they're being changed
+    if (data.startAt || data.endAt) {
+      const now = new Date();
+
+      // 1. Check startAt is in the future
+      if (startAt <= now) {
+        throw new Error('Schedule start time must be in the future');
+      }
+
+      // 2. Check endAt > startAt
+      if (endAt <= startAt) {
+        throw new Error('Schedule end time must be after start time');
+      }
+
+      // 3. Check reasonable duration (at least 30 minutes, max 8 hours)
+      const durationMs = endAt.getTime() - startAt.getTime();
+      const durationMinutes = durationMs / (1000 * 60);
+      const durationHours = durationMinutes / 60;
+
+      if (durationMinutes < 30) {
+        throw new Error('Schedule duration must be at least 30 minutes');
+      }
+
+      if (durationHours > 8) {
+        throw new Error('Schedule duration cannot exceed 8 hours');
+      }
+
+      // 4. Check for overlapping schedules (excluding current schedule)
+      const overlappingSchedules = await prisma.schedule.findMany({
+        where: {
+          mentorId: mentorUserId,
+          status: 'AVAILABLE',
+          id: { not: scheduleId }, // Exclude current schedule
+          OR: [
+            {
+              AND: [
+                { startAt: { lte: startAt } },
+                { endAt: { gt: startAt } },
+              ],
+            },
+            {
+              AND: [
+                { startAt: { lt: endAt } },
+                { endAt: { gte: endAt } },
+              ],
+            },
+            {
+              AND: [
+                { startAt: { gte: startAt } },
+                { endAt: { lte: endAt } },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (overlappingSchedules.length > 0) {
+        throw new Error('Schedule overlaps with existing schedule(s)');
+      }
+    }
+
+    // Add other fields to update
+    if (data.topic !== undefined) {
+      updateData.topic = data.topic;
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
+    // Capacity is always 1, ignore any update attempts
+    // if (data.capacity !== undefined) {
+    //   updateData.capacity = data.capacity;
+    // }
+    if (data.status !== undefined) {
+      updateData.status = data.status;
     }
 
     return await prisma.schedule.update({
@@ -176,20 +289,8 @@ export class SchedulesService {
       data: updateData,
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
-            mentorprofile: {
-              select: {
-                id: true,
-                fullName: true,
-                school: true,
-                expertise: true,
-                degree: true,
-                yearsExp: true,
-                bio: true,
-              },
-            },
+          include: {
+            mentorprofile: includeMentorProfileWithTopics(),
           },
         },
       },
@@ -267,20 +368,13 @@ export class SchedulesService {
       where,
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
+          include: {
             mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
           include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-              },
-            },
+            user: true,
           },
         },
       },
@@ -306,20 +400,13 @@ export class SchedulesService {
       where: { id: scheduleId },
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
+          include: {
             mentorprofile: includeMentorProfileWithTopics(),
           },
         },
         booking: {
           include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-              },
-            },
+            user: true,
           },
         },
       },

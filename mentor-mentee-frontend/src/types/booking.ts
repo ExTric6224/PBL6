@@ -18,14 +18,27 @@ export interface Booking {
   };
   schedule?: {
     id: number;
-    startTime: string;
-    endTime: string;
+    topic: string;
+    startAt: string;
+    endAt: string;
+    capacity: number;
+    status: string;
+    mentorId: number;
     mentor?: {
       id: number;
       email: string;
       mentorProfile?: {
-        bio: string;
-        expertise: string[];
+        id: number;
+        fullName?: string;
+        bio?: string;
+        school?: string;
+        degree?: string;
+        yearsExp?: number;
+        expertise?: Array<{
+          id: number;
+          name: string;
+          description?: string;
+        }>;
       };
     };
   };

@@ -41,18 +41,33 @@ export class FeedbacksController {
 
   async getMyFeedbacks(req: AuthenticatedRequest, res: Response) {
     try {
-      let feedbacks;
+      // MENTEE: Xem feedback đã tạo (feedback:view_own)
+      // MENTOR: Xem feedback nhận được (feedback:view_own)
       
       if (req.user!.role === 'MENTEE') {
-        feedbacks = await feedbacksService.getFeedbacksByMentee(req.user!.sub);
+        // Mentee chỉ xem feedback mà họ đã tạo
+        const feedbacks = await feedbacksService.getFeedbacksByMentee(req.user!.sub);
+        return success(res, {
+          data: feedbacks,
+          total: feedbacks.length,
+          page: 1,
+          limit: feedbacks.length,
+          totalPages: 1
+        });
       } else if (req.user!.role === 'MENTOR') {
+        // Mentor chỉ xem feedback mà họ nhận được
         const result = await feedbacksService.getFeedbacksByMentor(req.user!.sub, req.query as any);
-        feedbacks = result;
+        return success(res, {
+          data: result.feedbacks,
+          total: result.feedbacks.length,
+          page: 1,
+          limit: result.feedbacks.length,
+          totalPages: 1,
+          stats: result.stats
+        });
       } else {
         return authError(res, 'Invalid user role');
       }
-
-      return success(res, feedbacks);
     } catch (error: any) {
       throw error;
     }
