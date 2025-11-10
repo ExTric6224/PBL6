@@ -10,14 +10,18 @@ export interface Feedback {
   mentor?: {
     id: number;
     email: string;
-    mentorProfile?: {
-      bio: string;
-      expertise: string[];
+    mentorprofile?: {
+      fullName?: string;
+      bio?: string;
+      expertise?: any;
     };
   };
   mentee?: {
     id: number;
     email: string;
+    menteeprofile?: {
+      fullName?: string;
+    };
   };
   session?: {
     id: number;

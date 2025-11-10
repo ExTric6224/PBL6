@@ -12,7 +12,9 @@
     "seed": "ts-node prisma/seed.ts",
     "seed:rbac": "ts-node prisma/seed-rbac.ts",
     "seed:admin": "ts-node prisma/seed-admin.ts",
-    "seed:topics": "ts-node prisma/seed-topics.ts"
+    "seed:topics": "ts-node prisma/seed-topics.ts",
+    "seed:full": "ts-node prisma/seed-full.ts",
+    "fix:roleids": "ts-node scripts/fix-user-roleids.ts"
   },
   "keywords": [
     "mentoring",

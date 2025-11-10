@@ -17,18 +17,25 @@ export class AuthService {
     // Hash password
     const hashedPassword = await hashPassword(data.password);
 
+    // Look up the Role record by name to get roleId
+    const roleRecord = await prisma.role.findUnique({
+      where: { name: data.role },
+    });
+
     // Create user
     const user = await prisma.user.create({
       data: {
         email: data.email,
         password: hashedPassword,
         role: data.role,
+        roleId: roleRecord?.id, // Set roleId from RBAC Role table
         updatedAt: new Date(),
       },
       select: {
         id: true,
         email: true,
         role: true,
+        roleId: true,
         createdAt: true,
       },
     });

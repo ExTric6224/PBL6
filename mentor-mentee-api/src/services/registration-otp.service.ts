@@ -119,17 +119,24 @@ export class RegistrationOtpService {
 
     // Mã đúng → tạo user, xong xóa bản ghi xác thực
     const createdUser = await prisma.$transaction(async (tx) => {
+      // Look up the Role record by name to get roleId
+      const roleRecord = await tx.role.findUnique({
+        where: { name: rec.role },
+      });
+
       const user = await tx.user.create({
         data: {
           email,
           password: rec.passwordHash,
           role: rec.role,
+          roleId: roleRecord?.id, // Set roleId from RBAC Role table
           updatedAt: new Date(),
         },
         select: {
           id: true,
           email: true,
           role: true,
+          roleId: true,
           createdAt: true,
           updatedAt: true,
         },

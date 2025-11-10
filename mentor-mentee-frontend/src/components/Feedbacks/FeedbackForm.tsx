@@ -221,10 +221,26 @@ const FeedbackForm: React.FC = () => {
               {feedback.comment && <p className="feedback-comment">{feedback.comment}</p>}
               <div className="feedback-meta">
                 {/* MENTEE sees: Feedback for Mentor X */}
-                {isMentee && `Feedback for: ${feedback.mentor?.email || 'Unknown Mentor'}`}
+                {isMentee && (
+                  <span>
+                    Feedback for: {
+                      feedback.mentor?.mentorprofile?.fullName || 
+                      feedback.mentor?.email || 
+                      'Unknown Mentor'
+                    }
+                  </span>
+                )}
                 
                 {/* MENTOR sees: Feedback from Mentee X */}
-                {isMentor && `Feedback from: ${feedback.mentee?.email || 'Anonymous Mentee'}`}
+                {isMentor && (
+                  <span>
+                    Feedback from: {
+                      feedback.mentee?.menteeprofile?.fullName || 
+                      feedback.mentee?.email || 
+                      'Anonymous Mentee'
+                    }
+                  </span>
+                )}
               </div>
             </div>
           ))

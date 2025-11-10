@@ -81,6 +81,30 @@ export class FeedbacksService {
     const feedbacks = await prisma.feedback.findMany({
       where,
       include: {
+        user_feedback_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+                bio: true,
+                expertise: true,
+              },
+            },
+          },
+        },
+        user_feedback_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
         session: {
           include: {
             booking: {
@@ -100,8 +124,18 @@ export class FeedbacksService {
     const totalRating = feedbacks.reduce((sum: any, feedback: { rating: any; }) => sum + feedback.rating, 0);
     const averageRating = feedbacks.length > 0 ? totalRating / feedbacks.length : 0;
 
+    // Transform relation names to be more frontend-friendly
+    const transformedFeedbacks = feedbacks.map(feedback => ({
+      ...feedback,
+      mentor: feedback.user_feedback_mentorIdTouser,
+      mentee: feedback.user_feedback_menteeIdTouser,
+      // Remove the original long-named relations
+      user_feedback_mentorIdTouser: undefined,
+      user_feedback_menteeIdTouser: undefined,
+    }));
+
     return {
-      feedbacks,
+      feedbacks: transformedFeedbacks,
       stats: {
         totalFeedbacks: feedbacks.length,
         averageRating: Math.round(averageRating * 100) / 100, // Round to 2 decimal places
@@ -110,9 +144,33 @@ export class FeedbacksService {
   }
 
   async getFeedbacksByMentee(menteeId: number) {
-    return await prisma.feedback.findMany({
+    const feedbacks = await prisma.feedback.findMany({
       where: { menteeId },
       include: {
+        user_feedback_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+                bio: true,
+                expertise: true,
+              },
+            },
+          },
+        },
+        user_feedback_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
         session: {
           include: {
             booking: {
@@ -127,5 +185,15 @@ export class FeedbacksService {
         createdAt: 'desc',
       },
     });
+
+    // Transform relation names to be more frontend-friendly
+    return feedbacks.map(feedback => ({
+      ...feedback,
+      mentor: feedback.user_feedback_mentorIdTouser,
+      mentee: feedback.user_feedback_menteeIdTouser,
+      // Remove the original long-named relations
+      user_feedback_mentorIdTouser: undefined,
+      user_feedback_menteeIdTouser: undefined,
+    }));
   }
 }
