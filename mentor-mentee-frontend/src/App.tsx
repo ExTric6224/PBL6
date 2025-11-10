@@ -14,6 +14,7 @@ import PostDetail from './components/Posts/PostDetail';
 import ScheduleList from './components/Schedules/ScheduleList';
 import ScheduleDetail from './components/Schedules/ScheduleDetail';
 import BookingList from './components/Bookings/BookingList';
+import BookingDetail from './components/Bookings/BookingDetail';
 import FeedbackForm from './components/Feedbacks/FeedbackForm';
 import ProfileForm from './components/Profile/ProfileForm';
 import PublicProfile from './components/Profile/PublicProfile';
@@ -99,6 +100,18 @@ function App() {
                   <>
                     <Navigation />
                     <BookingList />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/bookings/:id" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <BookingDetail />
                   </>
                 </ProtectedRoute>
               } 

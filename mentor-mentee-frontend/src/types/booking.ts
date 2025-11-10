@@ -12,6 +12,7 @@ export interface Booking {
     id: number;
     email: string;
     menteeProfile?: {
+      fullName?: string;
       interests: string[];
       goals: string;
     };
@@ -19,6 +20,7 @@ export interface Booking {
   schedule?: {
     id: number;
     topic: string;
+    description?: string;
     startAt: string;
     endAt: string;
     capacity: number;

@@ -52,12 +52,20 @@ const PublicProfile: React.FC = () => {
       // Try to load as mentor first
       try {
         const mentorProfile = await profileApi.getMentorProfile(parseInt(userId));
+        // Ensure expertise is always an array
+        if (!mentorProfile.expertise) {
+          mentorProfile.expertise = [];
+        }
         setProfile(mentorProfile);
         setProfileType('MENTOR');
       } catch (mentorErr) {
         // If mentor fails, try mentee
         try {
           const menteeProfile = await profileApi.getMenteeProfile(parseInt(userId));
+          // Ensure interests is always an array
+          if (!menteeProfile.interests) {
+            menteeProfile.interests = [];
+          }
           setProfile(menteeProfile);
           setProfileType('MENTEE');
         } catch (menteeErr) {
@@ -78,8 +86,10 @@ const PublicProfile: React.FC = () => {
     try {
       setLoadingPosts(true);
       const response = await postApi.getAllPosts(1, 50);
-      // Filter posts by authorId on frontend
-      const userPosts = response.data.filter(post => post.authorId === parseInt(userId));
+      // Filter posts by authorId on frontend and ensure it's an array
+      const userPosts = Array.isArray(response.data) 
+        ? response.data.filter(post => post.authorId === parseInt(userId))
+        : [];
       setPosts(userPosts);
     } catch (err) {
       console.error('Error loading posts:', err);
@@ -98,7 +108,8 @@ const PublicProfile: React.FC = () => {
         mentorId: parseInt(userId),
         limit: 50 
       });
-      setSchedules(response.data);
+      // Ensure response.data is an array
+      setSchedules(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('Error loading schedules:', err);
       setSchedules([]);
@@ -113,7 +124,8 @@ const PublicProfile: React.FC = () => {
     try {
       setLoadingFeedbacks(true);
       const response = await feedbackApi.getFeedbacksByMentor(parseInt(userId), { limit: 50 });
-      setFeedbacks(response.data);
+      // Ensure response.data is an array
+      setFeedbacks(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('Error loading feedbacks:', err);
       setFeedbacks([]);
@@ -286,7 +298,7 @@ const PublicProfile: React.FC = () => {
                 </div>
               )}
               
-              {(profile as MentorProfile).expertise && (profile as MentorProfile).expertise.length > 0 && (
+              {(profile as MentorProfile).expertise && Array.isArray((profile as MentorProfile).expertise) && (profile as MentorProfile).expertise.length > 0 && (
                 <div className="detail-item">
                   <span className="detail-label">🎯 Expertise</span>
                   <div className="topics-display">
@@ -311,7 +323,7 @@ const PublicProfile: React.FC = () => {
                 </div>
               )}
               
-              {(profile as MenteeProfile).interests && (profile as MenteeProfile).interests.length > 0 && (
+              {(profile as MenteeProfile).interests && Array.isArray((profile as MenteeProfile).interests) && (profile as MenteeProfile).interests.length > 0 && (
                 <div className="detail-item">
                   <span className="detail-label">💡 Interests</span>
                   <div className="topics-display">
@@ -355,7 +367,7 @@ const PublicProfile: React.FC = () => {
                       <span className="post-date">{formatDate(post.createdAt)}</span>
                       <div className="post-stats">
                         <span>❤️ {post.likesCount || 0}</span>
-                        {post.images && post.images.length > 0 && (
+                        {post.images && Array.isArray(post.images) && post.images.length > 0 && (
                           <span>🖼️ {post.images.length}</span>
                         )}
                       </div>
