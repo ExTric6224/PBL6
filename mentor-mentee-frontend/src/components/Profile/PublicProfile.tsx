@@ -249,7 +249,7 @@ const PublicProfile: React.FC = () => {
                 onClick={() => setActiveTab('schedules')}
               >
                 <span className="tab-icon">📅</span>
-                <span>Lịch Rảnh</span>
+                <span>Lịch Hẹn</span>
                 <span className="tab-count">{schedules.length}</span>
               </button>
               <button
@@ -392,7 +392,11 @@ const PublicProfile: React.FC = () => {
             ) : (
               <div className="schedules-list">
                 {schedules.map((schedule) => (
-                  <div key={schedule.id} className="schedule-item">
+                  <div 
+                    key={schedule.id} 
+                    className="schedule-item"
+                    onClick={() => navigate(`/schedules/${schedule.id}`)}
+                  >
                     <div className="schedule-header">
                       <h4 className="schedule-title">{schedule.topic || 'Không có chủ đề'}</h4>
                       <span className={`schedule-status status-${schedule.status?.toLowerCase()}`}>

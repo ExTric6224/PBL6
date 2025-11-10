@@ -424,6 +424,7 @@
   padding: 20px;
   border-left: 4px solid #ffa726;
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .schedule-item:hover {
