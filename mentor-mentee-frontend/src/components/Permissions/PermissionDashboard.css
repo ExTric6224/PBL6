@@ -1,32 +1,32 @@
 .permission-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-bg);
   padding: 40px 20px;
 }
 
 .dashboard-header {
   text-align: center;
-  color: white;
+  color: var(--color-text);
   margin-bottom: 40px;
 }
 
 .dashboard-header h1 {
   margin: 0 0 12px 0;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.5px;
 }
 
 .dashboard-header p {
   margin: 0;
-  font-size: 1.1rem;
-  opacity: 0.95;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
 }
 
 /* Tabs */
 .tabs {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   max-width: 1400px;
   margin: 0 auto 30px;
   padding: 0 20px;
@@ -34,14 +34,13 @@
 
 .tab-button {
   flex: 1;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  color: white;
+  color: var(--color-text);
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: var(--transition);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -49,45 +48,46 @@
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .tab-button.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .tab-icon {
-  font-size: 2rem;
+  font-size: 1.75rem;
 }
 
 .tab-text {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .tab-description {
   font-size: 0.85rem;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .tab-button.active .tab-description {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 /* Tab Content */
 .tab-content {
-  background: #f5f7fa;
-  border-radius: 12px;
+  background: white;
+  border-radius: var(--radius-lg);
   min-height: 600px;
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
 }
 
 /* Dashboard Footer */

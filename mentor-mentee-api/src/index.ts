@@ -1,5 +1,6 @@
 import app from './app';
 import prisma from './db/client';
+import { sessionScheduler } from './services/session-scheduler.service';
 
 const PORT = process.env.PORT || 3000;
 
@@ -8,6 +9,10 @@ async function startServer() {
     // Test database connection
     await prisma.$connect();
     console.log('✅ Connected to database successfully');
+
+    // Start session schedulers
+    sessionScheduler.startAllSchedulers();
+    console.log('⏰ Session schedulers started');
 
     // Start server
     const server = app.listen(PORT, () => {
@@ -19,6 +24,10 @@ async function startServer() {
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
       console.log(`\n📴 Received ${signal}. Starting graceful shutdown...`);
+      
+      // Stop schedulers
+      sessionScheduler.stopAllSchedulers();
+      console.log('⏰ Session schedulers stopped');
       
       server.close(async () => {
         console.log('🔌 HTTP server closed');

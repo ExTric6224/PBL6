@@ -18,6 +18,8 @@ import BookingDetail from './components/Bookings/BookingDetail';
 import FeedbackForm from './components/Feedbacks/FeedbackForm';
 import ProfileForm from './components/Profile/ProfileForm';
 import PublicProfile from './components/Profile/PublicProfile';
+import SessionList from './components/Sessions/SessionList';
+import SessionDetail from './components/Sessions/SessionDetail';
 import './App.css';
 
 function App() {
@@ -112,6 +114,30 @@ function App() {
                   <>
                     <Navigation />
                     <BookingDetail />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/sessions" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <SessionList />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/sessions/:id" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <SessionDetail />
                   </>
                 </ProtectedRoute>
               } 

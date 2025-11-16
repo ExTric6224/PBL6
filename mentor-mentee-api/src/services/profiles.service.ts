@@ -364,4 +364,39 @@ export class ProfilesService {
       interests: profile.interests.map(i => i.topic),
     };
   }
+
+  // Get profile by userId (auto-detect mentor or mentee)
+  async getProfileByUserId(userId: number) {
+    // First, get the user to check their role
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Based on role, get the appropriate profile
+    if (user.role === 'MENTOR') {
+      try {
+        return await this.getMentorProfile(userId);
+      } catch (error) {
+        throw new Error('Profile not found');
+      }
+    } else if (user.role === 'MENTEE') {
+      try {
+        return await this.getMenteeProfile(userId);
+      } catch (error) {
+        throw new Error('Profile not found');
+      }
+    } else {
+      throw new Error('Profile not found');
+    }
+  }
 }

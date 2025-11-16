@@ -84,26 +84,28 @@ model like {
 }
 
 model menteeprofile {
-  id        Int                   @id @default(autoincrement())
-  userId    Int                   @unique(map: "MenteeProfile_userId_key")
-  fullName  String
-  avatar    String?               @db.VarChar(500)
-  goals     String?
-  interests MenteeTopicInterest[]
-  user      user                  @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
+  id          Int                   @id @default(autoincrement())
+  userId      Int                   @unique(map: "MenteeProfile_userId_key")
+  fullName    String
+  avatar      String?               @db.VarChar(500)
+  phoneNumber String?               @db.VarChar(20)
+  goals       String?
+  interests   MenteeTopicInterest[]
+  user        user                  @relation(fields: [userId], references: [id], map: "MenteeProfile_userId_fkey")
 }
 
 model mentorprofile {
-  id        Int                    @id @default(autoincrement())
-  userId    Int                    @unique(map: "MentorProfile_userId_key")
-  fullName  String
-  avatar    String?                @db.VarChar(500)
-  school    String?
-  expertise MentorTopicExpertise[]
-  degree    String?
-  yearsExp  Int?
-  bio       String?
-  user      user                   @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
+  id          Int                    @id @default(autoincrement())
+  userId      Int                    @unique(map: "MentorProfile_userId_key")
+  fullName    String
+  avatar      String?                @db.VarChar(500)
+  phoneNumber String?                @db.VarChar(20)
+  school      String?
+  expertise   MentorTopicExpertise[]
+  degree      String?
+  yearsExp    Int?
+  bio         String?
+  user        user                   @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
 
   @@fulltext([fullName], map: "MentorProfile_fullName_idx")
 }
@@ -203,20 +205,24 @@ model schedule {
 }
 
 model session {
-  id                          Int       @id @default(autoincrement())
-  bookingId                   Int       @unique(map: "Session_bookingId_key")
+  id                          Int            @id @default(autoincrement())
+  bookingId                   Int            @unique(map: "Session_bookingId_key")
   mentorId                    Int
   menteeId                    Int
   startedAt                   DateTime?
   endedAt                     DateTime?
+  status                      session_status @default(SCHEDULED)
   notes                       String?
+  autoStarted                 Boolean        @default(false)
+  autoEnded                   Boolean        @default(false)
   feedback                    feedback?
-  booking                     booking   @relation(fields: [bookingId], references: [id], map: "Session_bookingId_fkey")
-  user_session_menteeIdTouser user      @relation("session_menteeIdTouser", fields: [menteeId], references: [id], map: "Session_menteeId_fkey")
-  user_session_mentorIdTouser user      @relation("session_mentorIdTouser", fields: [mentorId], references: [id], map: "Session_mentorId_fkey")
+  booking                     booking        @relation(fields: [bookingId], references: [id], map: "Session_bookingId_fkey")
+  user_session_menteeIdTouser user           @relation("session_menteeIdTouser", fields: [menteeId], references: [id], map: "Session_menteeId_fkey")
+  user_session_mentorIdTouser user           @relation("session_mentorIdTouser", fields: [mentorId], references: [id], map: "Session_mentorId_fkey")
 
   @@index([menteeId], map: "Session_menteeId_fkey")
   @@index([mentorId], map: "Session_mentorId_fkey")
+  @@index([status], map: "Session_status_idx")
 }
 
 model user {
@@ -298,6 +304,13 @@ model UserPermission {
 enum booking_status {
   PENDING
   CONFIRMED
+  CANCELLED
+}
+
+enum session_status {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
   CANCELLED
 }
 

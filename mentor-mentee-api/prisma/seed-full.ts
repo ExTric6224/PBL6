@@ -841,14 +841,59 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   // ============= SESSIONS =============
   console.log('🎓 Creating sessions...');
   
+  const sessionNow = new Date();
+  const yesterday = new Date(sessionNow.getTime() - 24 * 60 * 60 * 1000);
+  const twoDaysAgo = new Date(sessionNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const oneHourAgo = new Date(sessionNow.getTime() - 60 * 60 * 1000);
+  const twoHoursAgo = new Date(sessionNow.getTime() - 2 * 60 * 60 * 1000);
+  
   const sessions = [
+    // Completed session with feedback
     {
       bookingId: createdBookings[0].id,
       mentorId: createdMentors[0].id,
       menteeId: createdMentees[0].id,
-      startedAt: schedules[0].startAt,
-      endedAt: schedules[0].endAt,
-      notes: 'Session went great! Student grasped React Hooks concepts well.'
+      startedAt: twoDaysAgo,
+      endedAt: new Date(twoDaysAgo.getTime() + 60 * 60 * 1000), // 1 hour later
+      status: 'COMPLETED' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'Session went great! Student grasped React Hooks concepts well. We covered useState, useEffect, and custom hooks.'
+    },
+    // Completed session yesterday (no feedback yet)
+    {
+      bookingId: createdBookings[1].id,
+      mentorId: createdMentors[1].id,
+      menteeId: createdMentees[1].id,
+      startedAt: yesterday,
+      endedAt: new Date(yesterday.getTime() + 90 * 60 * 1000), // 1.5 hours later
+      status: 'COMPLETED' as const,
+      autoStarted: true,
+      autoEnded: true,
+      notes: 'Covered basics of neural networks and backpropagation. Student needs more practice with calculus.'
+    },
+    // In-progress session (started but not ended) - CAN TEST END BUTTON
+    {
+      bookingId: createdBookings[2].id,
+      mentorId: createdMentors[2].id,
+      menteeId: createdMentees[2].id,
+      startedAt: oneHourAgo,
+      status: 'IN_PROGRESS' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: null
+    },
+    // Another completed session with auto start/end
+    {
+      bookingId: createdBookings[3].id,
+      mentorId: createdMentors[0].id,
+      menteeId: createdMentees[2].id,
+      startedAt: twoHoursAgo,
+      endedAt: oneHourAgo,
+      status: 'COMPLETED' as const,
+      autoStarted: true,
+      autoEnded: true,
+      notes: 'Great discussion about TypeScript generics and advanced types.'
     }
   ];
 
@@ -859,21 +904,41 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
     });
     createdSessions.push(created);
   }
-  console.log(`✅ Created ${createdSessions.length} sessions\n`);
+  console.log(`✅ Created ${createdSessions.length} sessions (${sessions.filter(s => s.status === 'COMPLETED').length} completed, ${sessions.filter(s => s.status === 'IN_PROGRESS').length} in-progress)\n`);
 
   // ============= FEEDBACKS =============
   console.log('⭐ Creating feedbacks...');
   
-  await prisma.feedback.create({
-    data: {
-      sessionId: createdSessions[0].id,
+  const feedbacks = [
+    {
+      sessionId: createdSessions[0].id, // Completed session
       mentorId: createdMentors[0].id,
       menteeId: createdMentees[0].id,
       rating: 5,
       comment: 'Mentor rất nhiệt tình và giải thích rất dễ hiểu. Học được rất nhiều về React Hooks. Highly recommended!'
+    },
+    {
+      sessionId: createdSessions[1].id, // Completed session yesterday
+      mentorId: createdMentors[1].id,
+      menteeId: createdMentees[1].id,
+      rating: 4,
+      comment: 'Session rất bổ ích! Mentor có kinh nghiệm và kiến thức sâu về AI. Tuy nhiên có một số phần giải thích hơi nhanh.'
+    },
+    {
+      sessionId: createdSessions[3].id, // Another completed session
+      mentorId: createdMentors[0].id,
+      menteeId: createdMentees[2].id,
+      rating: 5,
+      comment: 'Excellent session! Mentor explained TypeScript generics with clear examples. Will definitely book again!'
     }
-  });
-  console.log('✅ Created feedbacks\n');
+  ];
+
+  for (const feedback of feedbacks) {
+    await prisma.feedback.create({
+      data: feedback
+    });
+  }
+  console.log(`✅ Created ${feedbacks.length} feedbacks\n`);
 
   // ============= NOTIFICATIONS =============
   console.log('🔔 Creating notifications...');

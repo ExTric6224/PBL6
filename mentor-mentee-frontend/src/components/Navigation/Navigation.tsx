@@ -61,6 +61,11 @@ const Navigation: React.FC = () => {
             </Link>
           </li>
           <li>
+            <Link to="/sessions" className={isActive('/sessions')} onClick={closeMobileMenu}>
+              🎓 Sessions
+            </Link>
+          </li>
+          <li>
             <Link to="/feedback" className={isActive('/feedback')} onClick={closeMobileMenu}>
               ⭐ Feedback
             </Link>

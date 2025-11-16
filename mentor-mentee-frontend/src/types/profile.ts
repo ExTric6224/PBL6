@@ -15,6 +15,8 @@ export interface MentorProfile {
   user?: {
     id: number;
     email: string;
+    role: string;
+    createdAt: string;
   };
 }
 
@@ -30,6 +32,8 @@ export interface MenteeProfile {
   user?: {
     id: number;
     email: string;
+    role: string;
+    createdAt: string;
   };
 }
 

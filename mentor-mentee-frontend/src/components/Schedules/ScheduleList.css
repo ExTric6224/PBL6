@@ -13,30 +13,26 @@
 
 .schedules-header h1 {
   margin: 0;
-  color: #2d3748;
-  font-size: 32px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1a1a1a;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .create-schedule-btn {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #000;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 0.95rem;
   font-weight: 600;
-  box-shadow: 0 4px 6px rgba(245, 87, 108, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .create-schedule-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(245, 87, 108, 0.4);
+  background: #333;
 }
 
 .schedule-form {
@@ -66,16 +62,16 @@
   display: flex;
   align-items: center;
   background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0 16px;
-  transition: all 0.3s;
-  min-height: 48px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0 14px;
+  transition: all 0.2s;
+  min-height: 44px;
 }
 
 .search-box:focus-within {
-  border-color: #f093fb;
-  box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.1);
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
 .search-icon {
@@ -88,14 +84,15 @@
   flex: 1;
   border: none;
   outline: none;
-  font-size: 15px;
-  color: #2d3748;
+  font-size: 0.9rem;
+  color: var(--color-text);
   background: transparent;
-  padding: 12px 0;
+  padding: 10px 0;
 }
 
 .search-input::placeholder {
-  color: #a0aec0;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
 }
 
 .clear-search {
@@ -121,25 +118,24 @@
 
 .filter-btn {
   background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #4a5568;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: var(--transition);
   white-space: nowrap;
-  min-height: 48px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .filter-btn:hover {
-  border-color: #f093fb;
-  background: #fff5fd;
-  color: #f5576c;
+  border-color: var(--color-primary);
+  background: var(--color-bg);
 }
 
 .filter-dropdown {

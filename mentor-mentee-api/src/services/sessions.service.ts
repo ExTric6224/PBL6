@@ -2,6 +2,111 @@ import prisma from '../db/client';
 import { StartSessionDto, EndSessionDto } from '../schemas/sessions.schema';
 
 export class SessionsService {
+  // Tự động start session khi đến giờ
+  async autoStartSessions() {
+    const now = new Date();
+    
+    // Tìm các booking đã confirmed và đến giờ nhưng chưa có session
+    const bookingsToStart = await prisma.booking.findMany({
+      where: {
+        status: 'CONFIRMED',
+        session: null,
+        schedule: {
+          startAt: {
+            lte: now,
+          },
+          endAt: {
+            gte: now,
+          },
+        },
+      },
+      include: {
+        schedule: true,
+      },
+    });
+
+    const startedSessions = [];
+    for (const booking of bookingsToStart) {
+      try {
+        const session = await prisma.session.create({
+          data: {
+            bookingId: booking.id,
+            mentorId: booking.schedule.mentorId,
+            menteeId: booking.menteeId,
+            startedAt: now,
+            status: 'IN_PROGRESS',
+            autoStarted: true,
+          },
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+          },
+        });
+        startedSessions.push(session);
+      } catch (error) {
+        console.error(`Failed to auto-start session for booking ${booking.id}:`, error);
+      }
+    }
+
+    return startedSessions;
+  }
+
+  // Tự động end session khi hết giờ
+  async autoEndSessions() {
+    const now = new Date();
+    
+    // Tìm các session đang IN_PROGRESS và đã quá giờ kết thúc
+    const sessionsToEnd = await prisma.session.findMany({
+      where: {
+        status: 'IN_PROGRESS',
+        endedAt: null,
+        booking: {
+          schedule: {
+            endAt: {
+              lte: now,
+            },
+          },
+        },
+      },
+      include: {
+        booking: {
+          include: {
+            schedule: true,
+          },
+        },
+      },
+    });
+
+    const endedSessions = [];
+    for (const session of sessionsToEnd) {
+      try {
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: {
+            endedAt: now,
+            status: 'COMPLETED',
+            autoEnded: true,
+          },
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+          },
+        });
+        endedSessions.push(updated);
+      } catch (error) {
+        console.error(`Failed to auto-end session ${session.id}:`, error);
+      }
+    }
+
+    return endedSessions;
+  }
+
   async startSession(mentorUserId: number, data: StartSessionDto) {
     // Check if booking exists and is confirmed
     const booking = await prisma.booking.findFirst({
@@ -9,7 +114,7 @@ export class SessionsService {
         id: data.bookingId,
         status: 'CONFIRMED',
         schedule: {
-          mentorId: mentorUserId,  // Sử dụng User.id thay vì MentorProfile.id
+          mentorId: mentorUserId,
         },
       },
       include: {
@@ -27,7 +132,24 @@ export class SessionsService {
     });
 
     if (existingSession) {
-      throw new Error('Session already exists for this booking');
+      // Nếu session đã tồn tại nhưng chưa start, cho phép mentor start
+      if (!existingSession.startedAt) {
+        return await prisma.session.update({
+          where: { id: existingSession.id },
+          data: {
+            startedAt: new Date(),
+            status: 'IN_PROGRESS',
+          },
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+          },
+        });
+      }
+      throw new Error('Session already started');
     }
 
     return await prisma.session.create({
@@ -36,6 +158,8 @@ export class SessionsService {
         mentorId: mentorUserId,
         menteeId: booking.menteeId,
         startedAt: new Date(),
+        status: 'IN_PROGRESS',
+        autoStarted: false,
       },
       include: {
         booking: {
@@ -75,7 +199,9 @@ export class SessionsService {
       where: { id: data.sessionId },
       data: {
         endedAt: new Date(),
+        status: 'COMPLETED',
         notes: data.notes,
+        autoEnded: false,
       },
       include: {
         booking: {
@@ -93,7 +219,20 @@ export class SessionsService {
       include: {
         booking: {
           include: {
-            schedule: true,
+            schedule: {
+              include: {
+                user: {
+                  include: {
+                    mentorprofile: true,
+                  },
+                },
+              },
+            },
+            user: {
+              include: {
+                menteeprofile: true,
+              },
+            },
           },
         },
         feedback: true,
@@ -110,7 +249,20 @@ export class SessionsService {
       include: {
         booking: {
           include: {
-            schedule: true,
+            schedule: {
+              include: {
+                user: {
+                  include: {
+                    mentorprofile: true,
+                  },
+                },
+              },
+            },
+            user: {
+              include: {
+                menteeprofile: true,
+              },
+            },
           },
         },
         feedback: true,

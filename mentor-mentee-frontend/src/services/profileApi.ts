@@ -69,4 +69,10 @@ export const profileApi = {
     const response = await api.get<ApiResponse<MenteeProfile>>(`/profiles/mentee/${userId}`);
     return response.data.data;
   },
+
+  // Get profile by userId (auto-detect mentor or mentee)
+  getProfile: async (userId: number): Promise<MentorProfile | MenteeProfile> => {
+    const response = await api.get<ApiResponse<MentorProfile | MenteeProfile>>(`/profiles/${userId}`);
+    return response.data.data;
+  },
 };

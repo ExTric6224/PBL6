@@ -19,8 +19,8 @@ export class SessionsController {
       if (error.message === 'Booking not found, not confirmed, or access denied') {
         return notFoundError(res, 'Booking not found, not confirmed, or you do not have permission');
       }
-      if (error.message === 'Session already exists for this booking') {
-        return conflictError(res, error.message);
+      if (error.message === 'Session already started') {
+        return conflictError(res, 'Session has already been started');
       }
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found');

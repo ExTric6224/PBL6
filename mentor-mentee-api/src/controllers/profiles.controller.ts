@@ -89,4 +89,18 @@ export class ProfilesController {
       throw error;
     }
   }
+
+  // Get profile by userId (auto-detect mentor or mentee)
+  async getProfileByUserId(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      const profile = await profilesService.getProfileByUserId(userId);
+      return success(res, profile);
+    } catch (error: any) {
+      if (error.message === 'Profile not found') {
+        return notFoundError(res, 'Profile not found');
+      }
+      throw error;
+    }
+  }
 }

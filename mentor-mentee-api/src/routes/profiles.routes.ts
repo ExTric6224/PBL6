@@ -37,4 +37,10 @@ router.get('/mentee/:userId', authenticate, authorizePermissions('profile:view',
   getResourceOwnerId: async (req) => Number(req.params.userId)
 }), profilesController.getMenteeProfile.bind(profilesController));
 
+// Get profile by userId (auto-detect mentor or mentee)
+router.get('/:userId', authenticate, authorizePermissions('profile:view', {
+  scope: 'own',
+  getResourceOwnerId: async (req) => Number(req.params.userId)
+}), profilesController.getProfileByUserId.bind(profilesController));
+
 export default router;

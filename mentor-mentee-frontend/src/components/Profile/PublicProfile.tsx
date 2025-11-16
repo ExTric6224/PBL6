@@ -49,28 +49,31 @@ const PublicProfile: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Try to load as mentor first
-      try {
-        const mentorProfile = await profileApi.getMentorProfile(parseInt(userId));
+      // Use the new auto-detect API
+      const profileData = await profileApi.getProfile(parseInt(userId));
+      
+      // Check if user data exists
+      if (!profileData.user) {
+        throw new Error('Invalid profile data');
+      }
+      
+      // Determine profile type based on user role
+      if (profileData.user.role === 'MENTOR') {
         // Ensure expertise is always an array
-        if (!mentorProfile.expertise) {
-          mentorProfile.expertise = [];
+        if (!(profileData as any).expertise) {
+          (profileData as any).expertise = [];
         }
-        setProfile(mentorProfile);
+        setProfile(profileData as MentorProfile);
         setProfileType('MENTOR');
-      } catch (mentorErr) {
-        // If mentor fails, try mentee
-        try {
-          const menteeProfile = await profileApi.getMenteeProfile(parseInt(userId));
-          // Ensure interests is always an array
-          if (!menteeProfile.interests) {
-            menteeProfile.interests = [];
-          }
-          setProfile(menteeProfile);
-          setProfileType('MENTEE');
-        } catch (menteeErr) {
-          throw new Error('Profile not found');
+      } else if (profileData.user.role === 'MENTEE') {
+        // Ensure interests is always an array
+        if (!(profileData as any).interests) {
+          (profileData as any).interests = [];
         }
+        setProfile(profileData as MenteeProfile);
+        setProfileType('MENTEE');
+      } else {
+        throw new Error('Invalid profile type');
       }
     } catch (err: any) {
       setError('Không thể tải profile');
