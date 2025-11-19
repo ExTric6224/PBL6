@@ -11,6 +11,7 @@ const ProfileForm: React.FC = () => {
   const isMentee = user?.role === 'MENTEE';
 
   const [loading, setLoading] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [existingProfile, setExistingProfile] = useState<MentorProfile | MenteeProfile | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
@@ -18,6 +19,7 @@ const ProfileForm: React.FC = () => {
   const [mentorData, setMentorData] = useState<CreateMentorProfileData>({
     fullName: '',
     avatar: '',
+    phoneNumber: '',
     school: '',
     expertise: [],
     degree: '',
@@ -27,6 +29,7 @@ const ProfileForm: React.FC = () => {
   const [menteeData, setMenteeData] = useState<CreateMenteeProfileData>({
     fullName: '',
     avatar: '',
+    phoneNumber: '',
     interests: [],
     goals: '',
   });
@@ -73,6 +76,7 @@ const ProfileForm: React.FC = () => {
         setMentorData({
           fullName: profile.fullName,
           avatar: profile.avatar || '',
+          phoneNumber: profile.phoneNumber || '',
           school: profile.school || '',
           bio: profile.bio || '',
           expertise: expertiseIds,
@@ -94,6 +98,7 @@ const ProfileForm: React.FC = () => {
         setMenteeData({
           fullName: profile.fullName,
           avatar: profile.avatar || '',
+          phoneNumber: profile.phoneNumber || '',
           interests: interestIds,
           goals: profile.goals || '',
         });
@@ -106,8 +111,10 @@ const ProfileForm: React.FC = () => {
       }
     } catch (err: any) {
       console.log('No existing profile found');
+      setExistingProfile(null);
     } finally {
       setLoading(false);
+      setProfileLoaded(true);
     }
   }, [user, isMentor, isMentee]);
 
@@ -116,13 +123,33 @@ const ProfileForm: React.FC = () => {
   }, [loadProfile]);
 
   useEffect(() => {
-    if (!loading && !existingProfile) {
+    // Only switch to edit mode if profile loading is complete and no profile exists
+    if (profileLoaded && !existingProfile) {
       setIsEditing(true);
     }
-  }, [loading, existingProfile]);
+  }, [profileLoaded, existingProfile]);
 
   const handleMentorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number if provided
+    if (mentorData.phoneNumber && mentorData.phoneNumber.trim() !== '') {
+      const phoneRegex = /^[+]?[\d\s-()]+$/;
+      if (!phoneRegex.test(mentorData.phoneNumber)) {
+        alert('Phone number can only contain digits, spaces, +, -, and parentheses');
+        return;
+      }
+      const digitsOnly = mentorData.phoneNumber.replace(/[^\d]/g, '');
+      if (digitsOnly.length < 10) {
+        alert('Phone number must be at least 10 digits');
+        return;
+      }
+      if (mentorData.phoneNumber.length > 20) {
+        alert('Phone number must not exceed 20 characters');
+        return;
+      }
+    }
+    
     try {
       await profileApi.createOrUpdateMentorProfile(mentorData, avatarFile || undefined);
       alert('Mentor profile saved successfully!');
@@ -136,6 +163,25 @@ const ProfileForm: React.FC = () => {
 
   const handleMenteeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number if provided
+    if (menteeData.phoneNumber && menteeData.phoneNumber.trim() !== '') {
+      const phoneRegex = /^[+]?[\d\s-()]+$/;
+      if (!phoneRegex.test(menteeData.phoneNumber)) {
+        alert('Phone number can only contain digits, spaces, +, -, and parentheses');
+        return;
+      }
+      const digitsOnly = menteeData.phoneNumber.replace(/[^\d]/g, '');
+      if (digitsOnly.length < 10) {
+        alert('Phone number must be at least 10 digits');
+        return;
+      }
+      if (menteeData.phoneNumber.length > 20) {
+        alert('Phone number must not exceed 20 characters');
+        return;
+      }
+    }
+    
     try {
       await profileApi.createOrUpdateMenteeProfile(menteeData, avatarFile || undefined);
       alert('Mentee profile saved successfully!');
@@ -179,6 +225,9 @@ const ProfileForm: React.FC = () => {
             <h2>{profile.fullName}</h2>
             <p className="profile-role">🎓 {user?.role}</p>
             <p className="profile-email">📧 {user?.email}</p>
+            {profile.phoneNumber && (
+              <p className="profile-phone">📱 {profile.phoneNumber}</p>
+            )}
           </div>
         </div>
 
@@ -250,6 +299,9 @@ const ProfileForm: React.FC = () => {
             <h2>{profile.fullName}</h2>
             <p className="profile-role">🎓 {user?.role}</p>
             <p className="profile-email">📧 {user?.email}</p>
+            {profile.phoneNumber && (
+              <p className="profile-phone">📱 {profile.phoneNumber}</p>
+            )}
           </div>
         </div>
 
@@ -341,6 +393,20 @@ const ProfileForm: React.FC = () => {
                 onChange={(e) => setMentorData({ ...mentorData, fullName: e.target.value })}
                 required
                 placeholder="Your full name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Phone Number</label>
+              <input
+                type="tel"
+                value={mentorData.phoneNumber || ''}
+                onChange={(e) => setMentorData({ ...mentorData, phoneNumber: e.target.value })}
+                pattern="[+]?[\d\s-()]+"
+                minLength={10}
+                maxLength={20}
+                placeholder="e.g. +84912345678"
+                title="Phone number can only contain digits, spaces, +, -, and parentheses. Must be 10-20 characters."
               />
             </div>
 
@@ -455,6 +521,20 @@ const ProfileForm: React.FC = () => {
                 onChange={(e) => setMenteeData({ ...menteeData, fullName: e.target.value })}
                 required
                 placeholder="Your full name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Phone Number</label>
+              <input
+                type="tel"
+                value={menteeData.phoneNumber || ''}
+                onChange={(e) => setMenteeData({ ...menteeData, phoneNumber: e.target.value })}
+                pattern="[+]?[\d\s-()]+"
+                minLength={10}
+                maxLength={20}
+                placeholder="e.g. +84912345678"
+                title="Phone number can only contain digits, spaces, +, -, and parentheses. Must be 10-20 characters."
               />
             </div>
 

@@ -23,6 +23,8 @@ const SessionList: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await sessionApi.getMySessions();
+      console.log('Sessions data:', data); // Debug log
+      console.log('First session feedback:', data[0]?.feedback); // Debug log
       setSessions(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load sessions');
@@ -183,6 +185,16 @@ const SessionList: React.FC = () => {
                     </span>
                   </div>
                 )}
+
+                {/* Show feedback rating in preview */}
+                {session.feedback && (
+                  <div className="info-row">
+                    <span className="info-label">⭐ Rating:</span>
+                    <span className="info-value">
+                      {session.feedback.rating}/5 ⭐
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Expanded Info */}
@@ -215,6 +227,15 @@ const SessionList: React.FC = () => {
                     <div className="info-row">
                       <span className="info-label">📝 Notes:</span>
                       <span className="info-value notes-preview">{session.notes}</span>
+                    </div>
+                  )}
+
+                  {session.feedback && (
+                    <div className="info-row">
+                      <span className="info-label">⭐ Rating:</span>
+                      <span className="info-value">
+                        {session.feedback.rating}/5 ⭐
+                      </span>
                     </div>
                   )}
                 </div>

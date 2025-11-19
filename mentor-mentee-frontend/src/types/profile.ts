@@ -5,6 +5,7 @@ export interface MentorProfile {
   userId: number;
   fullName: string;
   avatar?: string;
+  phoneNumber?: string;
   school?: string;
   expertise: Topic[]; // Changed from string[] to Topic[]
   degree?: string;
@@ -25,6 +26,7 @@ export interface MenteeProfile {
   userId: number;
   fullName: string;
   avatar?: string;
+  phoneNumber?: string;
   goals?: string;
   interests: Topic[]; // Changed from string[] to Topic[]
   createdAt: string;
@@ -40,6 +42,7 @@ export interface MenteeProfile {
 export interface CreateMentorProfileData {
   fullName: string;
   avatar?: string;
+  phoneNumber?: string;
   school?: string;
   expertise: number[]; // Changed from string[] to number[] (topic IDs)
   degree?: string;
@@ -50,6 +53,7 @@ export interface CreateMentorProfileData {
 export interface CreateMenteeProfileData {
   fullName: string;
   avatar?: string;
+  phoneNumber?: string;
   goals?: string;
   interests: number[]; // Changed from string[] to number[] (topic IDs)
 }

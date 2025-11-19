@@ -53,48 +53,36 @@ const Dashboard: React.FC = () => {
   const quickLinks = [
     { 
       path: '/posts', 
-      icon: '📝', 
       title: 'Posts', 
-      desc: 'Read and create posts',
-      color: '#667eea'
+      desc: 'Read and create posts'
     },
     { 
       path: '/schedules', 
-      icon: '🗓️', 
       title: 'Schedules', 
-      desc: user.role === 'MENTOR' ? 'Manage your availability' : 'Browse available mentors',
-      color: '#764ba2'
+      desc: user.role === 'MENTOR' ? 'Manage your availability' : 'Browse available mentors'
     },
     { 
       path: '/bookings', 
-      icon: '📅', 
       title: 'Bookings', 
-      desc: user.role === 'MENTOR' ? 'View booking requests' : 'Your booked sessions',
-      color: '#f093fb'
+      desc: user.role === 'MENTOR' ? 'View booking requests' : 'Your booked sessions'
     },
     { 
       path: '/feedback', 
-      icon: '⭐', 
       title: 'Feedback', 
-      desc: 'View and give feedback',
-      color: '#f5576c'
+      desc: 'View and give feedback'
     },
     { 
       path: '/profile', 
-      icon: '👤', 
       title: 'Profile', 
-      desc: 'Manage your profile',
-      color: '#4facfe'
+      desc: 'Manage your profile'
     },
   ];
 
   if (user.role === 'ADMIN') {
     quickLinks.push({ 
       path: '/admin/permissions', 
-      icon: '🔐', 
       title: 'Permissions', 
-      desc: 'Manage system permissions',
-      color: '#43e97b'
+      desc: 'Manage system permissions'
     });
   }
 
@@ -107,143 +95,106 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Welcome Section */}
-      <div className="welcome-section">
-        <div className="welcome-content">
-          <div className="welcome-text">
-            <h1>
-              Welcome back, <span className="highlight">{getUserDisplayName()}</span>! {getRoleIcon()}
-            </h1>
-            <p>{getRoleDescription()}</p>
+      {/* Header Section */}
+      <div className="dashboard-header">
+        <div className="header-content">
+          <div className="header-left">
+            <h1>Welcome back, <span className="user-name">{getUserDisplayName()}</span></h1>
+            <p className="header-subtitle">{getRoleDescription()}</p>
           </div>
-          <div className="role-badge">
-            {user.role}
+          <div className="header-right">
+            <div className="user-badge">{user.role}</div>
+            <div className="user-status">
+              <div className="status-dot"></div>
+              <span>Active</span>
+            </div>
           </div>
-        </div>
-        <div className="welcome-graphics">
-          <div className="graphic-circle circle-1"></div>
-          <div className="graphic-circle circle-2"></div>
-          <div className="graphic-circle circle-3"></div>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Section */}
       <div className="stats-section">
-        <h2>Your Overview</h2>
         <div className="stats-grid">
-          {stats.map((stat, index) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="stat-card">
-              <div className="stat-icon">
-                {['📊', '⭐', '📝', '🕒'][index]}
-              </div>
-              <div className="stat-content">
-                <h3>{stat.value}</h3>
-                <p>{stat.label}</p>
+              <div className="stat-header">
+                <span className="stat-label">{stat.label}</span>
                 <span className={`stat-change ${stat.trend}`}>
                   {stat.change}
                 </span>
               </div>
+              <div className="stat-value">{stat.value}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Quick Links Grid */}
-      <div className="quick-links-section">
-        <h2>Quick Access</h2>
-        <div className="quick-links-grid">
-          {quickLinks.map((link) => (
-            <div
-              key={link.path}
-              className="quick-link-card"
-              onClick={() => navigate(link.path)}
-              style={{ '--card-color': link.color } as React.CSSProperties}
-            >
-              <div className="card-icon" style={{ background: link.color }}>
-                {link.icon}
-              </div>
-              <div className="card-content">
+      {/* Main Content */}
+      <div className="content-wrapper">
+        {/* Navigation Cards */}
+        <div className="navigation-section">
+          <h2 className="section-title">Navigation</h2>
+          <div className="nav-grid">
+            {quickLinks.map((link) => (
+              <button
+                key={link.path}
+                className="nav-card"
+                onClick={() => navigate(link.path)}
+              >
                 <h3>{link.title}</h3>
                 <p>{link.desc}</p>
-              </div>
-              <div className="card-arrow">
-                →
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* User Info */}
-      <div className="user-info-section">
-        <div className="user-info-header">
-          <h3>Account Information</h3>
-          <div className="status-indicator">
-            <div className="status-dot"></div>
-            Active
-          </div>
-        </div>
-        <div className="user-info-grid">
-          <div className="info-item">
-            <div className="info-label">
-              <span className="info-icon">🆔</span>
-              USER ID
-            </div>
-            <div className="info-value">{user.id}</div>
-          </div>
-          <div className="info-item">
-            <div className="info-label">
-              <span className="info-icon">📧</span>
-              EMAIL
-            </div>
-            <div className="info-value">{user.email}</div>
-          </div>
-          <div className="info-item">
-            <div className="info-label">
-              <span className="info-icon">🎯</span>
-              ROLE
-            </div>
-            <div className="info-value role-value">{user.role}</div>
-          </div>
-          <div className="info-item">
-            <div className="info-label">
-              <span className="info-icon">📅</span>
-              MEMBER SINCE
-            </div>
-            <div className="info-value">
-              {new Date(user.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+        {/* Info Grid */}
+        <div className="info-grid">
+          {/* Account Details */}
+          <div className="info-section">
+            <h2 className="section-title">Account Details</h2>
+            <div className="detail-list">
+              <div className="detail-item">
+                <span className="detail-label">User ID</span>
+                <span className="detail-value">{user.id}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Email</span>
+                <span className="detail-value">{user.email}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Role</span>
+                <span className="detail-value detail-role">{user.role}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Member Since</span>
+                <span className="detail-value">
+                  {new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Recent Activity */}
-      <div className="activity-section">
-        <h3>Recent Activity</h3>
-        <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon">📅</div>
-            <div className="activity-content">
-              <p>New booking request received</p>
-              <span>2 hours ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">💬</div>
-            <div className="activity-content">
-              <p>Someone commented on your post</p>
-              <span>5 hours ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">⭐</div>
-            <div className="activity-content">
-              <p>You received a 5-star rating</p>
-              <span>1 day ago</span>
+          {/* Recent Activity */}
+          <div className="info-section">
+            <h2 className="section-title">Recent Activity</h2>
+            <div className="activity-list">
+              <div className="activity-item">
+                <div className="activity-time">2h ago</div>
+                <div className="activity-text">New booking request received</div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-time">5h ago</div>
+                <div className="activity-text">Someone commented on your post</div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-time">1d ago</div>
+                <div className="activity-text">You received a 5-star rating</div>
+              </div>
             </div>
           </div>
         </div>

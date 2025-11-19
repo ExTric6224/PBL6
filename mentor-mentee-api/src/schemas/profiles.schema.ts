@@ -26,6 +26,12 @@ const stringOrNumberTransform = z.union([
 export const createMentorProfileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   avatar: z.string().optional(),
+  phoneNumber: z.string()
+    .regex(/^[+]?[\d\s-()]+$/, 'Phone number can only contain digits, spaces, +, -, and parentheses')
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number must not exceed 20 characters')
+    .optional()
+    .or(z.literal('')),
   school: z.string().optional(),
   expertise: topicIdsTransform,
   degree: z.string().optional(),
@@ -38,6 +44,12 @@ export const updateMentorProfileSchema = createMentorProfileSchema.partial();
 export const createMenteeProfileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   avatar: z.string().optional(),
+  phoneNumber: z.string()
+    .regex(/^[+]?[\d\s-()]+$/, 'Phone number can only contain digits, spaces, +, -, and parentheses')
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number must not exceed 20 characters')
+    .optional()
+    .or(z.literal('')),
   goals: z.string().optional(),
   interests: topicIdsTransform,
 });

@@ -11,6 +11,10 @@ export interface Session {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  startedAt?: string;
+  endedAt?: string;
+  autoStarted?: boolean;
+  autoEnded?: boolean;
   mentor?: {
     id: number;
     email: string;
@@ -22,6 +26,14 @@ export interface Session {
   booking?: {
     id: number;
     notes?: string;
+    schedule?: any;
+    user?: any;
+  };
+  feedback?: {
+    id: number;
+    rating: number;
+    comment?: string;
+    createdAt: string;
   };
 }
 

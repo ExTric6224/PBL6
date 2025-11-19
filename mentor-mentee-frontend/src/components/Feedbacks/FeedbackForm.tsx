@@ -30,22 +30,16 @@ const FeedbackForm: React.FC = () => {
   const loadMyFeedbacks = useCallback(async () => {
     try {
       setLoading(true);
-      if (isMentee) {
-        // MENTEE: lấy feedback đã đánh giá
-        const paginatedResponse = await feedbackApi.getMyFeedbacks();
-        setFeedbacks(paginatedResponse.data || []);
-      } else if (isMentor && user?.id) {
-        // MENTOR: lấy feedback đã nhận
-        const paginatedResponse = await feedbackApi.getFeedbacksByMentor(user.id);
-        setFeedbacks(paginatedResponse.data || []);
-      }
+      // Both MENTEE and MENTOR use getMyFeedbacks endpoint
+      const paginatedResponse = await feedbackApi.getMyFeedbacks();
+      setFeedbacks(paginatedResponse.data || []);
     } catch (err: any) {
       console.error('Failed to load feedbacks:', err);
       setFeedbacks([]);
     } finally {
       setLoading(false);
     }
-  }, [isMentee, isMentor, user?.id]);
+  }, []);
 
   const loadCompletedSessions = useCallback(async () => {
     if (!isMentee) return; // Chỉ MENTEE mới cần load sessions
@@ -103,6 +97,7 @@ const FeedbackForm: React.FC = () => {
             key={star}
             className={`star ${star <= rating ? 'active' : ''}`}
             onClick={interactive ? () => setFormData({ ...formData, rating: star }) : undefined}
+            style={{ cursor: interactive ? 'pointer' : 'default' }}
           >
             ⭐
           </span>

@@ -27,6 +27,8 @@ const SessionDetail: React.FC = () => {
       const data = await sessionApi.getMySessions();
       const foundSession = data.find((s: any) => s.id === parseInt(id!));
       if (foundSession) {
+        console.log('Session data:', foundSession); // Debug log
+        console.log('Feedback data:', foundSession.feedback); // Debug log
         setSession(foundSession);
       } else {
         setError('Session not found');

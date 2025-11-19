@@ -15,6 +15,7 @@ export class ProfilesService {
         data: {
           fullName: data.fullName,
           avatar: data.avatar,
+          phoneNumber: data.phoneNumber,
           school: data.school,
           degree: data.degree,
           yearsExp: data.yearsExp,
@@ -95,6 +96,7 @@ export class ProfilesService {
           userId,
           fullName: data.fullName,
           avatar: data.avatar,
+          phoneNumber: data.phoneNumber,
           school: data.school,
           degree: data.degree,
           yearsExp: data.yearsExp,
@@ -202,6 +204,7 @@ export class ProfilesService {
         data: {
           fullName: data.fullName,
           avatar: data.avatar,
+          phoneNumber: data.phoneNumber,
           goals: data.goals,
         },
         include: {
@@ -279,6 +282,7 @@ export class ProfilesService {
           userId,
           fullName: data.fullName,
           avatar: data.avatar,
+          phoneNumber: data.phoneNumber,
           goals: data.goals,
         },
         include: {

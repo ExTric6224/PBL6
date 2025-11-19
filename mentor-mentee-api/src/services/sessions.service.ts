@@ -222,24 +222,54 @@ export class SessionsService {
             schedule: {
               include: {
                 user: {
-                  include: {
-                    mentorprofile: true,
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: {
+                      select: {
+                        fullName: true,
+                        avatar: true,
+                        bio: true,
+                      },
+                    },
                   },
                 },
               },
             },
             user: {
-              include: {
-                menteeprofile: true,
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                    avatar: true,
+                  },
+                },
               },
             },
           },
         },
-        feedback: true,
+        feedback: {
+          include: {
+            user_feedback_menteeIdTouser: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      orderBy: {
-        startedAt: 'desc',
-      },
+      orderBy: [
+        { status: 'asc' },
+        { startedAt: 'desc' },
+      ],
     });
   }
 
@@ -252,24 +282,54 @@ export class SessionsService {
             schedule: {
               include: {
                 user: {
-                  include: {
-                    mentorprofile: true,
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: {
+                      select: {
+                        fullName: true,
+                        avatar: true,
+                        bio: true,
+                      },
+                    },
                   },
                 },
               },
             },
             user: {
-              include: {
-                menteeprofile: true,
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                    avatar: true,
+                  },
+                },
               },
             },
           },
         },
-        feedback: true,
+        feedback: {
+          include: {
+            user_feedback_menteeIdTouser: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      orderBy: {
-        startedAt: 'desc',
-      },
+      orderBy: [
+        { status: 'asc' },
+        { startedAt: 'desc' },
+      ],
     });
   }
 }

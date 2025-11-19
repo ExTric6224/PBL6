@@ -273,6 +273,13 @@ const PublicProfile: React.FC = () => {
           {/* Mentor-specific fields */}
           {profileType === 'MENTOR' && (
             <>
+              {(profile as MentorProfile).phoneNumber && (
+                <div className="detail-item">
+                  <span className="detail-label">📱 Phone</span>
+                  <span className="detail-value">{(profile as MentorProfile).phoneNumber}</span>
+                </div>
+              )}
+
               {(profile as MentorProfile).school && (
                 <div className="detail-item">
                   <span className="detail-label">🏫 School</span>
@@ -319,6 +326,13 @@ const PublicProfile: React.FC = () => {
           {/* Mentee-specific fields */}
           {profileType === 'MENTEE' && (
             <>
+              {(profile as MenteeProfile).phoneNumber && (
+                <div className="detail-item">
+                  <span className="detail-label">📱 Phone</span>
+                  <span className="detail-value">{(profile as MenteeProfile).phoneNumber}</span>
+                </div>
+              )}
+
               {(profile as MenteeProfile).goals && (
                 <div className="detail-item">
                   <span className="detail-label">🎯 Goals</span>

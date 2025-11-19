@@ -43,12 +43,29 @@
   cursor: pointer;
   transition: var(--transition);
   opacity: 0.3;
+  filter: grayscale(100%);
 }
 
-.star:hover,
 .star.active {
   opacity: 1;
+  filter: grayscale(0%);
   transform: scale(1.05);
+}
+
+.star:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.1);
+}
+
+/* Non-interactive stars (display only) */
+.feedback-rating .stars .star {
+  cursor: default;
+}
+
+.feedback-rating .stars .star.active {
+  opacity: 1;
+  filter: grayscale(0%);
 }
 
 .form-group select {

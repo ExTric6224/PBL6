@@ -53,48 +53,56 @@ async function main() {
     {
       email: 'mentee1@example.com',
       fullName: 'Nguyễn Văn An',
+      phoneNumber: '+84901234567',
       goals: 'Muốn trở thành Full-stack Developer trong 2 năm tới',
       interests: ['Web Development', 'Mobile Development']
     },
     {
       email: 'mentee2@example.com',
       fullName: 'Trần Thị Bình',
+      phoneNumber: '+84902345678',
       goals: 'Học AI để làm nghiên cứu khoa học',
       interests: ['Data Science', 'Software Architecture']
     },
     {
       email: 'mentee3@example.com',
       fullName: 'Lê Văn Cường',
+      phoneNumber: '+84903456789',
       goals: 'Chuyển sang làm DevOps Engineer',
       interests: ['DevOps', 'Cloud Computing']
     },
     {
       email: 'mentee4@example.com',
       fullName: 'Phạm Thị Diễm',
+      phoneNumber: '+84904567890',
       goals: 'Trở thành UI/UX Designer chuyên nghiệp',
       interests: ['UI/UX Design', 'Web Development']
     },
     {
       email: 'mentee5@example.com',
       fullName: 'Hoàng Văn Em',
+      phoneNumber: '+84905678901',
       goals: 'Học security để bảo vệ hệ thống',
       interests: ['Cybersecurity', 'Database']
     },
     {
       email: 'mentee6@example.com',
       fullName: 'Vũ Thị Phương',
+      phoneNumber: '+84906789012',
       goals: 'Phát triển game indie',
       interests: ['Game Development', 'Software Architecture']
     },
     {
       email: 'mentee7@example.com',
       fullName: 'Đỗ Văn Giang',
+      phoneNumber: '+84907890123',
       goals: 'Chuẩn bị cho phỏng vấn Senior Developer',
       interests: ['Career Development', 'Software Architecture']
     },
     {
       email: 'mentee8@example.com',
       fullName: 'Ngô Thị Hà',
+      phoneNumber: '+84908901234',
       goals: 'Tìm hiểu về Blockchain và Web3',
       interests: ['Blockchain', 'Web Development']
     }
@@ -112,6 +120,7 @@ async function main() {
         menteeprofile: {
           create: {
             fullName: mentee.fullName,
+            phoneNumber: mentee.phoneNumber,
             goals: mentee.goals,
             interests: {
               create: mentee.interests
@@ -135,6 +144,7 @@ async function main() {
     {
       email: 'mentor1@example.com',
       fullName: 'Trần Minh Tuấn',
+      phoneNumber: '+84911234567',
       school: 'Đại học Bách Khoa Hà Nội',
       degree: 'Thạc sĩ Khoa học Máy tính',
       yearsExp: 7,
@@ -144,6 +154,7 @@ async function main() {
     {
       email: 'mentor2@example.com',
       fullName: 'Lê Thị Mai',
+      phoneNumber: '+84912345678',
       school: 'Đại học Công nghệ - ĐHQGHN',
       degree: 'Tiến sĩ Trí tuệ Nhân tạo',
       yearsExp: 10,
@@ -153,6 +164,7 @@ async function main() {
     {
       email: 'mentor3@example.com',
       fullName: 'Nguyễn Hoàng Nam',
+      phoneNumber: '+84913456789',
       school: 'Đại học FPT',
       degree: 'Cử nhân CNTT',
       yearsExp: 6,
@@ -162,6 +174,7 @@ async function main() {
     {
       email: 'mentor4@example.com',
       fullName: 'Phạm Thanh Hà',
+      phoneNumber: '+84914567890',
       school: 'Đại học Mỹ thuật Công nghiệp',
       degree: 'Thạc sĩ Thiết kế Đồ họa',
       yearsExp: 8,
@@ -171,6 +184,7 @@ async function main() {
     {
       email: 'mentor5@example.com',
       fullName: 'Vũ Đức Anh',
+      phoneNumber: '+84915678901',
       school: 'Học viện Kỹ thuật Mật mã',
       degree: 'Thạc sĩ An toàn Thông tin',
       yearsExp: 9,
@@ -180,6 +194,7 @@ async function main() {
     {
       email: 'mentor6@example.com',
       fullName: 'Đặng Thị Lan',
+      phoneNumber: '+84916789012',
       school: 'Đại học RMIT',
       degree: 'Cử nhân Game Design',
       yearsExp: 5,
@@ -189,6 +204,7 @@ async function main() {
     {
       email: 'mentor7@example.com',
       fullName: 'Hoàng Quốc Việt',
+      phoneNumber: '+84917890123',
       school: 'Đại học Bách Khoa TP.HCM',
       degree: 'Thạc sĩ Kỹ thuật Phần mềm',
       yearsExp: 12,
@@ -198,6 +214,7 @@ async function main() {
     {
       email: 'mentor8@example.com',
       fullName: 'Bùi Thị Ngọc',
+      phoneNumber: '+84918901234',
       school: 'Đại học Ngoại thương',
       degree: 'MBA',
       yearsExp: 15,
@@ -207,6 +224,7 @@ async function main() {
     {
       email: 'mentor9@example.com',
       fullName: 'Trịnh Văn Đức',
+      phoneNumber: '+84919012345',
       school: 'Stanford University',
       degree: 'PhD Computer Science',
       yearsExp: 8,
@@ -216,6 +234,7 @@ async function main() {
     {
       email: 'mentor10@example.com',
       fullName: 'Lương Thị Hương',
+      phoneNumber: '+84920123456',
       school: 'Đại học Công nghệ',
       degree: 'Thạc sĩ Mobile Computing',
       yearsExp: 6,
@@ -236,6 +255,7 @@ async function main() {
         mentorprofile: {
           create: {
             fullName: mentor.fullName,
+            phoneNumber: mentor.phoneNumber,
             school: mentor.school,
             degree: mentor.degree,
             yearsExp: mentor.yearsExp,

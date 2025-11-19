@@ -9,6 +9,7 @@ export const profileApi = {
     
     // Add all fields except avatar (if it's a string path)
     formData.append('fullName', data.fullName);
+    if (data.phoneNumber) formData.append('phoneNumber', data.phoneNumber);
     if (data.school) formData.append('school', data.school);
     if (data.degree) formData.append('degree', data.degree);
     if (data.bio) formData.append('bio', data.bio);
@@ -44,6 +45,7 @@ export const profileApi = {
     
     // Add all fields
     formData.append('fullName', data.fullName);
+    if (data.phoneNumber) formData.append('phoneNumber', data.phoneNumber);
     if (data.goals) formData.append('goals', data.goals);
     
     // Add interests array
