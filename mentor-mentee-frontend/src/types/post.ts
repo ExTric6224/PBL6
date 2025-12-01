@@ -20,10 +20,12 @@ export interface Post {
     role: string;
     mentorprofile?: {
       fullName: string;
+      avatar?: string;
       school: string;
     };
     menteeprofile?: {
       fullName: string;
+      avatar?: string;
     };
   };
   likesCount?: number; // Backend trả về likesCount thay vì _count.likes

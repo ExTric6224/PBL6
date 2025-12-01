@@ -351,6 +351,28 @@
   transform: translateY(-1px);
 }
 
+.btn-feedback {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #f57c00;
+  border: 1px solid #ffb74d;
+}
+
+.btn-feedback:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+  transform: translateY(-1px);
+}
+
+.btn-feedback-create {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border: none;
+}
+
+.btn-feedback-create:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  transform: translateY(-1px);
+}
+
 /* Profile Links */
 .profile-links {
   display: flex;

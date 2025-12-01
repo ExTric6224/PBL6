@@ -1,311 +1,261 @@
 .schedule-detail-container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.back-button-wrapper {
-  margin-bottom: 20px;
+/* Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
 }
 
 .back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: #fff;
-  border: 1px solid #ddd;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 8px;
-  color: #333;
+  color: #495057;
   font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .back-btn:hover {
-  background: #f5f5f5;
-  border-color: #007bff;
-  color: #007bff;
-  transform: translateX(-2px);
+  background: #e9ecef;
+  border-color: #dee2e6;
 }
 
 /* Notifications */
 .notification {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 12px 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   border-radius: 8px;
   font-size: 14px;
-  animation: slideInDown 0.3s ease;
+  animation: slideIn 0.3s ease;
 }
 
-.notification .icon {
-  font-size: 18px;
+.notification.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
 }
 
-.notification .close-btn {
-  margin-left: auto;
+.notification.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+.close-btn {
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s;
+  padding: 0;
+  width: 24px;
+  height: 24px;
 }
 
-.notification .close-btn:hover {
+.close-btn:hover {
   opacity: 1;
 }
 
-.error-notification {
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
-}
-
-.success-notification {
-  background: #efe;
-  border: 1px solid #cfc;
-  color: #3c3;
-}
-
-/* Loading & Error States */
-.loading-spinner,
-.error-state {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 20px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.error-icon {
-  font-size: 64px;
-  display: block;
-  margin-bottom: 20px;
-}
-
-.error-state h2 {
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.error-state p {
-  color: #666;
-  margin-bottom: 20px;
-}
-
-/* Schedule Detail Card */
-.schedule-detail-card {
+/* Main Card */
+.schedule-card {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Header */
-.schedule-detail-header {
+/* Schedule Header */
+.schedule-header {
   padding: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.schedule-header-content {
+.schedule-title-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
-.schedule-detail-title {
-  flex: 1;
-  font-size: 28px;
+.schedule-title-section h2 {
+  font-size: 24px;
   font-weight: 700;
+  color: #1a1a1a;
   margin: 0;
-  line-height: 1.3;
+  flex: 1;
 }
 
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.status-badge.status-available {
-  background: rgba(76, 175, 80, 0.2);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.status-badge.status-booked {
-  background: rgba(255, 152, 0, 0.2);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.status-badge.status-cancelled {
-  background: rgba(244, 67, 54, 0.2);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-/* Mentor Info Card */
-.mentor-info-card {
-  display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s;
-}
-
-.mentor-info-card:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.mentor-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-}
-
-.mentor-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.mentor-label {
-  display: block;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  opacity: 0.9;
+}
+
+.status-available {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-booked {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Mentor Section */
+.mentor-section {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mentor-section:hover {
+  border-color: #007bff;
+  transform: translateY(-1px);
+}
+
+.mentor-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.mentor-info {
+  flex: 1;
+}
+
+.mentor-role {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
   margin-bottom: 4px;
 }
 
-.mentor-name {
+.mentor-info h3 {
   font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 6px 0;
-  line-height: 1.2;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
 }
 
-.mentor-bio {
+.mentor-info p {
   font-size: 14px;
-  opacity: 0.95;
+  color: #6c757d;
   margin: 0;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  line-height: 1.5;
 }
 
-/* Schedule Info Section */
-.schedule-info-section {
+/* Schedule Details */
+.schedule-details {
   padding: 32px;
 }
 
-.info-grid {
+.detail-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
 
-.info-item {
+.detail-item {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: flex-start;
 }
 
-.info-icon {
+.detail-icon {
   font-size: 24px;
-  flex-shrink: 0;
+  margin-top: 4px;
 }
 
-.info-content {
-  flex: 1;
-}
-
-.info-label {
+.detail-content label {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: #6c757d;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
 
-.info-value {
+.detail-content p {
   font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-weight: 500;
+  color: #1a1a1a;
   margin: 0;
 }
 
-/* Description Section */
+/* Description */
 .description-section {
   padding-top: 24px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e9ecef;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.description-section h3 {
   font-size: 18px;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 16px 0;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
 }
 
-.description-text {
+.description-section p {
   font-size: 15px;
-  line-height: 1.7;
-  color: #555;
-  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #6c757d;
   margin: 0;
+  white-space: pre-wrap;
 }
 
 /* Actions */
-.schedule-actions {
+.action-section {
   padding: 24px 32px;
   background: #f8f9fa;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e9ecef;
   display: flex;
   gap: 12px;
   justify-content: center;
@@ -319,43 +269,61 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-large {
-  padding: 14px 32px;
-  font-size: 16px;
+  min-width: 120px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #007bff;
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  background: #0056b3;
+  transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #dc3545;
   color: white;
-  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
 }
 
 .btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(245, 87, 108, 0.4);
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Loading & Error States */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.error-state h2 {
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.error-state p {
+  color: #6c757d;
+  margin-bottom: 24px;
 }
 
 /* Animations */
-@keyframes slideInDown {
+@keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -371,52 +339,41 @@
 /* Responsive */
 @media (max-width: 768px) {
   .schedule-detail-container {
-    padding: 12px;
-  }
-
-  .schedule-detail-header {
-    padding: 24px 20px;
-  }
-
-  .schedule-header-content {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .schedule-detail-title {
-    font-size: 22px;
-  }
-
-  .mentor-info-card {
     padding: 16px;
   }
 
-  .mentor-avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .mentor-name {
-    font-size: 16px;
+  .page-header h1 {
+    font-size: 24px;
   }
 
-  .schedule-info-section {
-    padding: 24px 20px;
+  .schedule-header,
+  .schedule-details {
+    padding: 24px;
   }
 
-  .info-grid {
+  .schedule-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .detail-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 
-  .schedule-actions {
-    padding: 20px;
+  .action-section {
+    padding: 20px 24px;
     flex-direction: column;
   }
 
-  .btn-large {
+  .btn {
     width: 100%;
-    justify-content: center;
   }
 }

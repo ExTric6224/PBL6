@@ -30,7 +30,6 @@ const PostList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [imageUploadState, setImageUploadState] = useState<ImageUploadState>({});
-  const [expandedPosts, setExpandedPosts] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
@@ -90,13 +89,12 @@ const PostList: React.FC = () => {
     setPage(1);
   }, [activeTab, searchQuery, sortBy]);
 
-  // Filter and sort posts based on active tab, search, and sort
+  // Filter and sort posts
   const getFilteredAndSortedPosts = () => {
     let filtered = activeTab === 'my' 
       ? posts.filter(post => post.authorId === user?.id)
       : posts;
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(post => 
@@ -105,7 +103,6 @@ const PostList: React.FC = () => {
       );
     }
 
-    // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -271,18 +268,6 @@ const PostList: React.FC = () => {
     }
   };
 
-  const toggleExpandPost = (postId: number) => {
-    setExpandedPosts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
-    });
-  };
-
   const formatDate = (date: string) => {
     const postDate = new Date(date);
     const now = new Date();
@@ -323,26 +308,16 @@ const PostList: React.FC = () => {
       {/* Header */}
       <div className="posts-header">
         <div className="header-content">
-          <h1>
-            <span className="icon">📝</span>
-            Cộng Đồng
-          </h1>
-          <p className="subtitle">Chia sẻ kiến thức và kết nối với mọi người</p>
+          <h1>📝 Bài Viết</h1>
+          <p className="subtitle">Chia sẻ kiến thức và kết nối với cộng đồng</p>
         </div>
         {canUserPost() && !editingPost && (
           <button
-            className={`create-post-btn ${showCreateForm ? 'active' : ''}`}
+            className="create-post-btn"
             onClick={() => setShowCreateForm(!showCreateForm)}
           >
-            {showCreateForm ? (
-              <>
-                <span>✖</span> Hủy
-              </>
-            ) : (
-              <>
-                <span>✚</span> Tạo Bài Viết
-              </>
-            )}
+            <span className="btn-icon">{showCreateForm ? '✕' : '✚'}</span>
+            {showCreateForm ? 'Hủy' : 'Bài Viết Mới'}
           </button>
         )}
       </div>
@@ -354,7 +329,7 @@ const PostList: React.FC = () => {
           onClick={() => handleTabChange('all')}
         >
           <span className="tab-icon">🌐</span>
-          <span className="tab-text">Tất Cả Bài Viết</span>
+          <span className="tab-text">Tất Cả</span>
           <span className="tab-count">{posts.length}</span>
         </button>
         <button
@@ -362,12 +337,12 @@ const PostList: React.FC = () => {
           onClick={() => handleTabChange('my')}
         >
           <span className="tab-icon">👤</span>
-          <span className="tab-text">Bài Viết Của Tôi</span>
+          <span className="tab-text">Của Tôi</span>
           <span className="tab-count">{posts.filter(p => p.authorId === user?.id).length}</span>
         </button>
       </div>
 
-      {/* Search and Filter Bar */}
+      {/* Search and Filter */}
       <div className="search-filter-bar">
         <div className="search-box">
           <span className="search-icon">🔍</span>
@@ -393,31 +368,34 @@ const PostList: React.FC = () => {
             className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <span>🎚️</span>
-            <span>Lọc</span>
+            <span className="filter-icon">⚙️</span>
+            <span className="filter-text">Lọc</span>
           </button>
           {showFilters && (
             <div className="filter-dropdown">
               <div className="filter-group">
-                <label className="filter-label">Sắp xếp theo:</label>
+                <h4 className="filter-label">Sắp xếp theo</h4>
                 <div className="filter-options">
                   <button
                     className={`filter-option ${sortBy === 'newest' ? 'active' : ''}`}
                     onClick={() => setSortBy('newest')}
                   >
-                    <span>🆕</span> Mới nhất
+                    <span className="option-icon">🆕</span>
+                    <span className="option-text">Mới nhất</span>
                   </button>
                   <button
                     className={`filter-option ${sortBy === 'oldest' ? 'active' : ''}`}
                     onClick={() => setSortBy('oldest')}
                   >
-                    <span>📅</span> Cũ nhất
+                    <span className="option-icon">📅</span>
+                    <span className="option-text">Cũ nhất</span>
                   </button>
                   <button
                     className={`filter-option ${sortBy === 'popular' ? 'active' : ''}`}
                     onClick={() => setSortBy('popular')}
                   >
-                    <span>🔥</span> Phổ biến
+                    <span className="option-icon">🔥</span>
+                    <span className="option-text">Phổ biến</span>
                   </button>
                 </div>
               </div>
@@ -429,7 +407,9 @@ const PostList: React.FC = () => {
       {/* Search Results Info */}
       {searchQuery && (
         <div className="search-results-info">
-          <span>Tìm thấy <strong>{filteredPosts.length}</strong> kết quả cho "<strong>{searchQuery}</strong>"</span>
+          <span className="results-text">
+            Tìm thấy <strong>{filteredPosts.length}</strong> kết quả cho "<strong>{searchQuery}</strong>"
+          </span>
           {filteredPosts.length === 0 && (
             <button 
               className="reset-search-btn"
@@ -443,75 +423,59 @@ const PostList: React.FC = () => {
 
       {/* Notifications */}
       {error && (
-        <div className="notification error-notification">
-          <span className="icon">⚠️</span>
-          <span>{error}</span>
-          <button className="close-btn" onClick={() => setError(null)}>✖</button>
+        <div className="notification error">
+          <span className="notification-icon">⚠️</span>
+          <span className="notification-message">{error}</span>
+          <button className="notification-close" onClick={() => setError(null)}>✖</button>
         </div>
       )}
       {success && (
-        <div className="notification success-notification">
-          <span className="icon">✓</span>
-          <span>{success}</span>
-          <button className="close-btn" onClick={() => setSuccess(null)}>✖</button>
+        <div className="notification success">
+          <span className="notification-icon">✅</span>
+          <span className="notification-message">{success}</span>
+          <button className="notification-close" onClick={() => setSuccess(null)}>✖</button>
         </div>
       )}
 
-      {/* Create/Edit Form */}
+      {/* Create Form */}
       {showCreateForm && (
         <div className="post-form-container">
-          <form
-            className="post-form"
-            onSubmit={handleCreatePost}
-          >
+          <form className="post-form" onSubmit={handleCreatePost}>
             <div className="form-header">
               <h2>✨ Tạo Bài Viết Mới</h2>
             </div>
-
             <div className="form-body">
               <div className="form-group">
-                <label htmlFor="title">
-                  Tiêu Đề <span className="required">*</span>
-                </label>
+                <label htmlFor="title">Tiêu đề bài viết</label>
                 <input
                   id="title"
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Nhập tiêu đề bài viết..."
-                  required
+                  placeholder="Nhập tiêu đề hấp dẫn..."
                   maxLength={200}
                 />
-                <span className="char-count">{formData.title.length}/200</span>
+                <div className="char-count">{formData.title.length}/200</div>
               </div>
-
               <div className="form-group">
-                <label htmlFor="content">
-                  Nội Dung <span className="required">*</span>
-                </label>
+                <label htmlFor="content">Nội dung</label>
                 <textarea
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   placeholder="Chia sẻ suy nghĩ của bạn..."
-                  required
-                  rows={8}
+                  rows={6}
                   maxLength={5000}
                 />
-                <span className="char-count">{formData.content.length}/5000</span>
+                <div className="char-count">{formData.content.length}/5000</div>
               </div>
             </div>
-
             <div className="form-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setShowCreateForm(false)}
-              >
+              <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>
                 Hủy
               </button>
               <button type="submit" className="btn btn-primary">
-                Đăng Bài
+                Đăng bài
               </button>
             </div>
           </form>
@@ -522,268 +486,145 @@ const PostList: React.FC = () => {
       {filteredPosts.length === 0 && !loading ? (
         <div className="empty-state">
           <div className="empty-icon">📭</div>
-          <h3>{activeTab === 'my' ? 'Bạn chưa có bài viết nào' : 'Chưa có bài viết nào'}</h3>
+          <h3>{activeTab === 'my' ? 'Chưa có bài viết nào' : 'Chưa có bài viết nào'}</h3>
           <p>{activeTab === 'my' ? 'Hãy tạo bài viết đầu tiên của bạn!' : 'Hãy là người đầu tiên chia sẻ!'}</p>
         </div>
       ) : (
         <div className="posts-grid">
           {filteredPosts.map((post) => {
-            const isExpanded = expandedPosts.has(post.id);
-            const shouldTruncate = post.content.length > 300;
-            const displayContent = shouldTruncate && !isExpanded
-              ? post.content.substring(0, 300) + '...'
-              : post.content;
             const isEditing = editingPost?.id === post.id;
+            const displayContent = post.content.length > 300 
+              ? post.content.substring(0, 300) + '...' 
+              : post.content;
 
             return (
               <article key={post.id} className="post-card">
                 {isEditing ? (
-                  // Edit Form - Inline
+                  // Edit Form
                   <div className="post-edit-form">
                     <form onSubmit={handleUpdatePost}>
                       <div className="form-header">
                         <h2>✏️ Chỉnh Sửa Bài Viết</h2>
                       </div>
-
                       <div className="form-body">
                         <div className="form-group">
-                          <label htmlFor={`edit-title-${post.id}`}>
-                            Tiêu Đề <span className="required">*</span>
-                          </label>
+                          <label>Tiêu đề</label>
                           <input
-                            id={`edit-title-${post.id}`}
                             type="text"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="Nhập tiêu đề bài viết..."
-                            required
                             maxLength={200}
                           />
-                          <span className="char-count">{formData.title.length}/200</span>
+                          <div className="char-count">{formData.title.length}/200</div>
                         </div>
-
                         <div className="form-group">
-                          <label htmlFor={`edit-content-${post.id}`}>
-                            Nội Dung <span className="required">*</span>
-                          </label>
+                          <label>Nội dung</label>
                           <textarea
-                            id={`edit-content-${post.id}`}
                             value={formData.content}
                             onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                            placeholder="Chia sẻ suy nghĩ của bạn..."
-                            required
-                            rows={8}
+                            rows={6}
                             maxLength={5000}
                           />
-                          <span className="char-count">{formData.content.length}/5000</span>
-                        </div>
-
-                        {/* Edit Images Section */}
-                        {post.images && post.images.length > 0 && (
-                          <div className="edit-images-section">
-                            <label>Ảnh Hiện Tại</label>
-                            <div className={`post-images ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
-                              {post.images.map((image) => {
-                                const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
-                                return (
-                                  <div key={image.id} className="image-wrapper">
-                                    <img
-                                      src={imageUrl}
-                                      alt={`Ảnh ${image.order + 1}`}
-                                      loading="lazy"
-                                      onError={(e) => {
-                                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
-                                      }}
-                                    />
-                                    <button
-                                      type="button"
-                                      className="delete-image-btn"
-                                      onClick={() => handleDeleteImage(post.id, image.id)}
-                                      title="Xóa ảnh"
-                                    >
-                                      ✖
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Add More Images */}
-                        <div className="edit-upload-section">
-                          <label>Thêm Ảnh Mới</label>
-                          <div className="image-upload-section">
-                            <input
-                              type="file"
-                              id={`file-edit-${post.id}`}
-                              multiple
-                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                              onChange={(e) => handleFileChange(post.id, e)}
-                              style={{ display: 'none' }}
-                            />
-                            <label htmlFor={`file-edit-${post.id}`} className="upload-label">
-                              <span>📷</span>
-                              <span>
-                                {imageUploadState[post.id]?.files.length > 0
-                                  ? `${imageUploadState[post.id].files.length} ảnh đã chọn`
-                                  : 'Chọn ảnh để thêm'}
-                              </span>
-                            </label>
-                            {imageUploadState[post.id]?.files.length > 0 && (
-                              <button
-                                type="button"
-                                className="upload-btn"
-                                onClick={() => handleUploadImages(post.id)}
-                                disabled={imageUploadState[post.id]?.uploading}
-                              >
-                                {imageUploadState[post.id]?.uploading ? (
-                                  <>
-                                    <span className="spinner-small"></span>
-                                    Đang tải...
-                                  </>
-                                ) : (
-                                  'Tải lên ngay'
-                                )}
-                              </button>
-                            )}
-                          </div>
+                          <div className="char-count">{formData.content.length}/5000</div>
                         </div>
                       </div>
-
                       <div className="form-footer">
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={cancelEditing}
-                        >
+                        <button type="button" className="btn btn-secondary" onClick={cancelEditing}>
                           Hủy
                         </button>
                         <button type="submit" className="btn btn-primary">
-                          Cập Nhật
+                          Cập nhật
                         </button>
                       </div>
                     </form>
                   </div>
                 ) : (
-                  // Normal Post Display
+                  // Post Display
                   <>
-                    {/* Post Header */}
-                    <div className="post-card-header">
-                      <div className="author-info">
-                        <div 
-                          className="avatar clickable"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                    <div className="post-header">
+                      <div 
+                        className="author-info"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (post.authorId) {
                             navigate(`/profile/${post.authorId}`);
-                          }}
-                          style={{ cursor: 'pointer' }}
-                          title="Xem profile"
-                        >
-                          {post.user?.email?.charAt(0).toUpperCase() || 'U'}
+                          }
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        title="Xem profile"
+                      >
+                        <div className="author-avatar">
+                          {(post.user?.mentorprofile?.avatar || post.user?.menteeprofile?.avatar) ? (
+                            <img 
+                              src={`${API_BASE_URL}${post.user?.mentorprofile?.avatar || post.user?.menteeprofile?.avatar}`}
+                              alt="Avatar"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.textContent = post.user?.email?.charAt(0).toUpperCase() || 'U';
+                              }}
+                            />
+                          ) : (
+                            post.user?.email?.charAt(0).toUpperCase() || 'U'
+                          )}
                         </div>
                         <div className="author-details">
-                          <h3 
-                            className="author-name clickable"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/profile/${post.authorId}`);
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title="Xem profile"
-                          >
+                          <h3 className="author-name">
                             {post.user?.mentorprofile?.fullName || 
                              post.user?.menteeprofile?.fullName || 
-                             post.user?.email || 
-                             'Unknown'}
+                             post.user?.email}
                           </h3>
-                          <time className="post-time">{formatDate(post.createdAt)}</time>
+                          <span className="post-time">{formatDate(post.createdAt)}</span>
                         </div>
                       </div>
                       {post.authorId === user?.id && (
-                        <div className="post-menu">
-                          <button
-                            className="menu-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startEditing(post);
-                            }}
-                            title="Chỉnh sửa"
-                          >
+                        <div className="post-actions">
+                          <button className="action-btn edit" onClick={() => startEditing(post)} title="Chỉnh sửa">
                             ✏️
                           </button>
-                          <button
-                            className="menu-btn delete"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeletePost(post.id);
-                            }}
-                            title="Xóa"
-                          >
+                          <button className="action-btn delete" onClick={() => handleDeletePost(post.id)} title="Xóa">
                             🗑️
                           </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Clickable Post Content Area */}
-                    <div 
-                      className="post-clickable-area" 
-                      onClick={() => navigate(`/posts/${post.id}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {/* Post Title */}
+                    <div className="post-content" onClick={() => navigate(`/posts/${post.id}`)}>
                       <h2 className="post-title">{post.title}</h2>
-
-                      {/* Post Content Preview */}
-                      <div className="post-content">
-                        <p>{displayContent}</p>
-                        {shouldTruncate && (
-                          <span className="read-more-indicator">
-                            {isExpanded ? '↑' : 'Đọc thêm →'}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Post Images Preview */}
-                      {post.images && post.images.length > 0 && (
-                        <div className={`post-images-preview ${post.images.length === 1 ? 'single' : post.images.length === 2 ? 'double' : 'grid'}`}>
-                          {post.images.slice(0, 4).map((image, index) => {
-                            const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
-                            return (
-                              <div key={image.id} className="image-wrapper-preview">
-                                <img
-                                  src={imageUrl}
-                                  alt={`Ảnh ${image.order + 1}`}
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="16">Không tải được ảnh</text></svg>';
-                                  }}
-                                />
-                                {index === 3 && post.images && post.images.length > 4 && (
-                                  <div className="more-images-overlay">
-                                    +{post.images.length - 4}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <p className="post-text">{displayContent}</p>
+                      {post.content.length > 300 && (
+                        <span className="read-more">Đọc tiếp →</span>
                       )}
                     </div>
 
-                    {/* Post Actions */}
-                    <div className="post-actions">
+                    {post.images && post.images.length > 0 && (
+                      <div className="post-images">
+                        {post.images.slice(0, 4).map((image, index) => {
+                          const imageUrl = `${API_BASE_URL}${image.imageUrl}`;
+                          return (
+                            <div key={image.id} className="image-container">
+                              <img
+                                src={imageUrl}
+                                alt={`Ảnh ${index + 1}`}
+                                loading="lazy"
+                              />
+                              {index === 3 && post.images && post.images.length > 4 && (
+                                <div className="images-overlay">
+                                  +{post.images.length - 4}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="post-footer">
                       <button
-                        className={`action-btn like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleLike(post.id);
-                        }}
+                        className={`like-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
+                        onClick={() => handleToggleLike(post.id)}
                       >
-                        <span className="icon">{post.isLikedByCurrentUser ? '❤️' : '🤍'}</span>
-                        <span className="count">{post.likesCount || post._count?.likes || 0}</span>
-                        <span className="text">Thích</span>
+                        <span className="like-icon">{post.isLikedByCurrentUser ? '❤️' : '🤍'}</span>
+                        <span className="like-count">{post.likesCount || post._count?.likes || 0}</span>
                       </button>
                     </div>
                   </>
@@ -798,19 +639,17 @@ const PostList: React.FC = () => {
       {totalPages > 1 && (
         <div className="pagination">
           <button
-            className="pagination-btn"
+            className="pagination-btn prev"
             onClick={() => setPage(page - 1)}
             disabled={page === 1}
           >
             ← Trước
           </button>
           <div className="pagination-info">
-            <span className="current-page">{page}</span>
-            <span className="separator">/</span>
-            <span className="total-pages">{totalPages}</span>
+            Trang <strong>{page}</strong> / {totalPages}
           </div>
           <button
-            className="pagination-btn"
+            className="pagination-btn next"
             onClick={() => setPage(page + 1)}
             disabled={page === totalPages}
           >

@@ -7,7 +7,13 @@ export class BookingsService {
     const schedule = await prisma.schedule.findUnique({
       where: { id: data.scheduleId },
       include: {
-        booking: true,
+        booking: {
+          where: {
+            status: {
+              in: ['CONFIRMED', 'PENDING']
+            }
+          }
+        },
       },
     });
 
@@ -19,16 +25,13 @@ export class BookingsService {
       throw new Error('Schedule is not available');
     }
 
-    // Check capacity
-    const confirmedBookings = schedule.booking.filter(
-      (booking: any) => booking.status === 'CONFIRMED' || booking.status === 'PENDING'
-    );
-
-    if (confirmedBookings.length >= schedule.capacity) {
-      throw new Error('Schedule is fully booked');
+    // For 1-1 booking: Check if there's already a confirmed or pending booking
+    // Since capacity is always 1, we only need to check if any active booking exists
+    if (schedule.booking.length > 0) {
+      throw new Error('This schedule is already booked');
     }
 
-    // Check if mentee already booked this schedule
+    // Check if this mentee already booked this schedule (redundant check, but good for clarity)
     const existingBooking = await prisma.booking.findUnique({
       where: {
         scheduleId_menteeId: {
@@ -42,6 +45,7 @@ export class BookingsService {
       throw new Error('You have already booked this schedule');
     }
 
+    // Create booking - this is a 1-1 booking (one mentor, one mentee)
     return await prisma.booking.create({
       data: {
         scheduleId: data.scheduleId,
@@ -98,7 +102,8 @@ export class BookingsService {
       throw new Error('Booking is not in pending status');
     }
 
-    // Update booking status and schedule status in a transaction
+    // For 1-1 booking: Confirm the booking and mark schedule as BOOKED
+    // This ensures no other mentee can book this schedule
     const [updatedBooking] = await prisma.$transaction([
       prisma.booking.update({
         where: { id: bookingId },
@@ -124,7 +129,7 @@ export class BookingsService {
           },
         },
       }),
-      // Update schedule status to BOOKED
+      // Update schedule status to BOOKED (1-1 booking is now complete)
       prisma.schedule.update({
         where: { id: booking.scheduleId },
         data: { status: 'BOOKED' },
@@ -172,11 +177,11 @@ export class BookingsService {
       throw new Error('Booking is already cancelled');
     }
 
-    // Cancel booking and update schedule status if booking was confirmed
+    // For 1-1 booking: Cancel the booking and free up the schedule if it was confirmed
     const wasConfirmed = booking.status === 'CONFIRMED';
     
     if (wasConfirmed && booking.schedule.status === 'BOOKED') {
-      // If booking was confirmed and schedule is booked, update schedule back to AVAILABLE
+      // Cancel the 1-1 booking and make schedule available again
       const [updatedBooking] = await prisma.$transaction([
         prisma.booking.update({
           where: { id: bookingId },
@@ -202,6 +207,7 @@ export class BookingsService {
             },
           },
         }),
+        // Free up the schedule so another mentee can book
         prisma.schedule.update({
           where: { id: booking.scheduleId },
           data: { status: 'AVAILABLE' },
@@ -209,7 +215,7 @@ export class BookingsService {
       ]);
       return updatedBooking;
     } else {
-      // If booking was pending or schedule is not booked, only cancel the booking
+      // If booking was only pending, just cancel it
       return await prisma.booking.update({
         where: { id: bookingId },
         data: { status: 'CANCELLED' },

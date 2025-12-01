@@ -194,7 +194,7 @@ model schedule {
   description String?         @db.Text
   startAt     DateTime
   endAt       DateTime
-  capacity    Int             @default(1)
+  capacity    Int             @default(1) // Always 1 for 1-on-1 mentoring sessions
   status      schedule_status @default(AVAILABLE)
   createdAt   DateTime        @default(now())
   booking     booking[]

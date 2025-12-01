@@ -43,6 +43,8 @@ npx prisma migrate reset
 npm run seed:rbac
 npm run seed:topics
 npm run seed:full
+npm run seed:sessions
+npm run seed:admin
 
 # Option 2: Chỉ seed lại data (giữ migrations)
 npm run seed:full

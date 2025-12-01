@@ -157,7 +157,19 @@ const PostDetail: React.FC = () => {
               style={{ cursor: 'pointer' }}
               title="Xem profile"
             >
-              {post.user?.email?.charAt(0).toUpperCase() || 'U'}
+              {(post.user?.mentorprofile?.avatar || post.user?.menteeprofile?.avatar) ? (
+                <img 
+                  src={`${API_BASE_URL}${post.user?.mentorprofile?.avatar || post.user?.menteeprofile?.avatar}`}
+                  alt="Avatar"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.textContent = post.user?.email?.charAt(0).toUpperCase() || 'U';
+                  }}
+                />
+              ) : (
+                post.user?.email?.charAt(0).toUpperCase() || 'U'
+              )}
             </div>
             <div className="author-details">
               <h3 

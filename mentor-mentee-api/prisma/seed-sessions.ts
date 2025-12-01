@@ -43,7 +43,7 @@ async function main() {
       description: 'Available for React, JavaScript, and modern frontend topics',
       startAt: tomorrow,
       endAt: new Date(tomorrow.getTime() + 8 * 60 * 60 * 1000), // 8 hours
-      capacity: 3,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE'
     }
   });
@@ -55,7 +55,7 @@ async function main() {
       description: 'Deep learning, neural networks, and AI concepts',
       startAt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000), // Day after tomorrow
       endAt: new Date(tomorrow.getTime() + 32 * 60 * 60 * 1000), // 8 hours
-      capacity: 2,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE'
     }
   });
@@ -67,7 +67,7 @@ async function main() {
       description: 'Node.js, databases, and API design',
       startAt: new Date(tomorrow.getTime() + 48 * 60 * 60 * 1000), // 2 days later
       endAt: new Date(tomorrow.getTime() + 58 * 60 * 60 * 1000), // 10 hours
-      capacity: 5,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE'
     }
   });

@@ -41,15 +41,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getRoleIcon = () => {
-    switch (user.role) {
-      case 'MENTOR': return '👨‍🏫';
-      case 'MENTEE': return '👩‍🎓';
-      case 'ADMIN': return '⚡';
-      default: return '👤';
-    }
-  };
-
   const quickLinks = [
     { 
       path: '/posts', 
@@ -118,7 +109,9 @@ const Dashboard: React.FC = () => {
           {stats.map((stat) => (
             <div key={stat.label} className="stat-card">
               <div className="stat-header">
-                <span className="stat-label">{stat.label}</span>
+                <span className="stat-label" data-label={stat.label}>
+                  {stat.label}
+                </span>
                 <span className={`stat-change ${stat.trend}`}>
                   {stat.change}
                 </span>
@@ -133,12 +126,13 @@ const Dashboard: React.FC = () => {
       <div className="content-wrapper">
         {/* Navigation Cards */}
         <div className="navigation-section">
-          <h2 className="section-title">Navigation</h2>
+          <h2 className="section-title" data-title="Navigation">Navigation</h2>
           <div className="nav-grid">
             {quickLinks.map((link) => (
               <button
                 key={link.path}
                 className="nav-card"
+                data-path={link.path}
                 onClick={() => navigate(link.path)}
               >
                 <h3>{link.title}</h3>
@@ -152,22 +146,22 @@ const Dashboard: React.FC = () => {
         <div className="info-grid">
           {/* Account Details */}
           <div className="info-section">
-            <h2 className="section-title">Account Details</h2>
+            <h2 className="section-title" data-title="Account Details">Account Details</h2>
             <div className="detail-list">
               <div className="detail-item">
-                <span className="detail-label">User ID</span>
+                <span className="detail-label" data-label="User ID">User ID</span>
                 <span className="detail-value">{user.id}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Email</span>
+                <span className="detail-label" data-label="Email">Email</span>
                 <span className="detail-value">{user.email}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Role</span>
+                <span className="detail-label" data-label="Role">Role</span>
                 <span className="detail-value detail-role">{user.role}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Member Since</span>
+                <span className="detail-label" data-label="Member Since">Member Since</span>
                 <span className="detail-value">
                   {new Date(user.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -181,7 +175,7 @@ const Dashboard: React.FC = () => {
 
           {/* Recent Activity */}
           <div className="info-section">
-            <h2 className="section-title">Recent Activity</h2>
+            <h2 className="section-title" data-title="Recent Activity">Recent Activity</h2>
             <div className="activity-list">
               <div className="activity-item">
                 <div className="activity-time">2h ago</div>

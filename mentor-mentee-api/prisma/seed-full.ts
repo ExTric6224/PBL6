@@ -690,7 +690,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Tìm hiểu chi tiết về các React Hooks: useState, useEffect, useContext, useReducer, useMemo, useCallback. Hands-on coding session.',
       startAt: createDate(2, 14),
       endAt: createDate(2, 16),
-      capacity: 3,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -699,7 +699,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Học cách sử dụng TypeScript với React. Type-safe components, props, hooks. Best practices và common patterns.',
       startAt: createDate(5, 10),
       endAt: createDate(5, 12),
-      capacity: 4,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -708,7 +708,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Giới thiệu về Neural Networks: perceptrons, activation functions, backpropagation. Thực hành với TensorFlow.',
       startAt: createDate(3, 9),
       endAt: createDate(3, 12),
-      capacity: 2,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -717,7 +717,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Xử lý ảnh và video với OpenCV. Object detection, face recognition, image classification.',
       startAt: createDate(7, 14),
       endAt: createDate(7, 17),
-      capacity: 3,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -726,7 +726,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Docker từ cơ bản đến nâng cao: Dockerfile, docker-compose, multi-stage builds, volumes, networks.',
       startAt: createDate(1, 13),
       endAt: createDate(1, 15),
-      capacity: 5,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -735,7 +735,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Kubernetes basics: pods, services, deployments, configmaps, secrets. Deploy ứng dụng lên K8s cluster.',
       startAt: createDate(8, 10),
       endAt: createDate(8, 13),
-      capacity: 4,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -744,7 +744,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Figma workshop: wireframes, prototypes, design systems. Học cách design responsive web app.',
       startAt: createDate(4, 14),
       endAt: createDate(4, 17),
-      capacity: 6,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -753,7 +753,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Tìm hiểu các lỗ hổng bảo mật phổ biến: SQL Injection, XSS, CSRF. Cách phòng tránh và test.',
       startAt: createDate(6, 15),
       endAt: createDate(6, 18),
-      capacity: 3,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -762,7 +762,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Tạo game 2D đơn giản với Unity. Physics, animations, UI, scripting with C#.',
       startAt: createDate(3, 13),
       endAt: createDate(3, 16),
-      capacity: 4,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -771,7 +771,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'System design interview practice: Design Instagram. Requirements, high-level design, database schema, scaling strategy.',
       startAt: createDate(5, 14),
       endAt: createDate(5, 17),
-      capacity: 2,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -780,7 +780,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Cách viết CV tech ấn tượng. Mock interview practice. Behavioral questions. Salary negotiation tips.',
       startAt: createDate(2, 18),
       endAt: createDate(2, 20),
-      capacity: 5,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -789,7 +789,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Viết smart contract với Solidity. Deploy lên testnet. Web3.js integration. Security best practices.',
       startAt: createDate(9, 10),
       endAt: createDate(9, 13),
-      capacity: 3,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     },
     {
@@ -798,7 +798,7 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       description: 'Hands-on: Build todo app với React Native. Navigation, AsyncStorage, styled-components.',
       startAt: createDate(4, 9),
       endAt: createDate(4, 12),
-      capacity: 4,
+      capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
     }
   ];

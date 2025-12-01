@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { sessionApi } from '../../services/sessionApi';
+import { feedbackApi } from '../../services/feedbackApi';
 import { Session } from '../../types/session';
 import { useAuth } from '../../context/AuthContext';
 import './SessionDetail.css';
@@ -8,17 +9,36 @@ import './SessionDetail.css';
 const SessionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({
+    rating: 5,
+    comment: ''
+  });
+  const feedbackSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
       loadSession();
     }
   }, [id]);
+
+  // Auto scroll to feedback section if navigated from "View Feedback" button
+  useEffect(() => {
+    if (location.state?.scrollToFeedback && feedbackSectionRef.current && !loading) {
+      setTimeout(() => {
+        feedbackSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 300);
+    }
+  }, [location.state, loading]);
 
   const loadSession = async () => {
     try {
@@ -70,6 +90,30 @@ const SessionDetail: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to end session');
       console.error('Error ending session:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    
+    try {
+      setActionLoading(true);
+      setError(null);
+      await feedbackApi.createFeedback({
+        sessionId: session.id,
+        rating: feedbackData.rating,
+        comment: feedbackData.comment
+      });
+      alert('Feedback đã được gửi thành công!');
+      setShowFeedbackForm(false);
+      setFeedbackData({ rating: 5, comment: '' });
+      await loadSession(); // Reload to show the new feedback
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Không thể gửi feedback');
+      console.error('Error submitting feedback:', err);
     } finally {
       setActionLoading(false);
     }
@@ -149,7 +193,7 @@ const SessionDetail: React.FC = () => {
         <button className="btn-back" onClick={() => navigate('/sessions')}>
           ← Quay lại
         </button>
-        <h1>Session #{session.id}</h1>
+        <h1>{session.booking?.schedule?.topic || 'Session Details'}</h1>
         <span className={`status-badge ${getStatusColor(session.status)}`}>
           {getStatusLabel(session.status)}
         </span>
@@ -164,138 +208,17 @@ const SessionDetail: React.FC = () => {
       )}
 
       <div className="detail-content">
-        {/* Session Info Card */}
-        <div className="detail-card">
-          <div className="card-header">
-            <h2>📅 Thông tin Session</h2>
-          </div>
-          <div className="card-body">
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="info-label">Session ID</span>
-                <span className="info-value">#{session.id}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Booking ID</span>
-                <span className="info-value">
-                  <Link to={`/bookings/${session.bookingId}`} className="link-primary">
-                    #{session.bookingId}
-                  </Link>
-                </span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Trạng thái</span>
-                <span className={`status-badge ${getStatusColor(session.status)}`}>
-                  {getStatusLabel(session.status)}
-                </span>
-              </div>
-              {calculateDuration() && (
-                <div className="info-item">
-                  <span className="info-label">Thời lượng</span>
-                  <span className="info-value">{calculateDuration()}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Auto badges */}
-            {(session.autoStarted || session.autoEnded) && (
-              <div className="auto-badges">
-                {session.autoStarted && (
-                  <div className="auto-badge auto-started">
-                    🤖 Tự động bắt đầu
-                  </div>
-                )}
-                {session.autoEnded && (
-                  <div className="auto-badge auto-ended">
-                    🤖 Tự động kết thúc
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Participants Card */}
-        <div className="detail-card">
-          <div className="card-header">
-            <h2>👥 Người tham gia</h2>
-          </div>
-          <div className="card-body">
-            {/* Mentor */}
-            {session.booking?.schedule?.user && (
-              <div className="participant-card">
-                <div className="participant-avatar">
-                  {session.booking.schedule.user.mentorprofile?.avatar ? (
-                    <img 
-                      src={session.booking.schedule.user.mentorprofile.avatar} 
-                      alt="Mentor avatar"
-                    />
-                  ) : (
-                    <div className="avatar-placeholder">👨‍🏫</div>
-                  )}
-                </div>
-                <div className="participant-info">
-                  <div className="participant-role">Mentor</div>
-                  <div className="participant-name">
-                    {session.booking.schedule.user.mentorprofile?.fullName || 'N/A'}
-                  </div>
-                  <div className="participant-email">
-                    {session.booking.schedule.user.email}
-                  </div>
-                  <Link 
-                    to={`/profile/${session.booking.schedule.user.id}`}
-                    className="btn-view-profile"
-                  >
-                    👁️ Xem profile
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Mentee */}
-            {session.booking?.user && (
-              <div className="participant-card">
-                <div className="participant-avatar">
-                  {session.booking.user.menteeprofile?.avatar ? (
-                    <img 
-                      src={session.booking.user.menteeprofile.avatar} 
-                      alt="Mentee avatar"
-                    />
-                  ) : (
-                    <div className="avatar-placeholder">👤</div>
-                  )}
-                </div>
-                <div className="participant-info">
-                  <div className="participant-role">Mentee</div>
-                  <div className="participant-name">
-                    {session.booking.user.menteeprofile?.fullName || 'N/A'}
-                  </div>
-                  <div className="participant-email">
-                    {session.booking.user.email}
-                  </div>
-                  <Link 
-                    to={`/profile/${session.booking.user.id}`}
-                    className="btn-view-profile"
-                  >
-                    👁️ Xem profile
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Schedule Info Card */}
+        {/* Schedule Info Card - Now Primary */}
         {session.booking?.schedule && (
           <div className="detail-card">
             <div className="card-header">
-              <h2>📆 Thông tin Schedule</h2>
+              <h2>Thông tin buổi học</h2>
             </div>
             <div className="card-body">
               <div className="info-grid">
-                <div className="info-item">
+                <div className="info-item full-width">
                   <span className="info-label">Chủ đề</span>
-                  <span className="info-value">{session.booking.schedule.title}</span>
+                  <span className="info-value schedule-title">{session.booking.schedule.topic}</span>
                 </div>
                 {session.booking.schedule.description && (
                   <div className="info-item full-width">
@@ -315,54 +238,121 @@ const SessionDetail: React.FC = () => {
                     {formatDateTime(session.booking.schedule.endAt)}
                   </span>
                 </div>
+                <div className="info-item">
+                  <span className="info-label">Trạng thái</span>
+                  <span className={`status-badge ${getStatusColor(session.status)}`}>
+                    {getStatusLabel(session.status)}
+                  </span>
+                </div>
+                {calculateDuration() && (
+                  <div className="info-item">
+                    <span className="info-label">Thời lượng thực tế</span>
+                    <span className="info-value">{calculateDuration()}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Auto badges */}
+              {(session.autoStarted || session.autoEnded) && (
+                <div className="auto-badges">
+                  {session.autoStarted && (
+                    <div className="auto-badge auto-started">
+                      Tự động bắt đầu
+                    </div>
+                  )}
+                  {session.autoEnded && (
+                    <div className="auto-badge auto-ended">
+                      Tự động kết thúc
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Participant Info Card - Mentor or Mentee based on user role */}
+        {user?.role === 'MENTEE' && session.booking?.schedule?.user && (
+          <div className="detail-card">
+            <div className="card-header">
+              <h2>Thông tin Mentor</h2>
+            </div>
+            <div className="card-body">
+              <div className="participant-card">
+                <div className="participant-avatar">
+                  {session.booking.schedule.user.mentorprofile?.avatar ? (
+                    <img 
+                      src={session.booking.schedule.user.mentorprofile.avatar} 
+                      alt="Mentor avatar"
+                    />
+                  ) : (
+                    <div className="avatar-placeholder">👨‍🏫</div>
+                  )}
+                </div>
+                <div className="participant-info">
+                  <div className="participant-name">
+                    {session.booking.schedule.user.mentorprofile?.fullName || 'N/A'}
+                  </div>
+                  <div className="participant-email">
+                    {session.booking.schedule.user.email}
+                  </div>
+                  {session.booking.schedule.user.mentorprofile?.bio && (
+                    <div className="participant-bio">
+                      {session.booking.schedule.user.mentorprofile.bio}
+                    </div>
+                  )}
+                  <Link 
+                    to={`/profile/${session.booking.schedule.user.id}`}
+                    className="btn-view-profile"
+                  >
+                    Xem profile đầy đủ
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Session Timeline Card */}
-        <div className="detail-card">
-          <div className="card-header">
-            <h2>⏱️ Timeline</h2>
-          </div>
-          <div className="card-body">
-            <div className="timeline">
-              <div className="timeline-item">
-                <div className="timeline-icon">📅</div>
-                <div className="timeline-content">
-                  <div className="timeline-label">Đã lên lịch</div>
-                  <div className="timeline-value">
-                    {formatDateTime(session.booking?.schedule?.startAt)}
+        {user?.role === 'MENTOR' && session.booking?.user && (
+          <div className="detail-card">
+            <div className="card-header">
+              <h2>Thông tin Mentee</h2>
+            </div>
+            <div className="card-body">
+              <div className="participant-card">
+                <div className="participant-avatar">
+                  {session.booking.user.menteeprofile?.avatar ? (
+                    <img 
+                      src={session.booking.user.menteeprofile.avatar} 
+                      alt="Mentee avatar"
+                    />
+                  ) : (
+                    <div className="avatar-placeholder">👤</div>
+                  )}
+                </div>
+                <div className="participant-info">
+                  <div className="participant-name">
+                    {session.booking.user.menteeprofile?.fullName || 'N/A'}
                   </div>
+                  <div className="participant-email">
+                    {session.booking.user.email}
+                  </div>
+                  {session.booking.user.menteeprofile?.goals && (
+                    <div className="participant-bio">
+                      <strong>Mục tiêu:</strong> {session.booking.user.menteeprofile.goals}
+                    </div>
+                  )}
+                  <Link 
+                    to={`/profile/${session.booking.user.id}`}
+                    className="btn-view-profile"
+                  >
+                    Xem profile đầy đủ
+                  </Link>
                 </div>
               </div>
-
-              {session.startedAt && (
-                <div className="timeline-item">
-                  <div className="timeline-icon">▶️</div>
-                  <div className="timeline-content">
-                    <div className="timeline-label">Bắt đầu</div>
-                    <div className="timeline-value">
-                      {formatDateTime(session.startedAt)}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {session.endedAt && (
-                <div className="timeline-item">
-                  <div className="timeline-icon">⏹️</div>
-                  <div className="timeline-content">
-                    <div className="timeline-label">Kết thúc</div>
-                    <div className="timeline-value">
-                      {formatDateTime(session.endedAt)}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Notes Card */}
         {session.notes && (
@@ -376,11 +366,11 @@ const SessionDetail: React.FC = () => {
           </div>
         )}
 
-        {/* Feedback Card */}
-        {session.feedback && (
-          <div className="detail-card">
+        {/* Feedback Card - Show existing or form to create */}
+        {session.feedback ? (
+          <div className="detail-card" ref={feedbackSectionRef}>
             <div className="card-header">
-              <h2>⭐ Feedback</h2>
+              <h2>Feedback</h2>
             </div>
             <div className="card-body">
               <div className="feedback-rating">
@@ -393,6 +383,71 @@ const SessionDetail: React.FC = () => {
               </div>
               {session.feedback.comment && (
                 <div className="feedback-comment">{session.feedback.comment}</div>
+              )}
+            </div>
+          </div>
+        ) : user?.role === 'MENTEE' && session.status === 'COMPLETED' && (
+          <div className="detail-card" ref={feedbackSectionRef}>
+            <div className="card-header">
+              <h2>Đánh giá buổi học</h2>
+            </div>
+            <div className="card-body">
+              {!showFeedbackForm ? (
+                <button 
+                  className="btn-action btn-primary"
+                  onClick={() => setShowFeedbackForm(true)}
+                >
+                  ✚ Tạo feedback
+                </button>
+              ) : (
+                <form onSubmit={handleSubmitFeedback} className="feedback-form-inline">
+                  <div className="form-group">
+                    <label>Đánh giá của bạn</label>
+                    <div className="rating-input">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          className={`star-interactive ${star <= feedbackData.rating ? 'active' : ''}`}
+                          onClick={() => setFeedbackData({ ...feedbackData, rating: star })}
+                        >
+                          ⭐
+                        </span>
+                      ))}
+                      <span className="rating-value">({feedbackData.rating}/5)</span>
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Nhận xét (tùy chọn)</label>
+                    <textarea
+                      value={feedbackData.comment}
+                      onChange={(e) => setFeedbackData({ ...feedbackData, comment: e.target.value })}
+                      placeholder="Chia sẻ trải nghiệm của bạn về buổi học..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="form-actions">
+                    <button 
+                      type="button" 
+                      className="btn-action btn-secondary"
+                      onClick={() => {
+                        setShowFeedbackForm(false);
+                        setFeedbackData({ rating: 5, comment: '' });
+                      }}
+                      disabled={actionLoading}
+                    >
+                      Hủy
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn-action btn-primary"
+                      disabled={actionLoading}
+                    >
+                      {actionLoading ? 'Đang gửi...' : 'Gửi feedback'}
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>

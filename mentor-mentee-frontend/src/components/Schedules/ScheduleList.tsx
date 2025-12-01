@@ -22,24 +22,22 @@ const ScheduleList: React.FC = () => {
   const [filters, setFilters] = useState<ScheduleQueryParams>({ status: undefined });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('upcoming');
-  const [showFilters, setShowFilters] = useState(false);
-  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
 
   const isMentor = user?.role === 'MENTOR';
 
   const loadSchedules = useCallback(async () => {
     try {
       setLoading(true);
-      let response;
-      if (isMentor) {
-        response = await scheduleApi.getMySchedules(filters);
-      } else {
-        response = await scheduleApi.getAllSchedules(filters);
-      }
+      const response = isMentor 
+        ? await scheduleApi.getMySchedules(filters)
+        : await scheduleApi.getAllSchedules(filters);
+      
       setSchedules(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load schedules');
+      setError(err.response?.data?.error?.message || 'Không thể tải danh sách lịch');
     } finally {
       setLoading(false);
     }
@@ -49,24 +47,23 @@ const ScheduleList: React.FC = () => {
     loadSchedules();
   }, [loadSchedules]);
 
-  // Close filter dropdown when clicking outside
+  // Close sort menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
-        setShowFilters(false);
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setShowSortMenu(false);
       }
     };
 
-    if (showFilters) {
+    if (showSortMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showFilters]);
+  }, [showSortMenu]);
 
-  // Filter and sort schedules
   const getFilteredAndSortedSchedules = () => {
     let filtered = schedules;
 
@@ -81,7 +78,7 @@ const ScheduleList: React.FC = () => {
     }
 
     // Sort
-    const sorted = [...filtered].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.createdAt || b.startAt).getTime() - new Date(a.createdAt || a.startAt).getTime();
@@ -93,70 +90,64 @@ const ScheduleList: React.FC = () => {
           return 0;
       }
     });
-
-    return sorted;
   };
 
   const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate dates
     const start = new Date(formData.startAt);
     const end = new Date(formData.endAt);
     
     if (end <= start) {
-      alert('End time must be after start time!');
+      alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
       return;
     }
     
     if (start < new Date()) {
-      alert('Start time must be in the future!');
+      alert('Thời gian bắt đầu phải trong tương lai!');
       return;
     }
     
     try {
-      // Convert to ISO 8601 format for backend
-      const scheduleData = {
+      await scheduleApi.createSchedule({
         topic: formData.topic,
         description: formData.description || undefined,
         startAt: start.toISOString(),
         endAt: end.toISOString(),
-        // Capacity is always 1, no need to send
-      };
+      });
       
-      await scheduleApi.createSchedule(scheduleData);
       setFormData({ topic: '', description: '', startAt: '', endAt: '' });
       setShowCreateForm(false);
       loadSchedules();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to create schedule');
+      alert(err.response?.data?.error?.message || 'Không thể tạo lịch');
     }
   };
 
   const handleDeleteSchedule = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa lịch này?')) return;
     try {
       await scheduleApi.deleteSchedule(id);
       loadSchedules();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to delete schedule');
+      alert(err.response?.data?.error?.message || 'Không thể xóa lịch');
     }
   };
 
   const handleBookSchedule = async (scheduleId: number) => {
-    const notes = prompt('Enter any notes for the mentor (optional):');
+    const notes = prompt('Nhập ghi chú cho mentor (tùy chọn):');
     try {
       await bookingApi.createBooking({ scheduleId, notes: notes || undefined });
-      alert('Booking created successfully! Waiting for mentor confirmation.');
+      alert('Đặt lịch thành công! Chờ mentor xác nhận.');
       loadSchedules();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to create booking');
+      alert(err.response?.data?.error?.message || 'Không thể đặt lịch');
     }
   };
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -165,210 +156,264 @@ const ScheduleList: React.FC = () => {
     });
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'AVAILABLE': 'Có thể đặt',
+      'BOOKED': 'Đã đặt',
+      'CANCELLED': 'Đã hủy'
+    };
+    return statusMap[status] || status;
+  };
+
   if (loading && schedules.length === 0) {
-    return <div className="loading">Loading schedules...</div>;
+    return (
+      <div className="loading-state">
+        <div className="loading-spinner"></div>
+        <p>Đang tải lịch...</p>
+      </div>
+    );
   }
 
   const filteredSchedules = getFilteredAndSortedSchedules();
 
   return (
-    <div className="schedules-container">
-      <div className="schedules-header">
-        <h1>🗓️ {isMentor ? 'My Schedules' : 'Available Schedules'}</h1>
+    <div className="schedule-list-container">
+      {/* Header */}
+      <div className="page-header">
+        <h1>{isMentor ? 'Lịch của tôi' : 'Lịch có sẵn'}</h1>
         {isMentor && (
           <button
-            className="create-schedule-btn"
+            className="btn btn-primary"
             onClick={() => setShowCreateForm(!showCreateForm)}
           >
-            {showCreateForm ? '✖ Cancel' : '✚ Create Schedule'}
+            {showCreateForm ? 'Hủy' : 'Tạo lịch mới'}
           </button>
         )}
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {/* Error Message */}
+      {error && (
+        <div className="notification error">
+          <span>{error}</span>
+          <button className="close-btn" onClick={() => setError(null)}>×</button>
+        </div>
+      )}
 
-      {/* Search and Filters */}
-      <div className="search-filter-section">
-        {/* Search Bar */}
+      {/* Search and Controls */}
+      <div className="controls-section">
         <div className="search-box">
-          <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Tìm kiếm lịch theo chủ đề, mô tả, mentor..."
+            placeholder="Tìm kiếm lịch..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
           {searchQuery && (
             <button className="clear-search" onClick={() => setSearchQuery('')}>
-              ✖
+              ×
             </button>
           )}
         </div>
 
-        {/* Filter Button and Dropdown */}
-        <div className="filter-container" ref={filterDropdownRef}>
-          <button className="filter-btn" onClick={() => setShowFilters(!showFilters)}>
-            🔽 Lọc
-          </button>
-          {showFilters && (
-            <div className="filter-dropdown">
-              <div className="filter-option" onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'upcoming' ? 'active' : ''}`}>
-                  {sortBy === 'upcoming' ? '●' : '○'}
-                </span>
-                <span>Sắp diễn ra</span>
-              </div>
-              <div className="filter-option" onClick={() => { setSortBy('newest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'newest' ? 'active' : ''}`}>
-                  {sortBy === 'newest' ? '●' : '○'}
-                </span>
-                <span>Mới nhất</span>
-              </div>
-              <div className="filter-option" onClick={() => { setSortBy('oldest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'oldest' ? 'active' : ''}`}>
-                  {sortBy === 'oldest' ? '●' : '○'}
-                </span>
-                <span>Cũ nhất</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="filters">
-        <div className="filter-group">
-          <label>Status</label>
+        <div className="controls-group">
           <select
             value={filters.status || ''}
             onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
+            className="filter-select"
           >
-            <option value="">All</option>
-            <option value="AVAILABLE">Available</option>
-            <option value="BOOKED">Booked</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="AVAILABLE">Có thể đặt</option>
+            <option value="BOOKED">Đã đặt</option>
+            <option value="CANCELLED">Đã hủy</option>
           </select>
+
+          <div className="sort-container" ref={sortMenuRef}>
+            <button 
+              className="sort-btn"
+              onClick={() => setShowSortMenu(!showSortMenu)}
+            >
+              Sắp xếp
+            </button>
+            {showSortMenu && (
+              <div className="sort-menu">
+                <button 
+                  className={`sort-option ${sortBy === 'upcoming' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('upcoming'); setShowSortMenu(false); }}
+                >
+                  Sắp diễn ra
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'newest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('newest'); setShowSortMenu(false); }}
+                >
+                  Mới nhất
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'oldest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('oldest'); setShowSortMenu(false); }}
+                >
+                  Cũ nhất
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Create Form */}
+      {/* Create Schedule Form */}
       {showCreateForm && isMentor && (
-        <form className="schedule-form" onSubmit={handleCreateSchedule}>
-          <h2>Create New Schedule</h2>
-          <div className="form-group">
-            <label>Topic</label>
-            <input
-              type="text"
-              value={formData.topic}
-              onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-              placeholder="e.g. Backend Development Fundamentals"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Description (optional)</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe what will be covered in this session..."
-              rows={3}
-            />
-          </div>
-          <div className="form-group">
-            <label>Start Time</label>
-            <input
-              type="datetime-local"
-              value={formData.startAt}
-              onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>End Time</label>
-            <input
-              type="datetime-local"
-              value={formData.endAt}
-              onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
-              required
-            />
-          </div>
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Create Schedule
-            </button>
-          </div>
-        </form>
+        <div className="create-form">
+          <h2>Tạo lịch mới</h2>
+          <form onSubmit={handleCreateSchedule}>
+            <div className="form-group">
+              <label>Chủ đề</label>
+              <input
+                type="text"
+                value={formData.topic}
+                onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                placeholder="Ví dụ: Phát triển Backend cơ bản"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Mô tả (tùy chọn)</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Mô tả nội dung buổi học..."
+                rows={3}
+              />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Thời gian bắt đầu</label>
+                <input
+                  type="datetime-local"
+                  value={formData.startAt}
+                  onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Thời gian kết thúc</label>
+                <input
+                  type="datetime-local"
+                  value={formData.endAt}
+                  onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>
+                Hủy
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Tạo lịch
+              </button>
+            </div>
+          </form>
+        </div>
       )}
 
-      {/* Schedules Grid */}
+      {/* Schedules List */}
       {filteredSchedules.length === 0 && !loading ? (
         <div className="empty-state">
-          {searchQuery ? 'Không tìm thấy lịch phù hợp' : isMentor ? 'No schedules yet. Create your first schedule!' : 'No schedules available.'}
+          <p>
+            {searchQuery 
+              ? 'Không tìm thấy lịch phù hợp' 
+              : isMentor 
+                ? 'Chưa có lịch nào. Tạo lịch đầu tiên của bạn!' 
+                : 'Hiện không có lịch nào khả dụng.'
+            }
+          </p>
         </div>
       ) : (
-        <div className="schedule-grid">
+        <div className="schedules-grid">
           {filteredSchedules.map((schedule) => (
             <div 
               key={schedule.id} 
-              className={`schedule-card ${schedule.status.toLowerCase()}`}
+              className="schedule-card"
               onClick={() => navigate(`/schedules/${schedule.id}`)}
-              style={{ cursor: 'pointer' }}
             >
-              <h3 className="schedule-topic">{schedule.topic}</h3>
+              <div className="schedule-header">
+                <h3>{schedule.topic}</h3>
+                <span className={`status-badge status-${schedule.status.toLowerCase()}`}>
+                  {getStatusText(schedule.status)}
+                </span>
+              </div>
+
               {schedule.description && (
                 <p className="schedule-description">{schedule.description}</p>
               )}
+
               <div className="schedule-time">
-                🕒 {formatDateTime(schedule.startAt)}
+                <div className="date">{formatDate(schedule.startAt)}</div>
+                <div className="time">
+                  {formatTime(schedule.startAt)} - {formatTime(schedule.endAt)}
+                </div>
               </div>
-              <div className="schedule-date">
-                to {formatDateTime(schedule.endAt)}
-              </div>
-              {/* Capacity is always 1, no need to display */}
+
               {schedule.mentor && (
-                <>
+                <div className="mentor-info">
                   <div 
-                    className="schedule-mentor"
+                    className="mentor-name"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/profile/${schedule.mentorId}`);
                     }}
-                    style={{ cursor: 'pointer', color: '#007bff' }}
-                    title="Xem profile mentor"
                   >
-                    👨‍🏫 Mentor: {schedule.mentor.mentorProfile?.fullName || schedule.mentor.email}
+                    Mentor: {schedule.mentor.mentorProfile?.fullName || schedule.mentor.email}
                   </div>
                   {schedule.mentor.mentorProfile?.expertise && 
                    schedule.mentor.mentorProfile.expertise.length > 0 && (
-                    <div className="mentor-expertise">
-                      <strong>Expertise:</strong>
-                      <div className="expertise-tags">
-                        {schedule.mentor.mentorProfile.expertise.map((topic) => (
-                          <span key={topic.id} className="expertise-tag" title={topic.description}>
-                            {topic.name}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="expertise-tags">
+                      {schedule.mentor.mentorProfile.expertise.slice(0, 3).map((topic) => (
+                        <span key={topic.id} className="expertise-tag">
+                          {topic.name}
+                        </span>
+                      ))}
+                      {schedule.mentor.mentorProfile.expertise.length > 3 && (
+                        <span className="expertise-tag-more">
+                          +{schedule.mentor.mentorProfile.expertise.length - 3}
+                        </span>
+                      )}
                     </div>
                   )}
-                </>
+                </div>
               )}
-              <span className={`status-badge ${schedule.status.toLowerCase()}`}>
-                {schedule.status}
-              </span>
+
               <div className="schedule-actions" onClick={(e) => e.stopPropagation()}>
                 {!isMentor && schedule.status === 'AVAILABLE' && (
-                  <button className="book-btn" onClick={() => handleBookSchedule(schedule.id)}>
-                    📅 Book Now
+                  <button 
+                    className="btn btn-primary btn-small"
+                    onClick={() => handleBookSchedule(schedule.id)}
+                  >
+                    Đặt lịch
                   </button>
                 )}
                 {isMentor && schedule.mentorId === user?.id && (
-                  <button className="delete-btn" onClick={() => handleDeleteSchedule(schedule.id)}>
-                    🗑️ Delete
+                  <button 
+                    className="btn btn-danger btn-small"
+                    onClick={() => handleDeleteSchedule(schedule.id)}
+                  >
+                    Xóa
                   </button>
                 )}
               </div>

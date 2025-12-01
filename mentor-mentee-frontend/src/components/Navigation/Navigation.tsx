@@ -25,75 +25,104 @@ const Navigation: React.FC = () => {
   // Navigation chỉ render trong protected routes, nên luôn có user
   if (!user) return null; // Fallback safety check
 
+  const navItems = [
+    { path: '/posts', label: 'Posts' },
+    { path: '/schedules', label: 'Schedules' },
+    { path: '/bookings', label: 'Bookings' },
+    { path: '/sessions', label: 'Sessions' },
+    { path: '/feedback', label: 'Feedback' },
+    { path: '/profile', label: 'Profile' },
+  ];
+
+  if (user.role === 'ADMIN') {
+    navItems.push({ path: '/admin/permissions', label: 'Permissions' });
+  }
+
   return (
     <nav className="navigation">
       <div className="nav-container">
-        <Link to="/dashboard" className="nav-brand">
-          🎓 Mentor-Mentee
+        {/* Brand Section */}
+        <Link 
+          to="/dashboard" 
+          className={`nav-brand ${isActive('/dashboard')}`}
+          onClick={closeMobileMenu}
+        >
+          <span className="brand-text">MenteeMentor</span>
         </Link>
 
+        {/* Desktop Navigation */}
+        <div className="nav-main">
+          <ul className="nav-links">
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <Link 
+                  to={item.path} 
+                  className={`nav-link ${isActive(item.path)}`}
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* User Section */}
+        <div className="nav-user">
+          <div className="user-info">
+            <div className="user-avatar">
+              {user.email.charAt(0).toUpperCase()}
+            </div>
+            <div className="user-details">
+              <span className="user-email">{user.email}</span>
+              <span className="user-role">{user.role}</span>
+            </div>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>
+            <span className="logout-text">Logout</span>
+          </button>
+        </div>
+
+        {/* Mobile Menu Button */}
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          {mobileMenuOpen ? '✖' : '☰'}
+          <span className="menu-icon">{mobileMenuOpen ? '✕' : '☰'}</span>
         </button>
+      </div>
 
-        <ul className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
-          <li>
-            <Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>
-              🏠 Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link to="/posts" className={isActive('/posts')} onClick={closeMobileMenu}>
-              📝 Posts
-            </Link>
-          </li>
-          <li>
-            <Link to="/schedules" className={isActive('/schedules')} onClick={closeMobileMenu}>
-              🗓️ Schedules
-            </Link>
-          </li>
-          <li>
-            <Link to="/bookings" className={isActive('/bookings')} onClick={closeMobileMenu}>
-              📅 Bookings
-            </Link>
-          </li>
-          <li>
-            <Link to="/sessions" className={isActive('/sessions')} onClick={closeMobileMenu}>
-              🎓 Sessions
-            </Link>
-          </li>
-          <li>
-            <Link to="/feedback" className={isActive('/feedback')} onClick={closeMobileMenu}>
-              ⭐ Feedback
-            </Link>
-          </li>
-          <li>
-            <Link to="/profile" className={isActive('/profile')} onClick={closeMobileMenu}>
-              👤 Profile
-            </Link>
-          </li>
-          {user.role === 'ADMIN' && (
-            <li>
-              <Link to="/admin/permissions" className={isActive('/admin/permissions')} onClick={closeMobileMenu}>
-                🔐 Permissions
-              </Link>
-            </li>
-          )}
-
-          <div className="user-info">
-            <span className="user-email">{user.email}</span>
-            <span className="user-role">{user.role}</span>
+      {/* Mobile Navigation */}
+      <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-nav-content">
+          <div className="mobile-user-info">
+            <div className="user-avatar">
+              {user.email.charAt(0).toUpperCase()}
+            </div>
+            <div className="user-details">
+              <span className="user-email">{user.email}</span>
+              <span className="user-role">{user.role}</span>
+            </div>
           </div>
 
-          <li>
-            <button className="logout-btn" onClick={handleLogout}>
-              🚪 Logout
-            </button>
-          </li>
-        </ul>
+          <ul className="mobile-nav-links">
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <Link 
+                  to={item.path} 
+                  className={`mobile-nav-link ${isActive(item.path)}`}
+                  onClick={closeMobileMenu}
+                >
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <button className="mobile-logout-btn" onClick={handleLogout}>
+            <span className="logout-text">Logout</span>
+          </button>
+        </div>
       </div>
     </nav>
   );

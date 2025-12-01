@@ -22,12 +22,14 @@ export class PostsService {
             mentorprofile: {
               select: {
                 fullName: true,
+                avatar: true,
                 school: true,
               },
             },
             menteeprofile: {
               select: {
                 fullName: true,
+                avatar: true,
               },
             },
           },
@@ -87,12 +89,14 @@ export class PostsService {
               mentorprofile: {
                 select: {
                   fullName: true,
+                  avatar: true,
                   school: true,
                 },
               },
               menteeprofile: {
                 select: {
                   fullName: true,
+                  avatar: true,
                 },
               },
             },
@@ -153,12 +157,14 @@ export class PostsService {
             mentorprofile: {
               select: {
                 fullName: true,
+                avatar: true,
                 school: true,
               },
             },
             menteeprofile: {
               select: {
                 fullName: true,
+                avatar: true,
               },
             },
           },
