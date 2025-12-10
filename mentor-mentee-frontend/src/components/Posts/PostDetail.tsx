@@ -81,6 +81,17 @@ const PostDetail: React.FC = () => {
     });
   };
 
+  const parseMarkdown = (text: string) => {
+    // Parse **bold** text
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   if (loading) {
     return (
       <div className="post-detail-container">
@@ -217,7 +228,7 @@ const PostDetail: React.FC = () => {
         {/* Post Content */}
         <div className="post-detail-content">
           {post.content.split('\n').map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+            <p key={index}>{parseMarkdown(paragraph)}</p>
           ))}
         </div>
 

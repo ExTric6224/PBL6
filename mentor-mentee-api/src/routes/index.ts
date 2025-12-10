@@ -10,6 +10,8 @@ import feedbacksRoutes from './feedbacks.routes';
 import notificationsRoutes from './notifications.routes';
 import postsRoutes from './posts.routes';
 import adminPermissionsRoutes from './admin-permissions.routes';
+import permissionRoutes from './permission.routes';
+import adminRoutes from './admin.routes';
 import debugRoutes from './debug.routes';
 import topicsRoutes from './topics.routes';
 
@@ -27,6 +29,8 @@ router.use('/feedbacks', feedbacksRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/posts', postsRoutes);
 router.use('/admin/permissions', adminPermissionsRoutes);
+router.use('/permissions', permissionRoutes);
+router.use('/admin', adminRoutes);
 router.use('/debug', debugRoutes);
 router.use('/topics', topicsRoutes);
 

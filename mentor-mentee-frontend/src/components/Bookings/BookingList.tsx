@@ -151,7 +151,6 @@ const BookingList: React.FC = () => {
       <div className="search-filter-section">
         {/* Search Bar */}
         <div className="search-box">
-          <span className="search-icon">🔍</span>
           <input
             type="text"
             placeholder="Tìm kiếm booking theo tên, chủ đề, ghi chú..."
@@ -225,7 +224,9 @@ const BookingList: React.FC = () => {
               style={{ cursor: 'pointer' }}
             >
               <div className="booking-header">
-                <span className="booking-id">Booking #{booking.id}</span>
+                <span className="booking-id">
+                  {booking.schedule?.topic || 'Lịch không có tiêu đề'}
+                </span>
                 <span className={`booking-status ${booking.status.toLowerCase()}`}>
                   {booking.status === 'PENDING' && '⏳ Chờ xác nhận'}
                   {booking.status === 'CONFIRMED' && '✅ Đã xác nhận'}
@@ -256,14 +257,14 @@ const BookingList: React.FC = () => {
                     }}
                     title="Xem profile mentor"
                   >
-                    <strong>�‍🏫 Mentor:</strong>
+                    <strong>Mentor:</strong>
                     <span>{booking.schedule?.mentor?.mentorProfile?.fullName || booking.schedule?.mentor?.email || 'Unknown'}</span>
                   </div>
                 )}
 
                 {booking.schedule?.topic && (
                   <div className="info-row">
-                    <strong>� Chủ đề:</strong>
+                    <strong>Chủ đề:</strong>
                     <span>{booking.schedule.topic}</span>
                   </div>
                 )}

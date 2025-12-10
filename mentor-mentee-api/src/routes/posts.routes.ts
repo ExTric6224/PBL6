@@ -11,13 +11,11 @@ const postsController = new PostsController();
 // Tất cả routes đều cần authentication
 router.use(authenticate);
 
-// GET /api/posts - Lấy danh sách posts (public posts - no permission needed, authenticated users can view)
-// Service layer will handle filtering public vs private posts
-router.get('/', postsController.getPosts);
+// GET /api/posts - Lấy danh sách posts
+router.get('/', authorizePermissions('post:view_any', 'post:view_own'), postsController.getPosts);
 
-// GET /api/posts/:id - Lấy chi tiết một post (public posts - no permission needed)
-// Service layer will handle access control for private posts
-router.get('/:id', postsController.getPostById);
+// GET /api/posts/:id - Lấy chi tiết một post
+router.get('/:id', authorizePermissions('post:view_any', 'post:view_own'), postsController.getPostById);
 
 // POST /api/posts - Tạo post mới
 router.post('/', authorizePermissions('post:create'), postsController.createPost);

@@ -196,4 +196,57 @@ export class FeedbacksService {
       user_feedback_menteeIdTouser: undefined,
     }));
   }
+
+  async getAllFeedbacks() {
+    const feedbacks = await prisma.feedback.findMany({
+      include: {
+        user_feedback_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+                bio: true,
+                expertise: true,
+              },
+            },
+          },
+        },
+        user_feedback_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+        session: {
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Transform relation names to be more frontend-friendly
+    return feedbacks.map(feedback => ({
+      ...feedback,
+      mentor: feedback.user_feedback_mentorIdTouser,
+      mentee: feedback.user_feedback_menteeIdTouser,
+      // Remove the original long-named relations
+      user_feedback_mentorIdTouser: undefined,
+      user_feedback_menteeIdTouser: undefined,
+    }));
+  }
 }

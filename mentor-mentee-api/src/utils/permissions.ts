@@ -65,6 +65,10 @@ export const PERMISSIONS = {
   USER_UPDATE_ANY: 'user:update_any',
   USER_DELETE_ANY: 'user:delete_any',
 
+  // Admin-specific permissions
+  ADMIN_MANAGE_USERS: 'admin:manage_users',
+  ADMIN_VIEW_STATS: 'admin:view_stats',
+
   // Permission management (Admin only)
   PERMISSION_VIEW: 'permission:view',
   PERMISSION_GRANT: 'permission:grant',
@@ -146,6 +150,10 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { code: PERMISSIONS.USER_UPDATE_ANY, resource: 'user', action: 'update_any', description: 'Update any user' },
   { code: PERMISSIONS.USER_DELETE_ANY, resource: 'user', action: 'delete_any', description: 'Delete any user' },
 
+  // Admin-specific
+  { code: PERMISSIONS.ADMIN_MANAGE_USERS, resource: 'admin', action: 'manage_users', description: 'Manage users (admin)' },
+  { code: PERMISSIONS.ADMIN_VIEW_STATS, resource: 'admin', action: 'view_stats', description: 'View statistics (admin)' },
+
   // Permission management
   { code: PERMISSIONS.PERMISSION_VIEW, resource: 'permission', action: 'view', description: 'View permissions' },
   { code: PERMISSIONS.PERMISSION_GRANT, resource: 'permission', action: 'grant', description: 'Grant permissions' },
@@ -217,13 +225,9 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_VIEW_OWN,
 
-    // Posts - MENTEE CÓ THỂ tạo/update/delete post của mình, xem và like
-    PERMISSIONS.POST_CREATE,
+    // Posts - MENTEE chỉ được xem posts (không được tạo/cập nhật/xóa/like)
     PERMISSIONS.POST_VIEW_OWN,
     PERMISSIONS.POST_VIEW_ANY,
-    PERMISSIONS.POST_UPDATE_OWN,
-    PERMISSIONS.POST_DELETE_OWN,
-    PERMISSIONS.POST_LIKE,
 
     // Profile
     PERMISSIONS.PROFILE_VIEW_OWN,

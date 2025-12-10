@@ -42,4 +42,27 @@ export class AuthController {
       throw error;
     }
   }
+
+  async changePassword(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const result = await authService.changePassword(
+        req.user!.sub,
+        currentPassword,
+        newPassword
+      );
+      return success(res, result);
+    } catch (error: any) {
+      if (error.message === 'Current password is incorrect') {
+        return authError(res, 'Current password is incorrect');
+      }
+      if (error.message === 'New password must be different from current password') {
+        return authError(res, 'New password must be different from current password');
+      }
+      if (error.message === 'User not found') {
+        return authError(res, 'User not found');
+      }
+      throw error;
+    }
+  }
 }

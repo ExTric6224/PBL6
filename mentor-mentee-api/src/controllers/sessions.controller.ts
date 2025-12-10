@@ -52,7 +52,10 @@ export class SessionsController {
     try {
       let sessions;
       
-      if (req.user!.role === 'MENTOR') {
+      if (req.user!.role === 'ADMIN') {
+        // Admin can see all sessions
+        sessions = await sessionsService.getAllSessions();
+      } else if (req.user!.role === 'MENTOR') {
         sessions = await sessionsService.getSessionsByMentor(req.user!.sub);
       } else if (req.user!.role === 'MENTEE') {
         sessions = await sessionsService.getSessionsByMentee(req.user!.sub);

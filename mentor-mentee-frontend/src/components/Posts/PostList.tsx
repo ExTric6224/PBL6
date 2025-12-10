@@ -89,6 +89,17 @@ const PostList: React.FC = () => {
     setPage(1);
   }, [activeTab, searchQuery, sortBy]);
 
+  // Parse markdown for bold text
+  const parseMarkdown = (text: string) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   // Filter and sort posts
   const getFilteredAndSortedPosts = () => {
     let filtered = activeTab === 'my' 
@@ -345,7 +356,6 @@ const PostList: React.FC = () => {
       {/* Search and Filter */}
       <div className="search-filter-bar">
         <div className="search-box">
-          <span className="search-icon">🔍</span>
           <input
             type="text"
             placeholder="Tìm kiếm bài viết..."
@@ -590,7 +600,7 @@ const PostList: React.FC = () => {
 
                     <div className="post-content" onClick={() => navigate(`/posts/${post.id}`)}>
                       <h2 className="post-title">{post.title}</h2>
-                      <p className="post-text">{displayContent}</p>
+                      <p className="post-text">{parseMarkdown(displayContent)}</p>
                       {post.content.length > 300 && (
                         <span className="read-more">Đọc tiếp →</span>
                       )}

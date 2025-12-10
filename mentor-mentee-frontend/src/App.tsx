@@ -5,6 +5,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import OtpRegister from './components/Auth/OtpRegister';
 import ForgotPassword from './components/Auth/ForgotPassword';
+import ChangePassword from './components/Auth/ChangePassword';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation/Navigation';
@@ -20,6 +21,10 @@ import ProfileForm from './components/Profile/ProfileForm';
 import PublicProfile from './components/Profile/PublicProfile';
 import SessionList from './components/Sessions/SessionList';
 import SessionDetail from './components/Sessions/SessionDetail';
+import AdminDashboard from './components/Admin/AdminDashboard';
+import AdminUserManagement from './components/Admin/AdminUserManagement';
+import AdminPermissionManagement from './components/Admin/AdminPermissionManagement';
+import AdminUserPermissions from './components/Admin/AdminUserPermissions';
 import './App.css';
 
 function App() {
@@ -35,6 +40,18 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             
             {/* Protected routes - With navigation */}
+            <Route 
+              path="/change-password" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <ChangePassword />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
             <Route 
               path="/dashboard" 
               element={
@@ -192,7 +209,55 @@ function App() {
             />
             
             <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminDashboard />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminUserManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
               path="/admin/permissions" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminPermissionManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/users/:userId/permissions" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminUserPermissions />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/permissions" 
               element={
                 <ProtectedRoute>
                   <>

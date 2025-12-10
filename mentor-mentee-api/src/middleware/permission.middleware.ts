@@ -15,11 +15,16 @@ export interface PermissionOptions {
 }
 
 /**
- * Middleware to check if user has required permission
+ * Middleware to check if user has required permission(s)
+ * Supports multiple permissions with OR logic
  * 
  * @example
- * // Check for permission without scope
+ * // Check for single permission
  * router.post('/', authenticate, authorizePermissions('post:create'), createPost);
+ * 
+ * @example
+ * // Check for multiple permissions (OR logic) - user needs at least one
+ * router.get('/', authenticate, authorizePermissions('post:view_any', 'post:view_own'), getPosts);
  * 
  * @example
  * // Check for permission with 'own' scope
@@ -35,7 +40,21 @@ export interface PermissionOptions {
  *   updatePost
  * );
  */
-export function authorizePermissions(requiredPermission: string, options?: PermissionOptions) {
+export function authorizePermissions(...args: any[]) {
+  // Support both single permission with options, or multiple permissions
+  let requiredPermissions: string[] = [];
+  let options: PermissionOptions | undefined;
+
+  if (args.length === 1 && typeof args[0] === 'string') {
+    requiredPermissions = [args[0]];
+  } else if (args.length === 2 && typeof args[0] === 'string' && typeof args[1] === 'object') {
+    requiredPermissions = [args[0]];
+    options = args[1];
+  } else {
+    // Multiple permissions (OR logic)
+    requiredPermissions = args.filter(arg => typeof arg === 'string');
+  }
+
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       // Ensure user is authenticated
@@ -48,7 +67,53 @@ export function authorizePermissions(requiredPermission: string, options?: Permi
       // Get user's effective permissions (role + user overrides)
       const effectivePermissions = await getEffectivePermissions(userId);
 
-      // Extract base permission (remove scope suffix if exists)
+      // Check for multiple permissions with OR logic
+      if (requiredPermissions.length > 1) {
+        let hasPermission = false;
+
+        for (const permission of requiredPermissions) {
+          // Check if user has this permission
+          if (effectivePermissions.has(permission)) {
+            // For _own permissions, verify ownership - ONLY allow own resources
+            if (permission.endsWith('_own')) {
+              const resourceUserId = Number(req.params.userId);
+              if (resourceUserId && userId === resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // If not owner, continue checking other permissions
+              continue;
+            } 
+            // For _any permissions, verify NOT ownership - ONLY allow other's resources
+            else if (permission.endsWith('_any')) {
+              const resourceUserId = Number(req.params.userId);
+              if (resourceUserId && userId !== resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // If owner, continue checking other permissions (need _own for own resources)
+              continue;
+            } 
+            // For other permissions without suffix
+            else {
+              hasPermission = true;
+              break;
+            }
+          }
+        }
+
+        if (!hasPermission) {
+          console.log(`[PERMISSION DENIED] User ${userId} tried to access. Required one of: ${requiredPermissions.join(', ')}`);
+          console.log(`  User has: ${Array.from(effectivePermissions).join(', ')}`);
+          return forbiddenError(res, `Insufficient permissions. Required one of: ${requiredPermissions.join(', ')}`);
+        }
+
+        console.log(`[PERMISSION GRANTED] User ${userId} has required permission`);
+        return next();
+      }
+
+      // Single permission check
+      const requiredPermission = requiredPermissions[0];
       const basePermission = requiredPermission.replace(/_(own|any)$/, '');
 
       // Handle scope-based permission check

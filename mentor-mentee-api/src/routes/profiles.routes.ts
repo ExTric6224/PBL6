@@ -18,10 +18,7 @@ router.post('/mentor',
   profilesController.createOrUpdateMentorProfile.bind(profilesController)
 );
 
-router.get('/mentor/:userId', authenticate, authorizePermissions('profile:view', {
-  scope: 'own',
-  getResourceOwnerId: async (req) => Number(req.params.userId)
-}), profilesController.getMentorProfile.bind(profilesController));
+router.get('/mentor/:userId', authenticate, authorizePermissions('profile:view_any', 'profile:view_own'), profilesController.getMentorProfile.bind(profilesController));
 
 // Mentee profile routes
 router.post('/mentee', 
@@ -32,15 +29,9 @@ router.post('/mentee',
   profilesController.createOrUpdateMenteeProfile.bind(profilesController)
 );
 
-router.get('/mentee/:userId', authenticate, authorizePermissions('profile:view', {
-  scope: 'own',
-  getResourceOwnerId: async (req) => Number(req.params.userId)
-}), profilesController.getMenteeProfile.bind(profilesController));
+router.get('/mentee/:userId', authenticate, authorizePermissions('profile:view_any', 'profile:view_own'), profilesController.getMenteeProfile.bind(profilesController));
 
 // Get profile by userId (auto-detect mentor or mentee)
-router.get('/:userId', authenticate, authorizePermissions('profile:view', {
-  scope: 'own',
-  getResourceOwnerId: async (req) => Number(req.params.userId)
-}), profilesController.getProfileByUserId.bind(profilesController));
+router.get('/:userId', authenticate, authorizePermissions('profile:view_any', 'profile:view_own'), profilesController.getProfileByUserId.bind(profilesController));
 
 export default router;

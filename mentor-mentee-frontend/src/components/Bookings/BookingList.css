@@ -38,13 +38,6 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
-.search-icon {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin-right: 8px;
-  opacity: 0.6;
-}
-
 .search-input {
   flex: 1;
   border: none;

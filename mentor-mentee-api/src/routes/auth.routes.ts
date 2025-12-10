@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { validate } from '../middleware/validate.middleware';
 import { authenticate } from '../middleware/auth.middleware';
-import { registerSchema, loginSchema } from '../schemas/auth.schema';
+import { registerSchema, loginSchema, changePasswordSchema } from '../schemas/auth.schema';
 
 const router = Router();
 const authController = new AuthController();
@@ -13,5 +13,6 @@ router.post('/login', validate(loginSchema), authController.login.bind(authContr
 
 // Protected routes
 router.get('/me', authenticate, authController.getCurrentUser.bind(authController));
+router.post('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword.bind(authController));
 
 export default router;

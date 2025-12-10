@@ -332,4 +332,63 @@ export class SessionsService {
       ],
     });
   }
+
+  async getAllSessions() {
+    return await prisma.session.findMany({
+      include: {
+        booking: {
+          include: {
+            schedule: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: {
+                      select: {
+                        fullName: true,
+                        avatar: true,
+                        bio: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        feedback: {
+          include: {
+            user_feedback_menteeIdTouser: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { status: 'asc' },
+        { startedAt: 'desc' },
+      ],
+    });
+  }
 }
