@@ -15,8 +15,18 @@ router.patch('/:id/confirm', authenticate, authorizePermissions('booking:approve
 router.patch('/:id/cancel', authenticate, authorizePermissions('booking:cancel', {
   scope: 'own',
   getResourceOwnerId: async (req) => {
-    const booking = await prisma.booking.findUnique({ where: { id: Number(req.params.id) } });
-    return booking?.menteeId ?? null;
+    const booking = await prisma.booking.findUnique({ 
+      where: { id: Number(req.params.id) },
+      include: { schedule: true }
+    });
+    if (!booking) return null;
+    
+    // Allow both mentee and mentor to cancel
+    const userId = Number(req.user!.sub);
+    if (booking.menteeId === userId || booking.schedule.mentorId === userId) {
+      return userId; // Return user's own ID if they have permission
+    }
+    return null;
   }
 }), bookingsController.cancelBooking.bind(bookingsController));
 router.get('/my', authenticate, authorizePermissions('booking:view_own'), bookingsController.getMyBookings.bind(bookingsController));

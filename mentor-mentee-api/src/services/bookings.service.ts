@@ -50,6 +50,7 @@ export class BookingsService {
       data: {
         scheduleId: data.scheduleId,
         menteeId: menteeId,
+        notes: data.notes,
       },
       include: {
         schedule: {

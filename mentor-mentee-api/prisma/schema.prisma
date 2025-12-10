@@ -44,6 +44,7 @@ model booking {
   scheduleId Int
   menteeId   Int
   status     booking_status @default(PENDING)
+  notes      String?
   createdAt  DateTime       @default(now())
   user       user           @relation(fields: [menteeId], references: [id], map: "Booking_menteeId_fkey")
   schedule   schedule       @relation(fields: [scheduleId], references: [id], map: "Booking_scheduleId_fkey")

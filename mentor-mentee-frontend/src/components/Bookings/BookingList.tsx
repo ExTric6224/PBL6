@@ -275,7 +275,7 @@ const BookingList: React.FC = () => {
 
                 {booking.notes && (
                   <div className="booking-notes">
-                    <strong>💬 Ghi chú:</strong> {booking.notes.substring(0, 50)}{booking.notes.length > 50 ? '...' : ''}
+                    <strong>💬 Ghi chú:</strong> {booking.notes.length > 100 ? booking.notes.substring(0, 100) + '...' : booking.notes}
                   </div>
                 )}
               </div>

@@ -14,6 +14,8 @@ const ScheduleDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showBookDialog, setShowBookDialog] = useState(false);
+  const [bookingNotes, setBookingNotes] = useState('');
 
   const isMentor = user?.role === 'MENTOR';
   const isMentee = user?.role === 'MENTEE';
@@ -37,16 +39,21 @@ const ScheduleDetail: React.FC = () => {
     }
   };
 
-  const handleBookSchedule = async () => {
+  const handleBookSchedule = () => {
+    setShowBookDialog(true);
+  };
+
+  const handleConfirmBook = async () => {
     if (!schedule) return;
 
-    const notes = prompt('Nhập ghi chú cho mentor (tùy chọn):');
     try {
       await bookingApi.createBooking({ 
         scheduleId: schedule.id, 
-        notes: notes || undefined 
+        notes: bookingNotes.trim() || undefined 
       });
       setSuccess('Đặt lịch thành công! Chờ mentor xác nhận.');
+      setShowBookDialog(false);
+      setBookingNotes('');
       setTimeout(() => navigate('/bookings'), 2000);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Không thể đặt lịch');
@@ -244,6 +251,42 @@ const ScheduleDetail: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Book Schedule Dialog */}
+      {showBookDialog && (
+        <div className="modal-overlay" onClick={() => setShowBookDialog(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Đặt lịch</h3>
+            <div className="form-group">
+              <label>Ghi chú cho mentor (tùy chọn)</label>
+              <textarea
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                placeholder="Ví dụ: Tôi muốn học về React hooks..."
+                rows={4}
+                className="form-textarea"
+              />
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowBookDialog(false);
+                  setBookingNotes('');
+                }}
+              >
+                Hủy
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleConfirmBook}
+              >
+                Đặt lịch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
