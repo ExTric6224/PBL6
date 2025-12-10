@@ -43,8 +43,19 @@ export class FeedbacksController {
     try {
       // MENTEE: Xem feedback đã tạo (feedback:view_own)
       // MENTOR: Xem feedback nhận được (feedback:view_own)
+      // ADMIN: Xem tất cả feedback (feedback:view_any)
       
-      if (req.user!.role === 'MENTEE') {
+      if (req.user!.role === 'ADMIN') {
+        // Admin xem tất cả feedback
+        const feedbacks = await feedbacksService.getAllFeedbacks();
+        return success(res, {
+          data: feedbacks,
+          total: feedbacks.length,
+          page: 1,
+          limit: feedbacks.length,
+          totalPages: 1
+        });
+      } else if (req.user!.role === 'MENTEE') {
         // Mentee chỉ xem feedback mà họ đã tạo
         const feedbacks = await feedbacksService.getFeedbacksByMentee(req.user!.sub);
         return success(res, {

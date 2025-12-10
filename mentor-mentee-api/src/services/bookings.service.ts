@@ -338,4 +338,52 @@ export class BookingsService {
       } : null,
     }));
   }
+
+  async getAllBookings() {
+    const bookings = await prisma.booking.findMany({
+      include: {
+        schedule: {
+          include: {
+            user: {
+              include: {
+                mentorprofile: {
+                  include: {
+                    expertise: {
+                      include: {
+                        topic: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          include: {
+            menteeprofile: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Transform to match frontend expectations
+    return bookings.map(booking => ({
+      ...booking,
+      mentee: booking.user,
+      schedule: booking.schedule ? {
+        ...booking.schedule,
+        mentor: {
+          ...booking.schedule.user,
+          mentorProfile: booking.schedule.user.mentorprofile ? {
+            ...booking.schedule.user.mentorprofile,
+            expertise: booking.schedule.user.mentorprofile.expertise?.map(e => e.topic) || [],
+          } : null,
+        },
+      } : null,
+    }));
+  }
 }

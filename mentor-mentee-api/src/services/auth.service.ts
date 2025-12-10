@@ -98,4 +98,40 @@ export class AuthService {
 
     return user;
   }
+
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Verify current password
+    const isValidPassword = await comparePassword(currentPassword, user.password);
+    if (!isValidPassword) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Check if new password is different
+    if (currentPassword === newPassword) {
+      throw new Error('New password must be different from current password');
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        password: hashedPassword,
+        updatedAt: new Date(),
+      },
+    });
+
+    return { message: 'Password changed successfully' };
+  }
 }

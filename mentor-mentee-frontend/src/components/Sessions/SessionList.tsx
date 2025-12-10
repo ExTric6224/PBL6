@@ -125,7 +125,7 @@ const SessionList: React.FC = () => {
   return (
     <div className="sessions-container">
       <div className="sessions-header">
-        <h1>Quản lý buổi học</h1>
+        <h1>Quản lý buổi meeting</h1>
         <button className="btn-refresh" onClick={loadSessions}>
           Làm mới
         </button>

@@ -20,7 +20,7 @@
   width: 50px;
   height: 50px;
   border: 3px solid #e3f2fd;
-  border-top: 3px solid #2196f3;
+  border-top: 3px solid #1877f2;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -76,7 +76,7 @@
 }
 
 .user-name {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  background: linear-gradient(135deg, #1877f2 0%, #166fe5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -103,7 +103,7 @@
 }
 
 .user-badge {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  background: linear-gradient(135deg, #1877f2 0%, #166fe5 100%);
   color: white;
   padding: 12px 24px;
   border-radius: 16px;
@@ -129,7 +129,7 @@
   padding: 12px 20px;
   background: rgba(33, 150, 243, 0.1);
   border-radius: 16px;
-  color: #1976d2;
+  color: #166fe5;
   font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid rgba(33, 150, 243, 0.2);
@@ -138,7 +138,7 @@
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #2196f3;
+  background: #1877f2;
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
@@ -186,7 +186,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #2196f3, #1976d2);
+  background: linear-gradient(90deg, #1877f2, #166fe5);
 }
 
 .stat-card:hover {
@@ -334,13 +334,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #2196f3, #1976d2);
+  background: linear-gradient(90deg, #1877f2, #166fe5);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .nav-card:hover {
-  border-color: #2196f3;
+  border-color: #1877f2;
   background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
   transform: translateY(-4px);
   box-shadow: 
@@ -447,7 +447,7 @@
 }
 
 .detail-role {
-  color: #2196f3;
+  color: #1877f2;
   font-weight: 700;
   padding: 4px 12px;
   background: rgba(33, 150, 243, 0.1);
@@ -468,7 +468,7 @@
   padding: 20px;
   background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   border-radius: 16px;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid #1877f2;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -498,7 +498,7 @@
 .activity-time {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #2196f3;
+  color: #1877f2;
   min-width: 50px;
   flex-shrink: 0;
   display: flex;
@@ -587,7 +587,7 @@
 
 /* Focus States */
 .nav-card:focus {
-  outline: 2px solid #2196f3;
+  outline: 2px solid #1877f2;
   outline-offset: 2px;
 }
 

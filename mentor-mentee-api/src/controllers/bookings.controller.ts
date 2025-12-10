@@ -74,7 +74,10 @@ export class BookingsController {
     try {
       let bookings;
       
-      if (req.user!.role === 'MENTEE') {
+      if (req.user!.role === 'ADMIN') {
+        // Admin can see all bookings
+        bookings = await bookingsService.getAllBookings();
+      } else if (req.user!.role === 'MENTEE') {
         bookings = await bookingsService.getBookingsByMentee(req.user!.sub);
       } else if (req.user!.role === 'MENTOR') {
         bookings = await bookingsService.getBookingsByMentor(req.user!.sub);

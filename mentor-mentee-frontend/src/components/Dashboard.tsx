@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
@@ -7,11 +7,28 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect admin to admin dashboard
+  useEffect(() => {
+    if (user && user.role === 'ADMIN') {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
   if (!user) {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner"></div>
         <p>Loading your dashboard...</p>
+      </div>
+    );
+  }
+
+  // Admin sẽ được redirect, không hiển thị dashboard này
+  if (user.role === 'ADMIN') {
+    return (
+      <div className="dashboard-loading">
+        <div className="loading-spinner"></div>
+        <p>Redirecting to admin dashboard...</p>
       </div>
     );
   }
@@ -34,8 +51,6 @@ const Dashboard: React.FC = () => {
         return 'Share your knowledge and guide mentees to success';
       case 'MENTEE':
         return 'Learn from experienced mentors and achieve your goals';
-      case 'ADMIN':
-        return 'Manage the platform and ensure smooth operations';
       default:
         return 'Welcome to your dashboard';
     }
@@ -68,14 +83,6 @@ const Dashboard: React.FC = () => {
       desc: 'Manage your profile'
     },
   ];
-
-  if (user.role === 'ADMIN') {
-    quickLinks.push({ 
-      path: '/admin/permissions', 
-      title: 'Permissions', 
-      desc: 'Manage system permissions'
-    });
-  }
 
   const stats = [
     { label: 'Sessions Completed', value: '12', change: '+2', trend: 'up' },

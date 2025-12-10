@@ -39,27 +39,12 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleTestLogin = async (email: string, password: string) => {
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      await login({ email, password });
-      navigate('/dashboard');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Login failed. Please try again.';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h2>Welcome Back</h2>
-          <p>Sign in to your MentorMentee account</p>
+          <p>Sign in to your Menterify account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -107,26 +92,6 @@ const Login: React.FC = () => {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        <div className="test-accounts">
-          <p>Test with demo accounts:</p>
-          <div className="test-buttons">
-            <button 
-              onClick={() => handleTestLogin('mentor@example.com', 'mentor123')}
-              className="auth-button secondary"
-              disabled={isLoading}
-            >
-              Login as Mentor
-            </button>
-            <button 
-              onClick={() => handleTestLogin('mentee@example.com', 'mentee123')}
-              className="auth-button secondary"
-              disabled={isLoading}
-            >
-              Login as Mentee
-            </button>
-          </div>
-        </div>
 
         <div className="auth-footer">
           <p>

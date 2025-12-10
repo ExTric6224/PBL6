@@ -177,7 +177,7 @@ const BookingDetail: React.FC = () => {
           <div className="booking-header-content">
             <div className="booking-title-section">
               <h1 className="booking-detail-title">
-                Booking #{booking.id}
+                {booking.schedule?.topic || 'Lịch không có tiêu đề'}
               </h1>
               {booking.schedule?.topic && (
                 <p className="booking-topic">📚 {booking.schedule.topic}</p>
