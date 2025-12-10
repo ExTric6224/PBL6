@@ -1,6 +1,7 @@
 import prisma from '../db/client';
 import { CreatePostDto, UpdatePostDto, PostQueryDto } from '../schemas/posts.schema';
 import { deletePostImageFile } from '../middleware/upload.middleware';
+import { checkPermission } from '../middleware/permission.middleware';
 import path from 'path';
 
 export class PostsService {
@@ -64,9 +65,34 @@ export class PostsService {
 
     const where: any = {};
 
-    // Tất cả users có thể xem tất cả posts (bỏ private/public logic)
+    // Check user's permissions to filter posts
+    if (currentUserId) {
+      const hasViewOwn = await checkPermission(currentUserId, 'post:view_own');
+      const hasViewAny = await checkPermission(currentUserId, 'post:view_any');
+
+      // Filter based on permissions
+      if (hasViewOwn && !hasViewAny) {
+        // Only own posts
+        where.authorId = currentUserId;
+      } else if (!hasViewOwn && hasViewAny) {
+        // Only other users' posts
+        where.authorId = { not: currentUserId };
+      } else if (!hasViewOwn && !hasViewAny) {
+        // No permission to view any posts
+        where.id = -1; // No results
+      }
+      // If both hasViewOwn and hasViewAny, no filter (can view all)
+    }
+
+    // Additional filter by authorId from query
     if (authorId) {
-      where.authorId = authorId;
+      if (where.authorId && typeof where.authorId === 'object') {
+        // Merge with existing authorId filter
+        where.AND = [{ authorId: where.authorId }, { authorId }];
+        delete where.authorId;
+      } else {
+        where.authorId = authorId;
+      }
     }
 
     // Search trong title và content
@@ -204,7 +230,21 @@ export class PostsService {
       throw new Error('Post not found');
     }
 
-    // Tất cả authenticated users có thể xem tất cả posts (bỏ private/public check)
+    // Check permission to view this specific post
+    if (currentUserId) {
+      const isOwnPost = post.authorId === currentUserId;
+      const hasViewOwn = await checkPermission(currentUserId, 'post:view_own');
+      const hasViewAny = await checkPermission(currentUserId, 'post:view_any');
+
+      // Check if user has permission to view this post
+      const canView = 
+        (isOwnPost && hasViewOwn) ||  // Own post and has view_own
+        (!isOwnPost && hasViewAny);   // Others' post and has view_any
+
+      if (!canView) {
+        throw new Error('You do not have permission to view this post');
+      }
+    }
 
     return {
       ...post,
