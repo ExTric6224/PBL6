@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { SessionsController } from '../controllers/sessions.controller';
 import { validate } from '../middleware/validate.middleware';
 import { authenticate } from '../middleware/auth.middleware';
@@ -13,7 +13,7 @@ const sessionsController = new SessionsController();
 router.post('/start', authenticate, authorizePermissions('session:create'), validate(startSessionSchema), sessionsController.startSession.bind(sessionsController));
 router.post('/end', authenticate, authorizePermissions('session:update', {
   scope: 'own',
-  getResourceOwnerId: async (req) => {
+  getResourceOwnerId: async (req: Request) => {
     const session = await prisma.session.findUnique({ where: { id: Number(req.body.sessionId) } });
     return session?.mentorId ?? null;
   }

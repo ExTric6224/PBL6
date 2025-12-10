@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Backend API
+  api:
+    build:
+      context: ./mentor-mentee-api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://mentor_user:mentor_password@db:3306/mentor_db
+      - JWT_SECRET=mentor-mentee-production-secret-key-2024-make-it-very-long-and-random-abcdef123456789
+      - CORS_ORIGIN=http://localhost:3000,http://129.212.235.114
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./mentor-mentee-api/uploads:/app/uploads
+      - ./mentor-mentee-api/storage:/app/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mentor-network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=mentor_db
+      - MYSQL_USER=mentor_user
+      - MYSQL_PASSWORD=mentor_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mentor-mentee-api/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mentor_user", "-pmentor_password"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mentor-network
+
+  # Frontend (Optional - serve static files)
+  frontend:
+    build:
+      context: ./mentor-mentee-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://129.212.235.114:3000/api
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - mentor-network
+
+volumes:
+  mysql_data:
+
+networks:
+  mentor-network:
+    driver: bridge

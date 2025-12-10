@@ -16,7 +16,15 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images to be loaded from different origins
 }));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    const allowedOrigins = ['http://localhost:3000', 'http://129.212.235.114'];
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
@@ -46,8 +54,6 @@ app.use('/api/auth/register', rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 }));
-
-app.use('/api/health', limiter);
 
 // Logging middleware
 app.use(pinoHttp({

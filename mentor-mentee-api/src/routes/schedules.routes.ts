@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { SchedulesController } from '../controllers/schedules.controller';
 import { validate, validateQuery } from '../middleware/validate.middleware';
 import { authenticate } from '../middleware/auth.middleware';
@@ -16,14 +16,14 @@ router.get('/my-schedules', authenticate, authorizePermissions('schedule:view_ow
 router.get('/:id', authenticate, authorizePermissions('schedule:view_any'), schedulesController.getScheduleById.bind(schedulesController));
 router.patch('/:id', authenticate, authorizePermissions('schedule:update', {
   scope: 'own',
-  getResourceOwnerId: async (req) => {
+  getResourceOwnerId: async (req: Request) => {
     const schedule = await prisma.schedule.findUnique({ where: { id: Number(req.params.id) } });
     return schedule?.mentorId ?? null;
   }
 }), validate(updateScheduleSchema), schedulesController.updateSchedule.bind(schedulesController));
 router.delete('/:id', authenticate, authorizePermissions('schedule:delete', {
   scope: 'own',
-  getResourceOwnerId: async (req) => {
+  getResourceOwnerId: async (req: Request) => {
     const schedule = await prisma.schedule.findUnique({ where: { id: Number(req.params.id) } });
     return schedule?.mentorId ?? null;
   }

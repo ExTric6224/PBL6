@@ -74,31 +74,8 @@ export function authorizePermissions(...args: any[]) {
         for (const permission of requiredPermissions) {
           // Check if user has this permission
           if (effectivePermissions.has(permission)) {
-            // For _own permissions, verify ownership - ONLY allow own resources
-            if (permission.endsWith('_own')) {
-              const resourceUserId = Number(req.params.userId);
-              if (resourceUserId && userId === resourceUserId) {
-                hasPermission = true;
-                break;
-              }
-              // If not owner, continue checking other permissions
-              continue;
-            } 
-            // For _any permissions, verify NOT ownership - ONLY allow other's resources
-            else if (permission.endsWith('_any')) {
-              const resourceUserId = Number(req.params.userId);
-              if (resourceUserId && userId !== resourceUserId) {
-                hasPermission = true;
-                break;
-              }
-              // If owner, continue checking other permissions (need _own for own resources)
-              continue;
-            } 
-            // For other permissions without suffix
-            else {
-              hasPermission = true;
-              break;
-            }
+            hasPermission = true;
+            break;
           }
         }
 
