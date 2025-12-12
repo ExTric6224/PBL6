@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Set API URL for production build
-ENV REACT_APP_API_URL=http://129.212.235.114:3000/api
+ENV REACT_APP_API_URL=http://165.227.7.221:3000/api
 
 # Build the application
 RUN npm run build

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Backend API
   api:
@@ -9,8 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=mysql://mentor_user:mentor_password@db:3306/mentor_db
-      - JWT_SECRET=mentor-mentee-production-secret-key-2024-make-it-very-long-and-random-abcdef123456789
-      - CORS_ORIGIN=http://localhost:3000,http://129.212.235.114
+      - JWT_SECRET=mentor-mentee-production-secret-key-2024-make-it-very-long-and-random-abcdef123456
+      - CORS_ORIGIN=http://localhost:3000,http://165.227.7.221
     depends_on:
       db:
         condition: service_healthy
@@ -56,7 +58,7 @@ services:
     ports:
       - "80:80"
     environment:
-      - REACT_APP_API_URL=http://129.212.235.114:3000/api
+      - REACT_APP_API_URL=http://165.227.7.221:3000/api
     depends_on:
       - api
     restart: unless-stopped
