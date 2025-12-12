@@ -83,4 +83,17 @@ export class FeedbacksController {
       throw error;
     }
   }
+
+  async deleteFeedback(req: AuthenticatedRequest, res: Response) {
+    try {
+      const feedbackId = parseInt(req.params.id, 10);
+      await feedbacksService.deleteFeedback(feedbackId);
+      return success(res, { message: 'Feedback deleted successfully' });
+    } catch (error: any) {
+      if (error.message === 'Feedback not found') {
+        return notFoundError(res, 'Feedback not found');
+      }
+      throw error;
+    }
+  }
 }

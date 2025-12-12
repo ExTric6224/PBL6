@@ -54,15 +54,23 @@ export class SchedulesController {
 
   async deleteSchedule(req: AuthenticatedRequest, res: Response) {
     try {
+      const scheduleId = parseInt(req.params.id, 10);
+      
+      // Admin can hard delete any schedule
+      if (req.user!.role === 'ADMIN') {
+        await schedulesService.hardDeleteSchedule(scheduleId);
+        return success(res, { message: 'Schedule deleted successfully' });
+      }
+      
+      // Mentors can only soft delete (cancel) their own schedules
       if (req.user!.role !== 'MENTOR') {
-        return authError(res, 'Only mentors can delete schedules');
+        return authError(res, 'Only mentors and admins can delete schedules');
       }
 
-      const scheduleId = parseInt(req.params.id, 10);
       const schedule = await schedulesService.deleteSchedule(scheduleId, req.user!.sub);
       return success(res, schedule);
     } catch (error: any) {
-      if (error.message === 'Schedule not found or access denied') {
+      if (error.message === 'Schedule not found or access denied' || error.message === 'Schedule not found') {
         return notFoundError(res, 'Schedule not found or you do not have permission to delete it');
       }
       if (error.message === 'Mentor profile not found') {

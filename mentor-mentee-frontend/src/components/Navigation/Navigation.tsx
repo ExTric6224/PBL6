@@ -52,7 +52,11 @@ const Navigation: React.FC = () => {
     ? [
         { path: '/admin', label: '🛡️ Dashboard' },
         { path: '/admin/users', label: '👥 Users' },
-        { path: '/posts', label: '📝 Posts' },
+        { path: '/admin/posts', label: '📝 Posts' },
+        { path: '/admin/schedules', label: '🗓️ Schedules' },
+        { path: '/admin/bookings', label: '📅 Bookings' },
+        { path: '/admin/sessions', label: '🎓 Sessions' },
+        { path: '/admin/feedbacks', label: '⭐ Feedbacks' },
         { path: '/admin/permissions', label: '🔐 Permissions' },
       ]
     : [

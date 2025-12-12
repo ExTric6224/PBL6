@@ -15,7 +15,6 @@ const PublicProfile: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<MentorProfile | MenteeProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [profileType, setProfileType] = useState<'MENTOR' | 'MENTEE' | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -47,7 +46,6 @@ const PublicProfile: React.FC = () => {
 
     try {
       setLoading(true);
-      setError(null);
 
       // Use the new auto-detect API
       const profileData = await profileApi.getProfile(parseInt(userId));
@@ -76,8 +74,7 @@ const PublicProfile: React.FC = () => {
         throw new Error('Invalid profile type');
       }
     } catch (err: any) {
-      setError('Không thể tải profile');
-      console.error('Error loading profile:', err);
+      console.error('Failed to load profile:', err);
     } finally {
       setLoading(false);
     }
@@ -175,13 +172,13 @@ const PublicProfile: React.FC = () => {
     );
   }
 
-  if (error || !profile) {
+  if (!profile) {
     return (
       <div className="public-profile-container">
         <div className="error-state">
           <span className="error-icon">⚠️</span>
           <h2>Không tìm thấy profile</h2>
-          <p>{error || 'Profile không tồn tại hoặc chưa được tạo'}</p>
+          <p>Profile không tồn tại hoặc chưa được tạo</p>
           <button className="btn btn-primary" onClick={() => navigate(-1)}>
             ← Quay lại
           </button>

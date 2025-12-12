@@ -147,11 +147,18 @@ const AdminDashboard: React.FC = () => {
           <button className="btn-manage">Manage Users →</button>
         </div>
 
-        <div className="management-card" onClick={() => navigate('/posts')}>
+        <div className="management-card" onClick={() => navigate('/admin/posts')}>
           <div className="card-icon">📝</div>
           <h3>Post Management</h3>
-          <p>View and moderate all posts</p>
+          <p>View, moderate, and delete all posts</p>
           <button className="btn-manage">Manage Posts →</button>
+        </div>
+
+        <div className="management-card" onClick={() => navigate('/admin/bookings')}>
+          <div className="card-icon">📅</div>
+          <h3>Booking Management</h3>
+          <p>View, monitor, and manage all bookings</p>
+          <button className="btn-manage">Manage Bookings →</button>
         </div>
 
         <div className="management-card" onClick={() => navigate('/admin/permissions')}>

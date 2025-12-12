@@ -387,4 +387,49 @@ export class BookingsService {
       } : null,
     }));
   }
+
+  async deleteBooking(bookingId: number) {
+    // Find booking first to check if it exists
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        schedule: true,
+        session: true, // Include session to check if it exists
+      },
+    });
+
+    if (!booking) {
+      throw new Error('Booking not found');
+    }
+
+    // If booking was CONFIRMED and schedule is BOOKED, set schedule back to AVAILABLE
+    const shouldUpdateSchedule = booking.status === 'CONFIRMED' && booking.schedule.status === 'BOOKED';
+
+    // Use transaction to delete session (if exists), booking, and update schedule
+    await prisma.$transaction(async (tx) => {
+      // Delete session first if it exists (due to foreign key constraint)
+      if (booking.session) {
+        // Also delete feedback if session has feedback
+        await tx.feedback.deleteMany({
+          where: { sessionId: booking.session.id },
+        });
+        await tx.session.delete({
+          where: { id: booking.session.id },
+        });
+      }
+
+      // Delete the booking
+      await tx.booking.delete({
+        where: { id: bookingId },
+      });
+
+      // Update schedule status if needed
+      if (shouldUpdateSchedule) {
+        await tx.schedule.update({
+          where: { id: booking.scheduleId },
+          data: { status: 'AVAILABLE' },
+        });
+      }
+    });
+  }
 }

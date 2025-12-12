@@ -68,4 +68,17 @@ export class SessionsController {
       throw error;
     }
   }
+
+  async deleteSession(req: AuthenticatedRequest, res: Response) {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      await sessionsService.deleteSession(sessionId);
+      return success(res, { message: 'Session deleted successfully' });
+    } catch (error: any) {
+      if (error.message === 'Session not found') {
+        return notFoundError(res, 'Session not found');
+      }
+      throw error;
+    }
+  }
 }

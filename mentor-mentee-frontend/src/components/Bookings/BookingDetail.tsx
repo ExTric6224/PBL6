@@ -11,7 +11,6 @@ const BookingDetail: React.FC = () => {
   const { user } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const isMentor = user?.role === 'MENTOR';
@@ -34,9 +33,8 @@ const BookingDetail: React.FC = () => {
       }
       
       setBooking(foundBooking);
-      setError(null);
     } catch (err: any) {
-      setError('Không thể tải booking');
+      console.error('Failed to load booking:', err);
     } finally {
       setLoading(false);
     }
@@ -50,7 +48,7 @@ const BookingDetail: React.FC = () => {
       setSuccess('Xác nhận booking thành công!');
       setTimeout(() => navigate('/bookings'), 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể xác nhận booking');
+      console.error('Failed to confirm booking:', err);
     }
   };
 
@@ -62,7 +60,7 @@ const BookingDetail: React.FC = () => {
       setSuccess('Hủy booking thành công!');
       setTimeout(() => navigate('/bookings'), 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể hủy booking');
+      console.error('Failed to cancel booking:', err);
     }
   };
 
@@ -114,21 +112,6 @@ const BookingDetail: React.FC = () => {
     );
   }
 
-  if (error && !booking) {
-    return (
-      <div className="booking-detail-container">
-        <div className="error-state">
-          <span className="error-icon">⚠️</span>
-          <h2>Có lỗi xảy ra</h2>
-          <p>{error}</p>
-          <button className="btn btn-primary" onClick={() => navigate('/bookings')}>
-            ← Quay lại danh sách
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!booking) {
     return (
       <div className="booking-detail-container">
@@ -155,13 +138,6 @@ const BookingDetail: React.FC = () => {
       </div>
 
       {/* Notifications */}
-      {error && (
-        <div className="notification error-notification">
-          <span className="icon">⚠️</span>
-          <span>{error}</span>
-          <button className="close-btn" onClick={() => setError(null)}>✖</button>
-        </div>
-      )}
       {success && (
         <div className="notification success-notification">
           <span className="icon">✓</span>

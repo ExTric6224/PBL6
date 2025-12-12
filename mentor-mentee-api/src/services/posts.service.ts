@@ -300,16 +300,21 @@ export class PostsService {
     });
   }
 
-  async deletePost(postId: number, authorId: number) {
-    // Kiểm tra quyền sở hữu
-    const post = await prisma.post.findFirst({
-      where: {
-        id: postId,
-        authorId: authorId,
-      },
+  async deletePost(postId: number, userId: number) {
+    // Check if post exists
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
     });
 
     if (!post) {
+      throw new Error('Post not found');
+    }
+
+    // Check if user has permission to delete this post
+    const hasDeleteAny = await checkPermission(userId, 'post:delete_any');
+    const isAuthor = post.authorId === userId;
+
+    if (!hasDeleteAny && !isAuthor) {
       throw new Error('Post not found or access denied');
     }
 

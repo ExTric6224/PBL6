@@ -336,6 +336,31 @@ export class SessionsService {
   async getAllSessions() {
     return await prisma.session.findMany({
       include: {
+        user_session_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+                avatar: true,
+                bio: true,
+              },
+            },
+          },
+        },
+        user_session_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+                avatar: true,
+              },
+            },
+          },
+        },
         booking: {
           include: {
             schedule: {
@@ -389,6 +414,35 @@ export class SessionsService {
         { status: 'asc' },
         { startedAt: 'desc' },
       ],
+    });
+  }
+
+  // Hard delete session (Admin only) - deletes session and feedback
+  async deleteSession(sessionId: number) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        feedback: true,
+      },
+    });
+
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Delete in transaction: feedback -> session
+    await prisma.$transaction(async (tx) => {
+      // Delete feedback if exists
+      if (session.feedback) {
+        await tx.feedback.delete({
+          where: { id: session.feedback.id },
+        });
+      }
+
+      // Delete session
+      await tx.session.delete({
+        where: { id: sessionId },
+      });
     });
   }
 }

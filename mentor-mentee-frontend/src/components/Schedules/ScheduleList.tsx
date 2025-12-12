@@ -11,7 +11,6 @@ const ScheduleList: React.FC = () => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({ 
     topic: '', 
@@ -38,9 +37,9 @@ const ScheduleList: React.FC = () => {
         : await scheduleApi.getAllSchedules(filters);
       
       setSchedules(response.data);
-      setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể tải danh sách lịch');
+      // Error will be handled by ErrorDialog via axios interceptor
+      console.error('Failed to load schedules:', err);
     } finally {
       setLoading(false);
     }
@@ -225,14 +224,6 @@ const ScheduleList: React.FC = () => {
           </button>
         )}
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="notification error">
-          <span>{error}</span>
-          <button className="close-btn" onClick={() => setError(null)}>×</button>
-        </div>
-      )}
 
       {/* Search and Controls */}
       <div className="controls-section">

@@ -164,19 +164,19 @@ const AdminUserManagement: React.FC = () => {
                         className="btn-view"
                         onClick={() => navigate(`/profile/${user.id}`)}
                       >
-                        👁️ View
+                        View
                       </button>
                       <button
                         className="btn-permissions"
                         onClick={() => navigate(`/admin/users/${user.id}/permissions`)}
                       >
-                        🔐 Permissions
+                        Permissions
                       </button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDeleteUser(user.id, user.email)}
                       >
-                        🗑️ Delete
+                        Delete
                       </button>
                     </div>
                   </td>

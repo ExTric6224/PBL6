@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ErrorProvider } from './context/ErrorContext';
+import AxiosSetup from './components/AxiosSetup';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import OtpRegister from './components/Auth/OtpRegister';
@@ -25,13 +27,20 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminUserManagement from './components/Admin/AdminUserManagement';
 import AdminPermissionManagement from './components/Admin/AdminPermissionManagement';
 import AdminUserPermissions from './components/Admin/AdminUserPermissions';
+import AdminPostManagement from './components/Admin/AdminPostManagement';
+import AdminBookingManagement from './components/Admin/AdminBookingManagement';
+import AdminScheduleManagement from './components/Admin/AdminScheduleManagement';
+import AdminSessionManagement from './components/Admin/AdminSessionManagement';
+import AdminFeedbackManagement from './components/Admin/AdminFeedbackManagement';
 import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
+    <ErrorProvider>
+      <AuthProvider>
+        <Router>
+          <AxiosSetup />
+          <div className="App">
           <Routes>
             {/* Public routes - No navigation */}
             <Route path="/login" element={<Login />} />
@@ -233,6 +242,66 @@ function App() {
             />
             
             <Route 
+              path="/admin/posts" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminPostManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/schedules" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminScheduleManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/bookings" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminBookingManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/sessions" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminSessionManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/feedbacks" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <AdminFeedbackManagement />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
               path="/admin/permissions" 
               element={
                 <ProtectedRoute>
@@ -274,6 +343,7 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
+    </ErrorProvider>
   );
 }
 
