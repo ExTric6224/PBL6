@@ -12,5 +12,6 @@ const feedbacksController = new FeedbacksController();
 router.post('/', authenticate, authorizePermissions('feedback:create'), validate(createFeedbackSchema), feedbacksController.createFeedback.bind(feedbacksController));
 router.get('/mentor/:mentorId', authenticate, authorizePermissions('feedback:view_any'), validateQuery(feedbackQuerySchema), feedbacksController.getFeedbacksByMentor.bind(feedbacksController));
 router.get('/my', authenticate, authorizePermissions('feedback:view_own'), validateQuery(feedbackQuerySchema), feedbacksController.getMyFeedbacks.bind(feedbacksController));
+router.delete('/:id', authenticate, authorizePermissions('feedback:delete_any'), feedbacksController.deleteFeedback.bind(feedbacksController));
 
 export default router;

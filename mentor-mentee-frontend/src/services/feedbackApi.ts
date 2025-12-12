@@ -28,4 +28,9 @@ export const feedbackApi = {
     const response = await api.get<ApiResponse<PaginatedResponse<Feedback>>>(`/feedbacks/my?${queryParams.toString()}`);
     return response.data.data;
   },
+
+  // Delete feedback (ADMIN)
+  deleteFeedback: async (id: number): Promise<void> => {
+    await api.delete(`/feedbacks/${id}`);
+  },
 };

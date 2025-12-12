@@ -249,4 +249,19 @@ export class FeedbacksService {
       user_feedback_menteeIdTouser: undefined,
     }));
   }
+
+  // Delete feedback (Admin only)
+  async deleteFeedback(feedbackId: number) {
+    const feedback = await prisma.feedback.findUnique({
+      where: { id: feedbackId },
+    });
+
+    if (!feedback) {
+      throw new Error('Feedback not found');
+    }
+
+    await prisma.feedback.delete({
+      where: { id: feedbackId },
+    });
+  }
 }

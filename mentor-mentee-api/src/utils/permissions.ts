@@ -20,6 +20,7 @@ export const PERMISSIONS = {
   BOOKING_APPROVE: 'booking:approve',
   BOOKING_CANCEL_OWN: 'booking:cancel_own',
   BOOKING_CANCEL_ANY: 'booking:cancel_any',
+  BOOKING_DELETE: 'booking:delete',
 
   // Post permissions
   POST_CREATE: 'post:create',
@@ -37,6 +38,7 @@ export const PERMISSIONS = {
   SESSION_VIEW_ANY: 'session:view_any',
   SESSION_UPDATE_OWN: 'session:update_own',
   SESSION_UPDATE_ANY: 'session:update_any',
+  SESSION_DELETE: 'session:delete',
 
   // Feedback permissions
   FEEDBACK_CREATE: 'feedback:create',
@@ -105,6 +107,7 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { code: PERMISSIONS.BOOKING_APPROVE, resource: 'booking', action: 'approve', description: 'Approve/confirm bookings' },
   { code: PERMISSIONS.BOOKING_CANCEL_OWN, resource: 'booking', action: 'cancel_own', description: 'Cancel own bookings' },
   { code: PERMISSIONS.BOOKING_CANCEL_ANY, resource: 'booking', action: 'cancel_any', description: 'Cancel any bookings' },
+  { code: PERMISSIONS.BOOKING_DELETE, resource: 'booking', action: 'delete', description: 'Delete any bookings' },
 
   // Posts
   { code: PERMISSIONS.POST_CREATE, resource: 'post', action: 'create', description: 'Create posts' },
@@ -122,6 +125,7 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { code: PERMISSIONS.SESSION_VIEW_ANY, resource: 'session', action: 'view_any', description: 'View any sessions' },
   { code: PERMISSIONS.SESSION_UPDATE_OWN, resource: 'session', action: 'update_own', description: 'Update own sessions' },
   { code: PERMISSIONS.SESSION_UPDATE_ANY, resource: 'session', action: 'update_any', description: 'Update any sessions' },
+  { code: PERMISSIONS.SESSION_DELETE, resource: 'session', action: 'delete', description: 'Delete any sessions' },
 
   // Feedbacks
   { code: PERMISSIONS.FEEDBACK_CREATE, resource: 'feedback', action: 'create', description: 'Create feedback' },

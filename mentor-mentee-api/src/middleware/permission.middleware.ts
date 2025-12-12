@@ -71,11 +71,47 @@ export function authorizePermissions(...args: any[]) {
       if (requiredPermissions.length > 1) {
         let hasPermission = false;
 
+        // Check if this is a resource-specific route (has userId param)
+        const resourceUserId = req.params.userId ? Number(req.params.userId) : null;
+
         for (const permission of requiredPermissions) {
           // Check if user has this permission
           if (effectivePermissions.has(permission)) {
-            hasPermission = true;
-            break;
+            // For _own permissions: ONLY for user's own resources
+            if (permission.endsWith('_own')) {
+              // If no specific resource (list view), allow - service will filter
+              if (!resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // If viewing specific resource, MUST be owner
+              if (userId === resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // Not owner, continue checking other permissions
+              continue;
+            } 
+            // For _any permissions: ONLY for OTHER users' resources (NOT own)
+            else if (permission.endsWith('_any')) {
+              // If no specific resource (list view), allow - service will filter
+              if (!resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // If viewing specific resource, MUST NOT be owner
+              if (userId !== resourceUserId) {
+                hasPermission = true;
+                break;
+              }
+              // Is owner, cannot use _any permission for own resource
+              continue;
+            } 
+            // For other permissions without suffix
+            else {
+              hasPermission = true;
+              break;
+            }
           }
         }
 
@@ -103,6 +139,14 @@ export function authorizePermissions(...args: any[]) {
 
           if (!hasAnyPermission) {
             return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
+          }
+
+          // Verify this is NOT the user's own resource
+          if (options.getResourceOwnerId) {
+            const resourceOwnerId = await options.getResourceOwnerId(req);
+            if (resourceOwnerId === userId) {
+              return forbiddenError(res, 'Cannot use _any permission on your own resources');
+            }
           }
 
           return next();
@@ -142,14 +186,8 @@ export function authorizePermissions(...args: any[]) {
         }
       }
 
-      // No scope specified - check for exact permission or with _any suffix
-      // SECURITY FIX: Only check exact permission and _any variant
-      // Do NOT check basePermission alone as it may be a resource name only
-      const hasPermission = 
-        effectivePermissions.has(requiredPermission) ||
-        effectivePermissions.has(`${basePermission}_any`);
-
-      if (!hasPermission) {
+      // No scope specified - check for exact permission
+      if (!effectivePermissions.has(requiredPermission)) {
         console.log(`[PERMISSION DENIED] User ${userId} tried to access ${requiredPermission}`);
         console.log(`  Required: ${requiredPermission}`);
         console.log(`  User has: ${Array.from(effectivePermissions).join(', ')}`);

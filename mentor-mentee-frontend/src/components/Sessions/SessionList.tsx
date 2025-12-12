@@ -10,7 +10,6 @@ const SessionList: React.FC = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(new Set());
 
@@ -21,14 +20,12 @@ const SessionList: React.FC = () => {
   const loadSessions = async () => {
     try {
       setLoading(true);
-      setError(null);
       const data = await sessionApi.getMySessions();
       console.log('Sessions data:', data); // Debug log
       console.log('First session feedback:', data[0]?.feedback); // Debug log
       setSessions(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load sessions');
-      console.error('Error loading sessions:', err);
+      console.error('Failed to load sessions:', err);
     } finally {
       setLoading(false);
     }
@@ -37,12 +34,10 @@ const SessionList: React.FC = () => {
   const handleStartSession = async (bookingId: number) => {
     try {
       setActionLoading(bookingId);
-      setError(null);
       await sessionApi.startSession({ bookingId });
       await loadSessions();
     } catch (err: any) {
-      setError(err.message || 'Failed to start session');
-      console.error('Error starting session:', err);
+      console.error('Failed to start session:', err);
     } finally {
       setActionLoading(null);
     }
@@ -52,15 +47,13 @@ const SessionList: React.FC = () => {
     const notes = prompt('Enter session notes (optional):');
     try {
       setActionLoading(sessionId);
-      setError(null);
       await sessionApi.endSession({ 
         sessionId, 
         notes: notes || undefined 
       });
       await loadSessions();
     } catch (err: any) {
-      setError(err.message || 'Failed to end session');
-      console.error('Error ending session:', err);
+      console.error('Failed to end session:', err);
     } finally {
       setActionLoading(null);
     }
@@ -130,14 +123,6 @@ const SessionList: React.FC = () => {
           Làm mới
         </button>
       </div>
-
-      {error && (
-        <div className="error-message">
-          <span>⚠️</span>
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
 
       {sessions.length === 0 ? (
         <div className="empty-state">

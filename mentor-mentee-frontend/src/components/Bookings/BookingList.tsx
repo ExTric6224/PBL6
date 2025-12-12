@@ -10,7 +10,6 @@ const BookingList: React.FC = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('newest');
@@ -24,9 +23,8 @@ const BookingList: React.FC = () => {
       setLoading(true);
       const data = await bookingApi.getMyBookings();
       setBookings(data);
-      setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load bookings');
+      console.error('Failed to load bookings:', err);
     } finally {
       setLoading(false);
     }
@@ -133,10 +131,6 @@ const BookingList: React.FC = () => {
 
   if (loading) {
     return <div className="loading">Loading bookings...</div>;
-  }
-
-  if (error) {
-    return <div className="error">{error}</div>;
   }
 
   const filteredBookings = getFilteredAndSortedBookings();

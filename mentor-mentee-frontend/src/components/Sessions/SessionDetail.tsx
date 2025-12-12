@@ -13,7 +13,6 @@ const SessionDetail: React.FC = () => {
   const { user } = useAuth();
   const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackData, setFeedbackData] = useState({
@@ -43,7 +42,6 @@ const SessionDetail: React.FC = () => {
   const loadSession = async () => {
     try {
       setLoading(true);
-      setError(null);
       const data = await sessionApi.getMySessions();
       const foundSession = data.find((s: any) => s.id === parseInt(id!));
       if (foundSession) {
@@ -51,11 +49,10 @@ const SessionDetail: React.FC = () => {
         console.log('Feedback data:', foundSession.feedback); // Debug log
         setSession(foundSession);
       } else {
-        setError('Session not found');
+        console.error('Session not found');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load session');
-      console.error('Error loading session:', err);
+      console.error('Failed to load session:', err);
     } finally {
       setLoading(false);
     }
@@ -65,12 +62,10 @@ const SessionDetail: React.FC = () => {
     if (!session) return;
     try {
       setActionLoading(true);
-      setError(null);
       await sessionApi.startSession({ bookingId: session.bookingId });
       await loadSession();
     } catch (err: any) {
-      setError(err.message || 'Failed to start session');
-      console.error('Error starting session:', err);
+      console.error('Failed to start session:', err);
     } finally {
       setActionLoading(false);
     }
@@ -81,15 +76,13 @@ const SessionDetail: React.FC = () => {
     const notes = prompt('Enter session notes (optional):');
     try {
       setActionLoading(true);
-      setError(null);
       await sessionApi.endSession({ 
         sessionId: session.id, 
         notes: notes || undefined 
       });
       await loadSession();
     } catch (err: any) {
-      setError(err.message || 'Failed to end session');
-      console.error('Error ending session:', err);
+      console.error('Failed to end session:', err);
     } finally {
       setActionLoading(false);
     }
@@ -101,7 +94,6 @@ const SessionDetail: React.FC = () => {
     
     try {
       setActionLoading(true);
-      setError(null);
       await feedbackApi.createFeedback({
         sessionId: session.id,
         rating: feedbackData.rating,
@@ -112,8 +104,7 @@ const SessionDetail: React.FC = () => {
       setFeedbackData({ rating: 5, comment: '' });
       await loadSession(); // Reload to show the new feedback
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể gửi feedback');
-      console.error('Error submitting feedback:', err);
+      console.error('Failed to submit feedback:', err);
     } finally {
       setActionLoading(false);
     }
@@ -173,12 +164,12 @@ const SessionDetail: React.FC = () => {
     );
   }
 
-  if (error || !session) {
+  if (!session) {
     return (
       <div className="session-detail-container">
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <h3>{error || 'Session not found'}</h3>
+          <h3>Session not found</h3>
           <button className="btn-back" onClick={() => navigate('/sessions')}>
             ← Quay lại danh sách
           </button>
@@ -198,14 +189,6 @@ const SessionDetail: React.FC = () => {
           {getStatusLabel(session.status)}
         </span>
       </div>
-
-      {error && (
-        <div className="error-message">
-          <span>⚠️</span>
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
 
       <div className="detail-content">
         {/* Schedule Info Card - Now Primary */}

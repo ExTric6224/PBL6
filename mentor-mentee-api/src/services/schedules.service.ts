@@ -440,4 +440,54 @@ export class SchedulesService {
       },
     };
   }
+
+  // Hard delete schedule (Admin only) - deletes schedule and all related data
+  async hardDeleteSchedule(scheduleId: number) {
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      include: {
+        booking: {
+          include: {
+            session: {
+              include: {
+                feedback: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!schedule) {
+      throw new Error('Schedule not found');
+    }
+
+    // Delete in transaction with proper order:
+    // feedback -> session -> booking -> schedule
+    await prisma.$transaction(async (tx) => {
+      // Delete all feedback for sessions related to bookings of this schedule
+      for (const booking of schedule.booking) {
+        if (booking.session?.feedback) {
+          await tx.feedback.delete({
+            where: { id: booking.session.feedback.id },
+          });
+        }
+        if (booking.session) {
+          await tx.session.delete({
+            where: { id: booking.session.id },
+          });
+        }
+      }
+
+      // Delete all bookings
+      await tx.booking.deleteMany({
+        where: { scheduleId },
+      });
+
+      // Finally delete the schedule
+      await tx.schedule.delete({
+        where: { id: scheduleId },
+      });
+    });
+  }
 }  

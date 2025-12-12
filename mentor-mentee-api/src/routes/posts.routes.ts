@@ -34,17 +34,35 @@ router.put('/:id',
   postsController.updatePost
 );
 
-// DELETE /api/posts/:id - Xóa post (chỉ author)
+// DELETE /api/posts/:id - Xóa post (author có thể xóa post của mình, admin có thể xóa bất kỳ post nào)
 router.delete('/:id', 
-  authorizePermissions('post:delete', {
-    scope: 'own',
-    getResourceOwnerId: async (req: Request) => {
-      const post = await prisma.post.findUnique({ 
-        where: { id: Number(req.params.id) } 
-      });
-      return post?.authorId ?? null;
+  async (req, res, next) => {
+    // Check if user has delete_any permission (admin)
+    const user = (req as any).user;
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
-  }), 
+
+    // Import checkPermission dynamically to avoid circular dependency
+    const { checkPermission } = await import('../middleware/permission.middleware');
+    const hasDeleteAny = await checkPermission(user.sub, 'post:delete_any');
+
+    if (hasDeleteAny) {
+      // Admin can delete any post
+      return next();
+    }
+
+    // Regular users need post:delete_own and ownership check
+    return authorizePermissions('post:delete', {
+      scope: 'own',
+      getResourceOwnerId: async (req) => {
+        const post = await prisma.post.findUnique({ 
+          where: { id: Number(req.params.id) } 
+        });
+        return post?.authorId ?? null;
+      }
+    })(req, res, next);
+  },
   postsController.deletePost
 );
 

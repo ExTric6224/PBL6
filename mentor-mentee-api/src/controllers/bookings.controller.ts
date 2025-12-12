@@ -93,4 +93,17 @@ export class BookingsController {
       throw error;
     }
   }
+
+  async deleteBooking(req: AuthenticatedRequest, res: Response) {
+    try {
+      const bookingId = parseInt(req.params.id, 10);
+      await bookingsService.deleteBooking(bookingId);
+      return success(res, { message: 'Booking deleted successfully' });
+    } catch (error: any) {
+      if (error.message === 'Booking not found') {
+        return notFoundError(res, 'Booking not found');
+      }
+      throw error;
+    }
+  }
 }

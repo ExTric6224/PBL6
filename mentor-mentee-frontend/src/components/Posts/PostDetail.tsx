@@ -51,7 +51,7 @@ const PostDetail: React.FC = () => {
 
     try {
       await postApi.deletePost(post.id);
-      setSuccess('Xóa bài viết thành công! 🗑️');
+      setSuccess('Xóa bài viết thành công!');
       setTimeout(() => navigate('/posts'), 1500);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Không thể xóa bài viết');
