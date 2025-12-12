@@ -118,13 +118,13 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="stat-card">
+        {/* <div className="stat-card" onClick={() => navigate('/posts')} style={{cursor: 'pointer'}}>
           <div className="stat-icon">📝</div>
           <div className="stat-content">
             <div className="stat-label">Posts</div>
             <div className="stat-value">{stats?.totalPosts || 0}</div>
           </div>
-        </div>
+        </div> */}
 
         <div className="stat-card">
           <div className="stat-icon">⭐</div>
@@ -147,11 +147,11 @@ const AdminDashboard: React.FC = () => {
           <button className="btn-manage">Manage Users →</button>
         </div>
 
-        <div className="management-card" onClick={() => navigate('/posts')}>
+        <div className="management-card" onClick={() => navigate('/posts')} style={{cursor: 'pointer'}}>
           <div className="card-icon">📝</div>
           <h3>Post Management</h3>
-          <p>View and moderate all posts</p>
-          <button className="btn-manage">Manage Posts →</button>
+          <p>View, edit, and delete all posts</p>
+          <button className="btn-manage" onClick={(e) => { e.stopPropagation(); navigate('/posts'); }}>Manage Posts →</button>
         </div>
 
         <div className="management-card" onClick={() => navigate('/admin/permissions')}>

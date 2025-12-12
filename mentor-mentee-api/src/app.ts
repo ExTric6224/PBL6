@@ -17,7 +17,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = ['http://localhost:3000', 'http://129.212.235.114'];
+    const allowedOrigins = ['http://localhost:3000', 'http://165.227.7.221'];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
