@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { PostsController } from '../controllers/posts.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorizePermissions } from '../middleware/permission.middleware';
@@ -24,7 +24,7 @@ router.post('/', authorizePermissions('post:create'), postsController.createPost
 router.put('/:id', 
   authorizePermissions('post:update', {
     scope: 'own',
-    getResourceOwnerId: async (req) => {
+    getResourceOwnerId: async (req: Request) => {
       const post = await prisma.post.findUnique({ 
         where: { id: Number(req.params.id) } 
       });
@@ -70,7 +70,7 @@ router.delete('/:id',
 router.post('/:id/images',
   authorizePermissions('post:update', {
     scope: 'own',
-    getResourceOwnerId: async (req) => {
+    getResourceOwnerId: async (req: Request) => {
       const post = await prisma.post.findUnique({ 
         where: { id: Number(req.params.id) } 
       });
@@ -85,7 +85,7 @@ router.post('/:id/images',
 router.delete('/:id/images/:imageId',
   authorizePermissions('post:update', {
     scope: 'own',
-    getResourceOwnerId: async (req) => {
+    getResourceOwnerId: async (req: Request) => {
       const post = await prisma.post.findUnique({ 
         where: { id: Number(req.params.id) } 
       });

@@ -9,13 +9,13 @@
     "start": "node dist/index.js",
     "migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "seed": "ts-node prisma/seed.ts",
-    "seed:rbac": "ts-node prisma/seed-rbac.ts",
-    "seed:admin": "ts-node prisma/seed-admin.ts",
-    "seed:topics": "ts-node prisma/seed-topics.ts",
-    "seed:full": "ts-node prisma/seed-full.ts",
-    "seed:sessions": "ts-node prisma/seed-sessions.ts",
-    "fix:roleids": "ts-node scripts/fix-user-roleids.ts"
+    "seed": "npx ts-node prisma/seed.ts",
+    "seed:rbac": "npx ts-node prisma/seed-rbac.ts",
+    "seed:admin": "npx ts-node prisma/seed-admin.ts",
+    "seed:topics": "npx ts-node prisma/seed-topics.ts",
+    "seed:full": "npx ts-node prisma/seed-full.ts",
+    "seed:sessions": "npx ts-node prisma/seed-sessions.ts",
+    "fix:roleids": "npx ts-node scripts/fix-user-roleids.ts"
   },
   "keywords": [
     "mentoring",

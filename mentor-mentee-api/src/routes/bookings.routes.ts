@@ -1,10 +1,11 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { BookingsController } from '../controllers/bookings.controller';
 import { validate } from '../middleware/validate.middleware';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorizePermissions } from '../middleware/permission.middleware';
 import { createBookingSchema } from '../schemas/bookings.schema';
 import prisma from '../db/client';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 const bookingsController = new BookingsController();
@@ -14,7 +15,7 @@ router.post('/', authenticate, authorizePermissions('booking:create'), validate(
 router.patch('/:id/confirm', authenticate, authorizePermissions('booking:approve'), bookingsController.confirmBooking.bind(bookingsController));
 router.patch('/:id/cancel', authenticate, authorizePermissions('booking:cancel', {
   scope: 'own',
-  getResourceOwnerId: async (req) => {
+  getResourceOwnerId: async (req: AuthenticatedRequest) => {
     const booking = await prisma.booking.findUnique({ 
       where: { id: Number(req.params.id) },
       include: { schedule: true }

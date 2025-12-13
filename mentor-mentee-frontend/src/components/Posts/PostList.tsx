@@ -300,7 +300,7 @@ const PostList: React.FC = () => {
   };
 
   const canUserPost = () => {
-    return user?.role === 'MENTOR' || user?.role === 'ADMIN';
+    return user?.role === 'MENTOR';
   };
 
   if (loading && posts.length === 0) {
@@ -586,7 +586,7 @@ const PostList: React.FC = () => {
                           <span className="post-time">{formatDate(post.createdAt)}</span>
                         </div>
                       </div>
-                      {post.authorId === user?.id && (
+                      {post.authorId === user?.id || user?.role === 'ADMIN' ? (
                         <div className="post-actions">
                           <button className="action-btn edit" onClick={() => startEditing(post)} title="Chỉnh sửa">
                             ✏️
@@ -595,7 +595,7 @@ const PostList: React.FC = () => {
                             🗑️
                           </button>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     <div className="post-content" onClick={() => navigate(`/posts/${post.id}`)}>

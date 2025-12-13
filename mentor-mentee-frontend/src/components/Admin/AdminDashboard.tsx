@@ -170,7 +170,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="metric-card warning">
+        {/* <div className="metric-card warning" onClick={() => navigate('/posts')} style={{cursor: 'pointer'}}>
           <div className="metric-content">
             <h3>Bookings</h3>
             <div className="metric-value">{stats?.totalBookings || 0}</div>
@@ -178,7 +178,7 @@ const AdminDashboard: React.FC = () => {
               {stats?.bookingStats?.APPROVED || 0} đã duyệt
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="metric-card info">
           <div className="metric-content">
