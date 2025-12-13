@@ -50,14 +50,14 @@ const Navigation: React.FC = () => {
   // Admin có các tab quản lý riêng
   const navItems = user.role === 'ADMIN' 
     ? [
-        { path: '/admin', label: '🛡️ Dashboard' },
-        { path: '/admin/users', label: '👥 Users' },
-        { path: '/admin/posts', label: '📝 Posts' },
-        { path: '/admin/schedules', label: '🗓️ Schedules' },
-        { path: '/admin/bookings', label: '📅 Bookings' },
-        { path: '/admin/sessions', label: '🎓 Sessions' },
-        { path: '/admin/feedbacks', label: '⭐ Feedbacks' },
-        { path: '/admin/permissions', label: '🔐 Permissions' },
+        { path: '/admin', label: 'Dashboard' },
+        { path: '/admin/users', label: 'Users' },
+        { path: '/admin/posts', label: 'Posts' },
+        { path: '/admin/schedules', label: 'Schedules' },
+        { path: '/admin/bookings', label: 'Bookings' },
+        { path: '/admin/sessions', label: 'Sessions' },
+        { path: '/admin/feedbacks', label: 'Feedbacks' },
+        { path: '/admin/permissions', label: 'Permissions' },
       ]
     : [
         { path: '/posts', label: 'Posts' },

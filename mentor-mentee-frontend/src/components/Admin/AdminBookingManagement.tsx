@@ -147,12 +147,18 @@ const AdminBookingManagement: React.FC = () => {
 
   const getUserFullName = (user?: any) => {
     if (!user) return 'Unknown';
-    if (user.mentorProfile?.fullName) {
-      return user.mentorProfile.fullName;
+    
+    // Check for mentor profile (both camelCase and lowercase)
+    if (user.mentorProfile?.fullName || user.mentorprofile?.fullName) {
+      return user.mentorProfile?.fullName || user.mentorprofile?.fullName;
     }
-    if (user.menteeProfile?.fullName) {
-      return user.menteeProfile.fullName;
+    
+    // Check for mentee profile (both camelCase and lowercase)
+    if (user.menteeProfile?.fullName || user.menteeprofile?.fullName) {
+      return user.menteeProfile?.fullName || user.menteeprofile?.fullName;
     }
+    
+    // Fallback to email only if no profile name exists
     return user.email || 'Unknown';
   };
 

@@ -144,7 +144,6 @@ const AdminScheduleManagement: React.FC = () => {
     const badges: { [key: string]: { text: string; class: string } } = {
       AVAILABLE: { text: 'Có sẵn', class: 'status-available' },
       BOOKED: { text: 'Đã đặt', class: 'status-booked' },
-      COMPLETED: { text: 'Hoàn thành', class: 'status-completed' },
       CANCELLED: { text: 'Đã hủy', class: 'status-cancelled' },
     };
     return badges[status] || { text: status, class: 'status-default' };
@@ -208,7 +207,6 @@ const AdminScheduleManagement: React.FC = () => {
           <option value="ALL">All Status</option>
           <option value="AVAILABLE">Available</option>
           <option value="BOOKED">Booked</option>
-          <option value="COMPLETED">Completed</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
