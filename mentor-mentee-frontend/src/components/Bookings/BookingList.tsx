@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../services/bookingApi';
+import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
 import './BookingList.css';
@@ -112,7 +113,16 @@ const BookingList: React.FC = () => {
       alert(err.response?.data?.error?.message || 'Failed to cancel booking');
     }
   };
-
+  const handleStartSession = async (bookingId: number) => {
+    if (!window.confirm('Bắt đầu session ngay bây giờ?')) return;
+    try {
+      await sessionApi.startSession({ bookingId });
+      alert('Bắt đầu session thành công!');
+      navigate('/sessions');
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
+    }
+  };
   const handleGiveFeedback = (booking: Booking) => {
     // Navigate to feedback page with booking info
     navigate('/feedback/create', { state: { booking } });
@@ -141,66 +151,66 @@ const BookingList: React.FC = () => {
         <h1>📅 {isMentor ? 'Booking Nhận Được' : 'Booking Của Tôi'}</h1>
       </div>
 
-      {/* Search and Filters */}
-      <div className="search-filter-section">
-        {/* Search Bar */}
+      {/* Search and Controls */}
+      <div className="controls-section">
         <div className="search-box">
           <input
             type="text"
-            placeholder="Tìm kiếm booking theo tên, chủ đề, ghi chú..."
+            placeholder="Tìm kiếm booking..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
           {searchQuery && (
             <button className="clear-search" onClick={() => setSearchQuery('')}>
-              ✖
+              ×
             </button>
           )}
         </div>
 
-        {/* Status Filter */}
-        <div className="status-filter">
+        <div className="controls-group">
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="status-select"
+            className="filter-select"
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="PENDING">⏳ Chờ xác nhận</option>
-            <option value="CONFIRMED">✅ Đã xác nhận</option>
-            <option value="COMPLETED">🎉 Hoàn thành</option>
-            <option value="CANCELLED">❌ Đã hủy</option>
+            <option value="PENDING">Chờ xác nhận</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="CANCELLED">Đã hủy</option>
           </select>
-        </div>
 
-        {/* Sort Dropdown */}
-        <div className="filter-container" ref={filterDropdownRef}>
-          <button className="filter-btn" onClick={() => setShowFilters(!showFilters)}>
-            🔽 Sắp xếp
-          </button>
-          {showFilters && (
-            <div className="filter-dropdown">
-              <div className="filter-option" onClick={() => { setSortBy('newest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'newest' ? 'active' : ''}`}>
-                  {sortBy === 'newest' ? '●' : '○'}
-                </span>
-                <span>Mới nhất</span>
+          <div className="sort-container" ref={filterDropdownRef}>
+            <button 
+              className="sort-btn"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              Sắp xếp
+            </button>
+            {showFilters && (
+              <div className="sort-menu">
+                <button 
+                  className={`sort-option ${sortBy === 'upcoming' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}
+                >
+                  Sắp diễn ra
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'newest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('newest'); setShowFilters(false); }}
+                >
+                  Mới nhất
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'oldest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('oldest'); setShowFilters(false); }}
+                >
+                  Cũ nhất
+                </button>
               </div>
-              <div className="filter-option" onClick={() => { setSortBy('oldest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'oldest' ? 'active' : ''}`}>
-                  {sortBy === 'oldest' ? '●' : '○'}
-                </span>
-                <span>Cũ nhất</span>
-              </div>
-              <div className="filter-option" onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'upcoming' ? 'active' : ''}`}>
-                  {sortBy === 'upcoming' ? '●' : '○'}
-                </span>
-                <span>Sắp diễn ra</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -279,6 +289,12 @@ const BookingList: React.FC = () => {
                 {isMentor && booking.status === 'PENDING' && (
                   <button className="confirm-btn-small" onClick={() => handleConfirmBooking(booking.id)}>
                     ✓ Xác nhận
+                  </button>
+                )}
+
+                {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
+                  <button className="confirm-btn-small" onClick={() => handleStartSession(booking.id)}>
+                    ▶️ Bắt đầu
                   </button>
                 )}
 

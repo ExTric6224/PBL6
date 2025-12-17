@@ -73,7 +73,8 @@ const AdminDashboard: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (response.data?.success && response.data?.data) {
+      console.log('Statistics response:', response.data);
+      if (response.data?.data) {
         setStats(response.data.data);
       }
     } catch (error) {

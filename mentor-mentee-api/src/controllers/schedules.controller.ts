@@ -16,8 +16,18 @@ export class SchedulesController {
       const schedule = await schedulesService.createSchedule(req.user!.sub, req.body);
       return success(res, schedule, 201);
     } catch (error: any) {
+      console.error('Error creating schedule:', error);
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found. Please create your profile first.');
+      }
+      if (error.message === 'Schedule start time must be in the future') {
+        return validationError(res, error.message);
+      }
+      if (error.message === 'Schedule overlaps with existing schedule(s)') {
+        return validationError(res, error.message);
+      }
+      if (error.message.includes('duration')) {
+        return validationError(res, error.message);
       }
       throw error;
     }

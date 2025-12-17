@@ -229,12 +229,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_VIEW_OWN,
 
-    // Posts - MENTEE có đầy đủ quyền giống MENTOR
-    PERMISSIONS.POST_CREATE,
-    PERMISSIONS.POST_VIEW_OWN,
+    // Posts - MENTEE chỉ có quyền xem và like, không được tạo/sửa/xóa bài viết
     PERMISSIONS.POST_VIEW_ANY,
-    PERMISSIONS.POST_UPDATE_OWN,
-    PERMISSIONS.POST_DELETE_OWN,
     PERMISSIONS.POST_LIKE,
 
     // Profile

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../services/bookingApi';
+import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
 import './BookingDetail.css';
@@ -66,6 +67,19 @@ const BookingDetail: React.FC = () => {
 
   const handleGiveFeedback = () => {
     navigate('/feedback/create', { state: { booking } });
+  };
+
+  const handleStartSession = async () => {
+    if (!booking || !window.confirm('Bắt đầu session ngay bây giờ?')) return;
+
+    try {
+      await sessionApi.startSession({ bookingId: booking.id });
+      setSuccess('Bắt đầu session thành công! Chuyển đến trang Sessions...');
+      setTimeout(() => navigate('/sessions'), 1500);
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
+      console.error('Failed to start session:', err);
+    }
   };
 
   const formatDateTime = (date: string) => {
@@ -280,6 +294,15 @@ const BookingDetail: React.FC = () => {
               onClick={handleConfirmBooking}
             >
               ✓ Xác Nhận Booking
+            </button>
+          )}
+          
+          {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
+            <button 
+              className="btn btn-primary btn-large"
+              onClick={handleStartSession}
+            >
+              ▶️ Bắt Đầu Session
             </button>
           )}
           

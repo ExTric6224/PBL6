@@ -205,6 +205,15 @@
   background-color: #c82333;
 }
 
+.edit-button {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #138496;
+}
+
 .no-data {
   text-align: center;
   color: #999;
@@ -406,6 +415,75 @@
 
 .button-danger:hover {
   background-color: #c82333;
+}
+
+.button-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: #45a049;
+}
+
+/* Edit Modal Styles */
+.edit-modal {
+  max-width: 650px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-select {
+  cursor: pointer;
+  background-color: white;
+}
+
+.session-meta-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.session-meta-info p {
+  margin: 4px 0;
 }
 
 .admin-loading {

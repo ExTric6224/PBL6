@@ -54,8 +54,15 @@ const AdminPostManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
+  const [postToEdit, setPostToEdit] = useState<Post | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    content: '',
+    isPublic: true,
+  });
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -150,6 +157,60 @@ const AdminPostManagement: React.FC = () => {
   const handleCloseModal = () => {
     setShowDetailModal(false);
     setSelectedPost(null);
+  };
+
+  const handleEditPost = (post: Post) => {
+    setPostToEdit(post);
+    setEditFormData({
+      title: post.title,
+      content: post.content,
+      isPublic: post.isPublic,
+    });
+    setShowEditModal(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setPostToEdit(null);
+    setEditFormData({
+      title: '',
+      content: '',
+      isPublic: true,
+    });
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!postToEdit) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.put(
+        `${API_URL}/posts/${postToEdit.id}`,
+        editFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setToast({
+        show: true,
+        message: 'Post updated successfully',
+        type: 'success',
+      });
+      fetchPosts();
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error('Error updating post:', err);
+      setToast({
+        show: true,
+        message: err.response?.data?.error || 'Failed to update post',
+        type: 'error',
+      });
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -265,6 +326,13 @@ const AdminPostManagement: React.FC = () => {
                       View
                     </button>
                     <button
+                      onClick={() => handleEditPost(post)}
+                      className="action-button edit-button"
+                      title="Edit Post"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeletePost(post.id)}
                       className="action-button delete-button"
                       title="Delete Post"
@@ -359,12 +427,82 @@ const AdminPostManagement: React.FC = () => {
                 Close
               </button>
               <button
+                onClick={() => handleEditPost(selectedPost)}
+                className="button button-primary"
+              >
+                Edit Post
+              </button>
+              <button
                 onClick={() => handleDeletePost(selectedPost.id)}
                 className="button button-danger"
               >
                 Delete Post
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && postToEdit && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Post</h2>
+              <button onClick={handleCloseEditModal} className="close-button">
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="edit-title">Title *</label>
+                  <input
+                    id="edit-title"
+                    type="text"
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                    required
+                    className="form-input"
+                    placeholder="Enter post title"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-content">Content *</label>
+                  <textarea
+                    id="edit-content"
+                    value={editFormData.content}
+                    onChange={(e) => setEditFormData({ ...editFormData, content: e.target.value })}
+                    required
+                    rows={10}
+                    className="form-textarea"
+                    placeholder="Enter post content"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.isPublic}
+                      onChange={(e) => setEditFormData({ ...editFormData, isPublic: e.target.checked })}
+                    />
+                    <span>Public Post</span>
+                  </label>
+                </div>
+                <div className="post-meta-info">
+                  <p><strong>Author:</strong> {getUserFullName(postToEdit.user)}</p>
+                  <p><strong>Created:</strong> {new Date(postToEdit.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

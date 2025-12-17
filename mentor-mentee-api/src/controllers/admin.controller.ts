@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import 'express-async-errors';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { success, authError, notFoundError } from '../utils/responses';
+import { success, authError, notFoundError, internalError } from '../utils/responses';
 import prisma from '../db/client';
 
 export class AdminController {
@@ -167,10 +167,10 @@ export class AdminController {
               fullName: true,
             },
           },
-          user_session_mentorIdTouser: {
+          session_session_mentorIdTouser: {
             select: { id: true },
           },
-          feedback_mentorIdTouser: {
+          feedback_feedback_mentorIdTouser: {
             select: { rating: true },
           },
         },
@@ -179,10 +179,10 @@ export class AdminController {
       const topMentorsData = topMentors.map(mentor => ({
         id: mentor.id,
         name: mentor.mentorprofile?.fullName || mentor.email,
-        sessionCount: mentor.user_session_mentorIdTouser.length,
-        averageRating: mentor.feedback_mentorIdTouser.length > 0
-          ? Math.round((mentor.feedback_mentorIdTouser.reduce((sum, f) => sum + f.rating, 0) / 
-            mentor.feedback_mentorIdTouser.length) * 100) / 100
+        sessionCount: mentor.session_session_mentorIdTouser.length,
+        averageRating: mentor.feedback_feedback_mentorIdTouser.length > 0
+          ? Math.round((mentor.feedback_feedback_mentorIdTouser.reduce((sum, f) => sum + f.rating, 0) / 
+            mentor.feedback_feedback_mentorIdTouser.length) * 100) / 100
           : 0,
       })).sort((a, b) => b.sessionCount - a.sessionCount);
 
@@ -255,11 +255,11 @@ export class AdminController {
       // Get recent activities
       const recentActivities = await prisma.session.findMany({
         take: 10,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { id: 'desc' },
         select: {
           id: true,
           status: true,
-          createdAt: true,
+          startedAt: true,
           user_session_mentorIdTouser: {
             select: {
               email: true,
@@ -286,7 +286,7 @@ export class AdminController {
                 activity.user_session_mentorIdTouser?.email || 'Unknown',
         mentee: activity.user_session_menteeIdTouser?.menteeprofile?.fullName || 
                 activity.user_session_menteeIdTouser?.email || 'Unknown',
-        createdAt: activity.createdAt,
+        createdAt: activity.startedAt || new Date(),
       }));
 
       return success(res, {
@@ -313,7 +313,7 @@ export class AdminController {
       });
     } catch (error: any) {
       console.error('Error in getStatistics:', error);
-      return serverError(res, error.message || 'Failed to get statistics');
+      return internalError(res, error.message || 'Failed to get statistics');
     }
   }
 }

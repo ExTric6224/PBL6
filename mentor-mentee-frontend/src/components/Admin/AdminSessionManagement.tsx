@@ -25,8 +25,16 @@ const AdminSessionManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
+  const [sessionToEdit, setSessionToEdit] = useState<Session | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    status: '',
+    notes: '',
+    startedAt: '',
+    endedAt: '',
+  });
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -131,6 +139,66 @@ const AdminSessionManagement: React.FC = () => {
   const handleCloseModal = () => {
     setShowDetailModal(false);
     setSelectedSession(null);
+  };
+
+  const handleEditSession = (session: Session) => {
+    setSessionToEdit(session);
+    setEditFormData({
+      status: session.status,
+      notes: session.notes || '',
+      startedAt: session.startedAt ? new Date(session.startedAt).toISOString().slice(0, 16) : '',
+      endedAt: session.endedAt ? new Date(session.endedAt).toISOString().slice(0, 16) : '',
+    });
+    setShowEditModal(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSessionToEdit(null);
+    setEditFormData({
+      status: '',
+      notes: '',
+      startedAt: '',
+      endedAt: '',
+    });
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sessionToEdit) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const updateData: any = {
+        status: editFormData.status,
+        notes: editFormData.notes || null,
+      };
+
+      if (editFormData.startedAt) {
+        updateData.startedAt = new Date(editFormData.startedAt).toISOString();
+      }
+      if (editFormData.endedAt) {
+        updateData.endedAt = new Date(editFormData.endedAt).toISOString();
+      }
+
+      await sessionApi.updateSession(sessionToEdit.id, updateData);
+
+      setToast({
+        show: true,
+        message: 'Session updated successfully',
+        type: 'success',
+      });
+      fetchSessions();
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error('Error updating session:', err);
+      setToast({
+        show: true,
+        message: err.response?.data?.error || 'Failed to update session',
+        type: 'error',
+      });
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -265,6 +333,13 @@ const AdminSessionManagement: React.FC = () => {
                       View
                     </button>
                     <button
+                      onClick={() => handleEditSession(session)}
+                      className="action-button edit-button"
+                      title="Edit Session"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeleteSession(session.id)}
                       className="action-button delete-button"
                       title="Delete Session"
@@ -397,12 +472,95 @@ const AdminSessionManagement: React.FC = () => {
                 Close
               </button>
               <button
+                onClick={() => handleEditSession(selectedSession)}
+                className="button button-primary"
+              >
+                Edit Session
+              </button>
+              <button
                 onClick={() => handleDeleteSession(selectedSession.id)}
                 className="button button-danger"
               >
                 Delete Session
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && sessionToEdit && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Session</h2>
+              <button onClick={handleCloseEditModal} className="close-button">
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="edit-status">Status *</label>
+                  <select
+                    id="edit-status"
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                    required
+                    className="form-select"
+                  >
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-started">Started At</label>
+                  <input
+                    id="edit-started"
+                    type="datetime-local"
+                    value={editFormData.startedAt}
+                    onChange={(e) => setEditFormData({ ...editFormData, startedAt: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-ended">Ended At</label>
+                  <input
+                    id="edit-ended"
+                    type="datetime-local"
+                    value={editFormData.endedAt}
+                    onChange={(e) => setEditFormData({ ...editFormData, endedAt: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-notes">Notes</label>
+                  <textarea
+                    id="edit-notes"
+                    value={editFormData.notes}
+                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                    rows={5}
+                    className="form-textarea"
+                    placeholder="Add session notes..."
+                  />
+                </div>
+                <div className="session-meta-info">
+                  <p><strong>Mentor:</strong> {getUserFullName((sessionToEdit as any).user_session_mentorIdTouser, (sessionToEdit as any).user_session_mentorIdTouser?.mentorprofile)}</p>
+                  <p><strong>Mentee:</strong> {getUserFullName((sessionToEdit as any).user_session_menteeIdTouser, (sessionToEdit as any).user_session_menteeIdTouser?.menteeprofile)}</p>
+                  <p><strong>Topic:</strong> {(sessionToEdit as any).booking?.schedule?.topic || 'N/A'}</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

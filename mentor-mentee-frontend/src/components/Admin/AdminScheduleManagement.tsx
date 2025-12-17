@@ -26,8 +26,18 @@ const AdminScheduleManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<number | null>(null);
+  const [scheduleToEdit, setScheduleToEdit] = useState<Schedule | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    topic: '',
+    description: '',
+    startAt: '',
+    endAt: '',
+    capacity: 1,
+    status: '',
+  });
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -127,6 +137,66 @@ const AdminScheduleManagement: React.FC = () => {
   const handleCloseModal = () => {
     setShowDetailModal(false);
     setSelectedSchedule(null);
+  };
+
+  const handleEditSchedule = (schedule: Schedule) => {
+    setScheduleToEdit(schedule);
+    setEditFormData({
+      topic: schedule.topic,
+      description: schedule.description || '',
+      startAt: new Date(schedule.startAt).toISOString().slice(0, 16),
+      endAt: new Date(schedule.endAt).toISOString().slice(0, 16),
+      capacity: schedule.capacity,
+      status: schedule.status,
+    });
+    setShowEditModal(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setScheduleToEdit(null);
+    setEditFormData({
+      topic: '',
+      description: '',
+      startAt: '',
+      endAt: '',
+      capacity: 1,
+      status: '',
+    });
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scheduleToEdit) return;
+
+    try {
+      const updateData: any = {
+        topic: editFormData.topic,
+        description: editFormData.description || undefined,
+        startAt: new Date(editFormData.startAt).toISOString(),
+        endAt: new Date(editFormData.endAt).toISOString(),
+        capacity: editFormData.capacity,
+        status: editFormData.status as 'AVAILABLE' | 'BOOKED' | 'CANCELLED',
+      };
+
+      await scheduleApi.updateSchedule(scheduleToEdit.id, updateData);
+
+      setToast({
+        show: true,
+        message: 'Schedule updated successfully',
+        type: 'success',
+      });
+      fetchSchedules();
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error('Error updating schedule:', err);
+      setToast({
+        show: true,
+        message: err.response?.data?.error || 'Failed to update schedule',
+        type: 'error',
+      });
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -255,6 +325,13 @@ const AdminScheduleManagement: React.FC = () => {
                       View
                     </button>
                     <button
+                      onClick={() => handleEditSchedule(schedule)}
+                      className="action-button edit-button"
+                      title="Edit Schedule"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeleteSchedule(schedule.id)}
                       className="action-button delete-button"
                       title="Delete Schedule"
@@ -380,12 +457,123 @@ const AdminScheduleManagement: React.FC = () => {
                 Close
               </button>
               <button
+                onClick={() => handleEditSchedule(selectedSchedule)}
+                className="button button-primary"
+              >
+                Edit Schedule
+              </button>
+              <button
                 onClick={() => handleDeleteSchedule(selectedSchedule.id)}
                 className="button button-danger"
               >
                 Delete Schedule
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && scheduleToEdit && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Schedule</h2>
+              <button onClick={handleCloseEditModal} className="close-button">
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="edit-topic">Topic *</label>
+                  <input
+                    id="edit-topic"
+                    type="text"
+                    value={editFormData.topic}
+                    onChange={(e) => setEditFormData({ ...editFormData, topic: e.target.value })}
+                    required
+                    className="form-input"
+                    placeholder="Enter schedule topic"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-description">Description</label>
+                  <textarea
+                    id="edit-description"
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    rows={4}
+                    className="form-textarea"
+                    placeholder="Enter schedule description"
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-start">Start Time *</label>
+                    <input
+                      id="edit-start"
+                      type="datetime-local"
+                      value={editFormData.startAt}
+                      onChange={(e) => setEditFormData({ ...editFormData, startAt: e.target.value })}
+                      required
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-end">End Time *</label>
+                    <input
+                      id="edit-end"
+                      type="datetime-local"
+                      value={editFormData.endAt}
+                      onChange={(e) => setEditFormData({ ...editFormData, endAt: e.target.value })}
+                      required
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-capacity">Capacity *</label>
+                    <input
+                      id="edit-capacity"
+                      type="number"
+                      min="1"
+                      value={editFormData.capacity}
+                      onChange={(e) => setEditFormData({ ...editFormData, capacity: parseInt(e.target.value) })}
+                      required
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-status">Status *</label>
+                    <select
+                      id="edit-status"
+                      value={editFormData.status}
+                      onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                      required
+                      className="form-select"
+                    >
+                      <option value="AVAILABLE">Available</option>
+                      <option value="BOOKED">Booked</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="schedule-meta-info">
+                  <p><strong>Mentor:</strong> {getMentorName(scheduleToEdit)}</p>
+                  <p><strong>Created:</strong> {formatDateTime(scheduleToEdit.createdAt)}</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

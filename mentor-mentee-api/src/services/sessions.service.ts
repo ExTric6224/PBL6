@@ -445,4 +445,63 @@ export class SessionsService {
       });
     });
   }
+
+  // Update session (Admin can update any session)
+  async updateSession(sessionId: number, data: any) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Validate status if provided
+    const validStatuses = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+    if (data.status && !validStatuses.includes(data.status)) {
+      throw new Error('Invalid status. Must be one of: ' + validStatuses.join(', '));
+    }
+
+    // Update session
+    const updateData: any = {};
+    if (data.status) updateData.status = data.status;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.startedAt !== undefined) updateData.startedAt = data.startedAt ? new Date(data.startedAt) : null;
+    if (data.endedAt !== undefined) updateData.endedAt = data.endedAt ? new Date(data.endedAt) : null;
+
+    return await prisma.session.update({
+      where: { id: sessionId },
+      data: updateData,
+      include: {
+        booking: {
+          include: {
+            schedule: true,
+          },
+        },
+        user_session_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+        user_session_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+        feedback: true,
+      },
+    });
+  }
 }

@@ -59,6 +59,16 @@ const Navigation: React.FC = () => {
         { path: '/admin/feedbacks', label: 'Feedbacks' },
         { path: '/admin/permissions', label: 'Permissions' },
       ]
+    : user.role === 'MENTEE'
+    ? [
+        { path: '/posts', label: 'Posts' },
+        { path: '/mentors', label: 'Mentors' },
+        { path: '/schedules', label: 'Schedules' },
+        { path: '/bookings', label: 'Bookings' },
+        { path: '/sessions', label: 'Sessions' },
+        { path: '/feedback', label: 'Feedback' },
+        { path: '/profile', label: 'Profile' },
+      ]
     : [
         { path: '/posts', label: 'Posts' },
         { path: '/schedules', label: 'Schedules' },

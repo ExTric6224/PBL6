@@ -250,6 +250,74 @@ export class FeedbacksService {
     }));
   }
 
+  // Update feedback (Admin only)
+  async updateFeedback(feedbackId: number, data: { rating?: number; comment?: string }) {
+    const feedback = await prisma.feedback.findUnique({
+      where: { id: feedbackId },
+    });
+
+    if (!feedback) {
+      throw new Error('Feedback not found');
+    }
+
+    // Validate rating if provided
+    if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+
+    const updatedFeedback = await prisma.feedback.update({
+      where: { id: feedbackId },
+      data: {
+        rating: data.rating,
+        comment: data.comment,
+      },
+      include: {
+        user_feedback_mentorIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            mentorprofile: {
+              select: {
+                fullName: true,
+                bio: true,
+                expertise: true,
+              },
+            },
+          },
+        },
+        user_feedback_menteeIdTouser: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+        session: {
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Transform relation names
+    return {
+      ...updatedFeedback,
+      mentor: updatedFeedback.user_feedback_mentorIdTouser,
+      mentee: updatedFeedback.user_feedback_menteeIdTouser,
+      user_feedback_mentorIdTouser: undefined,
+      user_feedback_menteeIdTouser: undefined,
+    };
+  }
+
   // Delete feedback (Admin only)
   async deleteFeedback(feedbackId: number) {
     const feedback = await prisma.feedback.findUnique({

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { feedbackApi } from '../../services/feedbackApi';
 import { Feedback } from '../../types/feedback';
 import ConfirmDialog from '../Toast/ConfirmDialog';
 import Toast, { ToastType } from '../Toast/Toast';
 import './AdminFeedbackManagement.css';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 interface PaginationInfo {
   page: number;
@@ -25,8 +28,14 @@ const AdminFeedbackManagement: React.FC = () => {
   const [ratingFilter, setRatingFilter] = useState<string>('ALL');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [feedbackToDelete, setFeedbackToDelete] = useState<number | null>(null);
+  const [feedbackToEdit, setFeedbackToEdit] = useState<Feedback | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    rating: 5,
+    comment: '',
+  });
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -131,6 +140,61 @@ const AdminFeedbackManagement: React.FC = () => {
   const handleCloseModal = () => {
     setShowDetailModal(false);
     setSelectedFeedback(null);
+  };
+
+  const handleEditFeedback = (feedback: Feedback) => {
+    setFeedbackToEdit(feedback);
+    setEditFormData({
+      rating: feedback.rating,
+      comment: feedback.comment || '',
+    });
+    setShowEditModal(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setFeedbackToEdit(null);
+    setEditFormData({
+      rating: 5,
+      comment: '',
+    });
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackToEdit) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.put(
+        `${API_URL}/feedbacks/${feedbackToEdit.id}`,
+        {
+          rating: editFormData.rating,
+          comment: editFormData.comment || undefined,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setToast({
+        show: true,
+        message: 'Feedback updated successfully',
+        type: 'success',
+      });
+      fetchFeedbacks();
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error('Error updating feedback:', err);
+      setToast({
+        show: true,
+        message: err.response?.data?.error || 'Failed to update feedback',
+        type: 'error',
+      });
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -258,6 +322,13 @@ const AdminFeedbackManagement: React.FC = () => {
                       View
                     </button>
                     <button
+                      onClick={() => handleEditFeedback(feedback)}
+                      className="action-button edit-button"
+                      title="Edit Feedback"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeleteFeedback(feedback.id)}
                       className="action-button delete-button"
                       title="Delete Feedback"
@@ -353,12 +424,78 @@ const AdminFeedbackManagement: React.FC = () => {
                 Close
               </button>
               <button
+                onClick={() => handleEditFeedback(selectedFeedback)}
+                className="button button-primary"
+              >
+                Edit Feedback
+              </button>
+              <button
                 onClick={() => handleDeleteFeedback(selectedFeedback.id)}
                 className="button button-danger"
               >
                 Delete Feedback
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && feedbackToEdit && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Feedback</h2>
+              <button onClick={handleCloseEditModal} className="close-button">
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="edit-rating">Rating *</label>
+                  <select
+                    id="edit-rating"
+                    value={editFormData.rating}
+                    onChange={(e) => setEditFormData({ ...editFormData, rating: parseInt(e.target.value) })}
+                    required
+                    className="form-select"
+                  >
+                    <option value={5}>5 Stars - ⭐⭐⭐⭐⭐</option>
+                    <option value={4}>4 Stars - ⭐⭐⭐⭐</option>
+                    <option value={3}>3 Stars - ⭐⭐⭐</option>
+                    <option value={2}>2 Stars - ⭐⭐</option>
+                    <option value={1}>1 Star - ⭐</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-comment">Comment</label>
+                  <textarea
+                    id="edit-comment"
+                    value={editFormData.comment}
+                    onChange={(e) => setEditFormData({ ...editFormData, comment: e.target.value })}
+                    rows={5}
+                    className="form-textarea"
+                    placeholder="Add feedback comment..."
+                  />
+                </div>
+                <div className="feedback-meta-info">
+                  <p><strong>Mentor:</strong> {getUserFullName(feedbackToEdit.mentor, feedbackToEdit.mentor?.mentorprofile)}</p>
+                  <p><strong>Mentee:</strong> {getUserFullName(feedbackToEdit.mentee, feedbackToEdit.mentee?.menteeprofile)}</p>
+                  {feedbackToEdit.session && (
+                    <p><strong>Session ID:</strong> {feedbackToEdit.session.id}</p>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ import permissionRoutes from './permission.routes';
 import adminRoutes from './admin.routes';
 import debugRoutes from './debug.routes';
 import topicsRoutes from './topics.routes';
+import mentorRecommendationRoutes from './mentor-recommendation.routes';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/permissions', permissionRoutes);
 router.use('/admin', adminRoutes);
 router.use('/debug', debugRoutes);
 router.use('/topics', topicsRoutes);
+router.use('/mentors', mentorRecommendationRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

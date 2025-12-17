@@ -9,7 +9,7 @@ async function testAdminLogin() {
     // 1. Login as admin
     const loginResponse = await axios.post(`${API_URL}/auth/login`, {
       email: 'admin@example.com',
-      password: 'Admin@123456'
+      password: '123456'
     });
 
     const { token, user } = loginResponse.data.data;

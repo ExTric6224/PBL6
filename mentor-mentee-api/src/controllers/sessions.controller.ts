@@ -81,4 +81,20 @@ export class SessionsController {
       throw error;
     }
   }
+
+  async updateSession(req: AuthenticatedRequest, res: Response) {
+    try {
+      const sessionId = parseInt(req.params.id, 10);
+      const session = await sessionsService.updateSession(sessionId, req.body);
+      return success(res, session);
+    } catch (error: any) {
+      if (error.message === 'Session not found') {
+        return notFoundError(res, 'Session not found');
+      }
+      if (error.message.includes('Invalid status')) {
+        return conflictError(res, error.message);
+      }
+      throw error;
+    }
+  }
 }

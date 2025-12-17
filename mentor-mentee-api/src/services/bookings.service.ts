@@ -432,4 +432,58 @@ export class BookingsService {
       }
     });
   }
+
+  async updateBooking(bookingId: number, data: any) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new Error('Booking not found');
+    }
+
+    // Validate status if provided
+    const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
+    if (data.status && !validStatuses.includes(data.status)) {
+      throw new Error('Invalid status. Must be one of: ' + validStatuses.join(', '));
+    }
+
+    // Update booking
+    const updateData: any = {};
+    if (data.status) updateData.status = data.status;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+
+    return await prisma.booking.update({
+      where: { id: bookingId },
+      data: updateData,
+      include: {
+        schedule: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                mentorprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
