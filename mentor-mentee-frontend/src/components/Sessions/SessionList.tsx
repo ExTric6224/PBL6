@@ -12,6 +12,9 @@ const SessionList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [expandedSessions, setExpandedSessions] = useState<Set<number>>(new Set());
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+  const [sessionToEnd, setSessionToEnd] = useState<number | null>(null);
+  const [sessionNotes, setSessionNotes] = useState('');
 
   useEffect(() => {
     loadSessions();
@@ -43,20 +46,36 @@ const SessionList: React.FC = () => {
     }
   };
 
-  const handleEndSession = async (sessionId: number) => {
-    const notes = prompt('Enter session notes (optional):');
+  const handleEndSession = (sessionId: number) => {
+    setSessionToEnd(sessionId);
+    setSessionNotes('');
+    setShowEndSessionModal(true);
+  };
+
+  const handleConfirmEndSession = async () => {
+    if (!sessionToEnd) return;
+    
     try {
-      setActionLoading(sessionId);
+      setActionLoading(sessionToEnd);
       await sessionApi.endSession({ 
-        sessionId, 
-        notes: notes || undefined 
+        sessionId: sessionToEnd, 
+        notes: sessionNotes.trim() || undefined 
       });
       await loadSessions();
+      setShowEndSessionModal(false);
+      setSessionToEnd(null);
+      setSessionNotes('');
     } catch (err: any) {
       console.error('Failed to end session:', err);
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleCancelEndSession = () => {
+    setShowEndSessionModal(false);
+    setSessionToEnd(null);
+    setSessionNotes('');
   };
 
   const getStatusColor = (status: string) => {
@@ -315,6 +334,50 @@ const SessionList: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* End Session Modal */}
+      {showEndSessionModal && (
+        <div className="modal-overlay" onClick={handleCancelEndSession}>
+          <div className="modal-content end-session-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Kết thúc buổi học</h2>
+              <button className="modal-close" onClick={handleCancelEndSession}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="session-notes">Ghi chú về buổi học (tùy chọn)</label>
+                <textarea
+                  id="session-notes"
+                  className="form-textarea"
+                  placeholder="Nhập ghi chú về nội dung đã thảo luận, tiến độ học viên, những điểm cần cải thiện..."
+                  value={sessionNotes}
+                  onChange={(e) => setSessionNotes(e.target.value)}
+                  rows={6}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary"
+                onClick={handleCancelEndSession}
+                disabled={actionLoading !== null}
+              >
+                Hủy
+              </button>
+              <button 
+                className="btn-primary"
+                onClick={handleConfirmEndSession}
+                disabled={actionLoading !== null}
+              >
+                {actionLoading !== null ? 'Đang xử lý...' : 'Kết thúc buổi học'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

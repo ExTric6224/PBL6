@@ -5,11 +5,25 @@ import { bookingApi } from '../../services/bookingApi';
 import { Schedule, ScheduleQueryParams } from '../../types/schedule';
 import { useAuth } from '../../context/AuthContext';
 import './ScheduleList.css';
+import './pagination-styles.css';
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 
 const ScheduleList: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 9,
+    total: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({ 
@@ -36,10 +50,13 @@ const ScheduleList: React.FC = () => {
         ? await scheduleApi.getMySchedules(filters)
         : await scheduleApi.getAllSchedules(filters);
       
-      setSchedules(response.data);
+      // Backend returns array directly, not { data: [] }
+      const schedulesData = Array.isArray(response) ? response : (response.data || []);
+      setSchedules(schedulesData);
     } catch (err: any) {
       // Error will be handled by ErrorDialog via axios interceptor
       console.error('Failed to load schedules:', err);
+      setSchedules([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -48,6 +65,11 @@ const ScheduleList: React.FC = () => {
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
+
+  // Reset to page 1 when filters, search, or sort changes
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, [filters.status, searchQuery, sortBy]);
 
   // Close sort menu when clicking outside
   useEffect(() => {
@@ -99,7 +121,7 @@ const ScheduleList: React.FC = () => {
     }
 
     // Sort
-    return [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.createdAt || b.startAt).getTime() - new Date(a.createdAt || a.startAt).getTime();
@@ -111,6 +133,24 @@ const ScheduleList: React.FC = () => {
           return 0;
       }
     });
+
+    // Calculate pagination
+    const total = sorted.length;
+    const totalPages = Math.ceil(total / pagination.limit);
+    const start = (pagination.page - 1) * pagination.limit;
+    const end = start + pagination.limit;
+    const paginatedSchedules = sorted.slice(start, end);
+
+    // Update pagination info
+    if (pagination.total !== total || pagination.totalPages !== totalPages) {
+      setPagination(prev => ({
+        ...prev,
+        total,
+        totalPages,
+      }));
+    }
+
+    return paginatedSchedules;
   };
 
   const handleCreateSchedule = async (e: React.FormEvent) => {
@@ -146,12 +186,12 @@ const ScheduleList: React.FC = () => {
   };
 
   const handleDeleteSchedule = async (id: number) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa lịch này?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn Hủy lịch này?')) return;
     try {
       await scheduleApi.deleteSchedule(id);
       loadSchedules();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Không thể xóa lịch');
+      alert(err.response?.data?.error?.message || 'Không thể Hủy lịch');
     }
   };
 
@@ -284,6 +324,21 @@ const ScheduleList: React.FC = () => {
     return true;
   };
 
+  const canDeleteSchedule = (schedule: Schedule) => {
+    // Only show delete button if schedule is AVAILABLE and has no active bookings
+    if (schedule.status !== 'AVAILABLE') return false;
+    
+    // Check if there's any booking (active or not)
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return false;
+    }
+    
+    return true;
+  };
+
   if (loading && schedules.length === 0) {
     return <div className="loading-message">Loading...</div>;
   }
@@ -295,14 +350,6 @@ const ScheduleList: React.FC = () => {
       {/* Header */}
       <div className="page-header">
         <h1>{isMentor ? 'Lịch của tôi' : 'Lịch có sẵn'}</h1>
-        {isMentor && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowCreateForm(!showCreateForm)}
-          >
-            {showCreateForm ? 'Hủy' : 'Tạo lịch mới'}
-          </button>
-        )}
       </div>
 
       {/* Search and Controls */}
@@ -365,6 +412,16 @@ const ScheduleList: React.FC = () => {
               </div>
             )}
           </div>
+
+          {isMentor && (
+            <button
+              className="sort-btn create-schedule-btn"
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              title={showCreateForm ? 'Hủy' : 'Tạo lịch mới'}
+            >
+              {showCreateForm ? '✕ Hủy' : '+ Tạo lịch'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -517,6 +574,7 @@ const ScheduleList: React.FC = () => {
           </p>
         </div>
       ) : (
+        <>
         <div className="schedules-grid">
           {filteredSchedules.map((schedule) => (
             <div 
@@ -580,18 +638,42 @@ const ScheduleList: React.FC = () => {
                     Đặt lịch
                   </button>
                 )}
-                {isMentor && schedule.mentorId === user?.id && (
+                {isMentor && schedule.mentorId === user?.id && canDeleteSchedule(schedule) && (
                   <button 
                     className="btn btn-danger btn-small"
                     onClick={() => handleDeleteSchedule(schedule.id)}
                   >
-                    Xóa
+                    Hủy
                   </button>
                 )}
               </div>
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {pagination.total > 0 && (
+          <div className="pagination">
+            <button
+              onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+              disabled={pagination.page === 1 || pagination.totalPages <= 1}
+              className="pagination-button"
+            >
+              ← Trước
+            </button>
+            <span className="pagination-info">
+              Trang {pagination.page} / {pagination.totalPages} (Tổng: {pagination.total} lịch)
+            </span>
+            <button
+              onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+              disabled={pagination.page === pagination.totalPages || pagination.totalPages <= 1}
+              className="pagination-button"
+            >
+              Sau →
+            </button>
+          </div>
+        )}
+        </>
       )}
 
     </div>

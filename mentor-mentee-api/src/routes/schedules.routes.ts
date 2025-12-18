@@ -14,7 +14,7 @@ router.post('/', authenticate, authorizePermissions('schedule:create'), validate
 router.get('/', authenticate, authorizePermissions('schedule:view_any'), validateQuery(scheduleQuerySchema), schedulesController.getSchedules.bind(schedulesController));
 router.get('/my-schedules', authenticate, authorizePermissions('schedule:view_own'), validateQuery(scheduleQuerySchema), schedulesController.getMentorSchedules.bind(schedulesController));
 router.get('/:id', authenticate, authorizePermissions('schedule:view_any'), schedulesController.getScheduleById.bind(schedulesController));
-router.patch('/:id', authenticate, authorizePermissions('schedule:update_any', 'schedule:update'), validate(updateScheduleSchema), schedulesController.updateSchedule.bind(schedulesController));
-router.delete('/:id', authenticate, authorizePermissions('schedule:delete_any', 'schedule:delete'), schedulesController.deleteSchedule.bind(schedulesController));
+router.patch('/:id', authenticate, authorizePermissions('schedule:update_any', 'schedule:update_own'), validate(updateScheduleSchema), schedulesController.updateSchedule.bind(schedulesController));
+router.delete('/:id', authenticate, authorizePermissions('schedule:delete_any', 'schedule:delete_own'), schedulesController.deleteSchedule.bind(schedulesController));
 
 export default router;

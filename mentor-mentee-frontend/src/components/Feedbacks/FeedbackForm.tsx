@@ -111,8 +111,8 @@ const FeedbackForm: React.FC = () => {
       <div className="feedback-header">
         <h1>⭐ Feedback</h1>
         <p className="feedback-subtitle">
-          {isMentee && 'View feedbacks you have given to mentors'}
-          {isMentor && 'View feedbacks you have received from mentees'}
+          {isMentee && 'Xem feedbacks đã gửi cho mentors'}
+          {isMentor && 'Xem feedbacks đã nhận từ mentees'}
         </p>
       </div>
 
@@ -188,8 +188,8 @@ const FeedbackForm: React.FC = () => {
       {/* Display feedback list based on role */}
       <div className="feedback-list">
         <h2>
-          {isMentee && 'Feedbacks I Have Given'}
-          {isMentor && 'Feedbacks I Have Received'}
+          {isMentee && 'Feedbacks đã Gửi'}
+          {isMentor && 'Feedbacks đã Nhận'}
         </h2>
         
         {loading ? (

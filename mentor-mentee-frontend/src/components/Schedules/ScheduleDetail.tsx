@@ -65,15 +65,30 @@ const ScheduleDetail: React.FC = () => {
     }
   };
 
+  const canDeleteSchedule = (schedule: Schedule) => {
+    // Only show delete button if schedule is AVAILABLE and has no active bookings
+    if (schedule.status !== 'AVAILABLE') return false;
+    
+    // Check if there's any booking (active or not)
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return false;
+    }
+    
+    return true;
+  };
+
   const handleDeleteSchedule = async () => {
-    if (!schedule || !window.confirm('Bạn có chắc chắn muốn xóa lịch này?')) return;
+    if (!schedule || !window.confirm('Bạn có chắc chắn muốn hủy lịch này?')) return;
 
     try {
       await scheduleApi.deleteSchedule(schedule.id);
-      setSuccess('Xóa lịch thành công!');
+      setSuccess('hủy lịch thành công!');
       setTimeout(() => navigate('/schedules'), 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể xóa lịch');
+      setError(err.response?.data?.error?.message || 'Không thể hủy lịch');
     }
   };
 
@@ -291,12 +306,12 @@ const ScheduleDetail: React.FC = () => {
             </div>
           )}
           
-          {isMentor && schedule.mentorId === user?.id && (
+          {isMentor && schedule.mentorId === user?.id && canDeleteSchedule(schedule) && (
             <button 
               className="btn btn-danger"
               onClick={handleDeleteSchedule}
             >
-              Xóa Lịch
+              hủy Lịch
             </button>
           )}
         </div>

@@ -42,6 +42,10 @@ export class BookingsService {
     });
 
     if (existingBooking) {
+      // If previous booking was cancelled, show specific rejection message
+      if (existingBooking.status === 'CANCELLED') {
+        throw new Error('Bạn đã đặt 1 lần và bị từ chối, không thể đặt nữa');
+      }
       throw new Error('You have already booked this schedule');
     }
 
