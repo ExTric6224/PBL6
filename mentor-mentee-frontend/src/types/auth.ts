@@ -6,6 +6,7 @@ export interface User {
   updatedAt: string;
   mentorProfile?: any;
   menteeProfile?: any;
+  permissions?: string[];
 }
 
 export interface AuthResponse {

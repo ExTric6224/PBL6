@@ -69,6 +69,25 @@ const ScheduleList: React.FC = () => {
   const getFilteredAndSortedSchedules = () => {
     let filtered = schedules;
 
+    // Apply status filter with booking check
+    if (filters.status) {
+      filtered = filtered.filter(schedule => {
+        const hasActiveBooking = schedule.booking && schedule.booking.length > 0 && 
+          schedule.booking.some(b => b.status === 'PENDING' || b.status === 'CONFIRMED');
+        
+        if (filters.status === 'AVAILABLE') {
+          // Only show schedules that are truly available (no active bookings)
+          return schedule.status === 'AVAILABLE' && !hasActiveBooking;
+        } else if (filters.status === 'BOOKED') {
+          // Show schedules with active bookings OR schedule status is BOOKED
+          return hasActiveBooking || schedule.status === 'BOOKED';
+        } else {
+          // For other statuses (COMPLETED, CANCELLED), use schedule status
+          return schedule.status === filters.status;
+        }
+      });
+    }
+
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -190,22 +209,83 @@ const ScheduleList: React.FC = () => {
     });
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusBadgeClass = (schedule: Schedule) => {
+    // For mentee: check if they booked this schedule
+    if (!isMentor && user && schedule.booking && schedule.booking.length > 0) {
+      const userBooking = schedule.booking.find(b => b.userId === user.id);
+      if (userBooking) {
+        // User has booked this schedule
+        if (userBooking.status === 'COMPLETED') return 'completed';
+        return 'booked-by-you';
+      }
+      // Someone else booked it
+      const hasActiveBooking = schedule.booking.some(
+        b => (b.status === 'PENDING' || b.status === 'CONFIRMED') && b.userId !== user.id
+      );
+      if (hasActiveBooking) return 'booked-by-other';
+    }
+    
+    // For mentor or general status
+    if (schedule.status === 'COMPLETED') return 'completed';
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return 'booked';
+    }
+    return schedule.status.toLowerCase();
+  };
+
+  const getStatusText = (schedule: Schedule) => {
+    // For mentee: show personalized status
+    if (!isMentor && user && schedule.booking && schedule.booking.length > 0) {
+      const userBooking = schedule.booking.find(b => b.userId === user.id);
+      if (userBooking) {
+        // User has booked this schedule
+        if (userBooking.status === 'COMPLETED') return 'Đã hoàn thành';
+        return 'Đã đặt (bạn)';
+      }
+      // Someone else booked it
+      const hasActiveBooking = schedule.booking.some(
+        b => (b.status === 'PENDING' || b.status === 'CONFIRMED') && b.userId !== user.id
+      );
+      if (hasActiveBooking) return 'Đã có người đặt';
+    }
+    
+    // General status mapping
+    if (schedule.status === 'COMPLETED') return 'Đã hoàn thành';
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return 'Đã đặt';
+    }
+    
     const statusMap: { [key: string]: string } = {
       'AVAILABLE': 'Có thể đặt',
       'BOOKED': 'Đã đặt',
       'CANCELLED': 'Đã hủy'
     };
-    return statusMap[status] || status;
+    return statusMap[schedule.status] || schedule.status;
+  };
+
+  const canBookSchedule = (schedule: Schedule) => {
+    // Check if schedule is available
+    if (schedule.status !== 'AVAILABLE') return false;
+    
+    // Check if there's already an active booking
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return false;
+    }
+    
+    return true;
   };
 
   if (loading && schedules.length === 0) {
-    return (
-      <div className="loading-state">
-        <div className="loading-spinner"></div>
-        <p>Đang tải lịch...</p>
-      </div>
-    );
+    return <div className="loading-message">Loading...</div>;
   }
 
   const filteredSchedules = getFilteredAndSortedSchedules();
@@ -251,6 +331,7 @@ const ScheduleList: React.FC = () => {
             <option value="">Tất cả trạng thái</option>
             <option value="AVAILABLE">Có thể đặt</option>
             <option value="BOOKED">Đã đặt</option>
+            <option value="COMPLETED">Đã hoàn thành</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
 
@@ -445,8 +526,8 @@ const ScheduleList: React.FC = () => {
             >
               <div className="schedule-header">
                 <h3>{schedule.topic}</h3>
-                <span className={`status-badge status-${schedule.status.toLowerCase()}`}>
-                  {getStatusText(schedule.status)}
+                <span className={`status-badge status-${getStatusBadgeClass(schedule)}`}>
+                  {getStatusText(schedule)}
                 </span>
               </div>
 
@@ -491,7 +572,7 @@ const ScheduleList: React.FC = () => {
               )}
 
               <div className="schedule-actions" onClick={(e) => e.stopPropagation()}>
-                {!isMentor && schedule.status === 'AVAILABLE' && (
+                {!isMentor && canBookSchedule(schedule) && (
                   <button 
                     className="btn btn-primary btn-small"
                     onClick={() => handleBookSchedule(schedule.id)}

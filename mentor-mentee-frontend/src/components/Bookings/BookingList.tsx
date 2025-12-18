@@ -4,6 +4,8 @@ import { bookingApi } from '../../services/bookingApi';
 import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmDialog from '../Toast/ConfirmDialog';
+import ErrorDialog from '../Toast/ErrorDialog';
 import './BookingList.css';
 
 const BookingList: React.FC = () => {
@@ -15,6 +17,12 @@ const BookingList: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [showStartSessionConfirm, setShowStartSessionConfirm] = useState(false);
+  const [showConfirmBookingDialog, setShowConfirmBookingDialog] = useState(false);
+  const [showCancelBookingDialog, setShowCancelBookingDialog] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+  const [successDialog, setSuccessDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
   const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   const isMentor = user?.role === 'MENTOR';
@@ -92,35 +100,41 @@ const BookingList: React.FC = () => {
     return sorted;
   };
 
-  const handleConfirmBooking = async (id: number) => {
-    if (!window.confirm('Confirm this booking?')) return;
+  const handleConfirmBooking = async () => {
+    setShowConfirmBookingDialog(false);
+    if (selectedBookingId === null) return;
+    
     try {
-      await bookingApi.confirmBooking(id);
-      alert('Booking confirmed successfully!');
+      await bookingApi.confirmBooking(selectedBookingId);
+      setSuccessDialog({ isOpen: true, message: 'Booking confirmed successfully!' });
       loadBookings();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to confirm booking');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to confirm booking' });
     }
   };
 
-  const handleCancelBooking = async (id: number) => {
-    if (!window.confirm('Cancel this booking?')) return;
+  const handleCancelBooking = async () => {
+    setShowCancelBookingDialog(false);
+    if (selectedBookingId === null) return;
+    
     try {
-      await bookingApi.cancelBooking(id);
-      alert('Booking cancelled.');
+      await bookingApi.cancelBooking(selectedBookingId);
+      setSuccessDialog({ isOpen: true, message: 'Booking cancelled.' });
       loadBookings();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to cancel booking');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to cancel booking' });
     }
   };
-  const handleStartSession = async (bookingId: number) => {
-    if (!window.confirm('Bắt đầu session ngay bây giờ?')) return;
+  const handleStartSession = async () => {
+    setShowStartSessionConfirm(false);
+    if (selectedBookingId === null) return;
+    
     try {
-      await sessionApi.startSession({ bookingId });
-      alert('Bắt đầu session thành công!');
-      navigate('/sessions');
+      await sessionApi.startSession({ bookingId: selectedBookingId });
+      setSuccessDialog({ isOpen: true, message: 'Bắt đầu session thành công!' });
+      setTimeout(() => navigate('/sessions'), 1500);
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Không thể bắt đầu session' });
     }
   };
   const handleGiveFeedback = (booking: Booking) => {
@@ -287,19 +301,28 @@ const BookingList: React.FC = () => {
 
               <div className="booking-actions-quick" onClick={(e) => e.stopPropagation()}>
                 {isMentor && booking.status === 'PENDING' && (
-                  <button className="confirm-btn-small" onClick={() => handleConfirmBooking(booking.id)}>
+                  <button className="confirm-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowConfirmBookingDialog(true);
+                  }}>
                     ✓ Xác nhận
                   </button>
                 )}
 
                 {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
-                  <button className="confirm-btn-small" onClick={() => handleStartSession(booking.id)}>
+                  <button className="confirm-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowStartSessionConfirm(true);
+                  }}>
                     ▶️ Bắt đầu
                   </button>
                 )}
 
                 {booking.status === 'PENDING' && (
-                  <button className="cancel-btn-small" onClick={() => handleCancelBooking(booking.id)}>
+                  <button className="cancel-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowCancelBookingDialog(true);
+                  }}>
                     ✖ Hủy
                   </button>
                 )}
@@ -308,6 +331,58 @@ const BookingList: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Confirm Dialog for Start Session */}
+      <ConfirmDialog
+        isOpen={showStartSessionConfirm}
+        title="Bắt đầu Session"
+        message="Bạn có chắc chắn muốn bắt đầu session ngay bây giờ không?"
+        confirmText="OK"
+        cancelText="Cancel"
+        onConfirm={handleStartSession}
+        onCancel={() => setShowStartSessionConfirm(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Confirm Booking */}
+      <ConfirmDialog
+        isOpen={showConfirmBookingDialog}
+        title="Xác nhận Booking"
+        message="Confirm this booking?"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        onConfirm={handleConfirmBooking}
+        onCancel={() => setShowConfirmBookingDialog(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Cancel Booking */}
+      <ConfirmDialog
+        isOpen={showCancelBookingDialog}
+        title="Hủy Booking"
+        message="Cancel this booking?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={handleCancelBooking}
+        onCancel={() => setShowCancelBookingDialog(false)}
+        type="danger"
+      />
+
+      {/* Success Dialog */}
+      <ErrorDialog
+        isOpen={successDialog.isOpen}
+        message={successDialog.message}
+        onClose={() => setSuccessDialog({ isOpen: false, message: '' })}
+        type="success"
+      />
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={errorDialog.isOpen}
+        message={errorDialog.message}
+        onClose={() => setErrorDialog({ isOpen: false, message: '' })}
+        type="error"
+      />
     </div>
   );
 };

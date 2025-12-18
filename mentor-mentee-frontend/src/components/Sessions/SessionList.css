@@ -137,6 +137,9 @@
   padding: 20px;
   transition: all 0.2s;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .session-card:hover {
@@ -274,7 +277,7 @@
 
 /* Action Buttons */
 .session-footer {
-  margin-top: 15px;
+  margin-top: auto;
   padding-top: 15px;
   border-top: 1px solid #f0f0f0;
 }

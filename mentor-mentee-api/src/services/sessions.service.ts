@@ -5,6 +5,7 @@ export class SessionsService {
   // Tự động start session khi đến giờ
   async autoStartSessions() {
     const now = new Date();
+    console.log(`[Auto-Start] Checking at ${now.toISOString()}`);
     
     // Tìm các booking đã confirmed và đến giờ nhưng chưa có session
     const bookingsToStart = await prisma.booking.findMany({
@@ -24,6 +25,13 @@ export class SessionsService {
         schedule: true,
       },
     });
+    
+    console.log(`[Auto-Start] Found ${bookingsToStart.length} booking(s) to start`);
+    if (bookingsToStart.length > 0) {
+      bookingsToStart.forEach(b => {
+        console.log(`  - Booking #${b.id}: Schedule from ${b.schedule.startAt} to ${b.schedule.endAt}`);
+      });
+    }
 
     const startedSessions = [];
     for (const booking of bookingsToStart) {
@@ -57,6 +65,7 @@ export class SessionsService {
   // Tự động end session khi hết giờ
   async autoEndSessions() {
     const now = new Date();
+    console.log(`[Auto-End] Checking at ${now.toISOString()}`);
     
     // Tìm các session đang IN_PROGRESS và đã quá giờ kết thúc
     const sessionsToEnd = await prisma.session.findMany({
@@ -79,25 +88,51 @@ export class SessionsService {
         },
       },
     });
+    
+    console.log(`[Auto-End] Found ${sessionsToEnd.length} session(s) to end`);
+    if (sessionsToEnd.length > 0) {
+      sessionsToEnd.forEach(s => {
+        console.log(`  - Session #${s.id}: Schedule ended at ${s.booking.schedule.endAt}`);
+      });
+    }
 
     const endedSessions = [];
     for (const session of sessionsToEnd) {
       try {
-        const updated = await prisma.session.update({
-          where: { id: session.id },
-          data: {
-            endedAt: now,
-            status: 'COMPLETED',
-            autoEnded: true,
-          },
-          include: {
-            booking: {
-              include: {
-                schedule: true,
+        // Update session, booking, and schedule in a transaction
+        const updated = await prisma.$transaction(async (tx) => {
+          // Update session to COMPLETED
+          const updatedSession = await tx.session.update({
+            where: { id: session.id },
+            data: {
+              endedAt: now,
+              status: 'COMPLETED',
+              autoEnded: true,
+            },
+            include: {
+              booking: {
+                include: {
+                  schedule: true,
+                },
               },
             },
-          },
+          });
+
+          // Update booking to COMPLETED
+          await tx.booking.update({
+            where: { id: session.bookingId },
+            data: { status: 'COMPLETED' },
+          });
+
+          // Update schedule to COMPLETED
+          await tx.schedule.update({
+            where: { id: session.booking.schedule.id },
+            data: { status: 'COMPLETED' },
+          });
+
+          return updatedSession;
         });
+
         endedSessions.push(updated);
       } catch (error) {
         console.error(`Failed to auto-end session ${session.id}:`, error);
@@ -195,26 +230,44 @@ export class SessionsService {
       throw new Error('Session has already ended');
     }
 
-    return await prisma.session.update({
-      where: { id: data.sessionId },
-      data: {
-        endedAt: new Date(),
-        status: 'COMPLETED',
-        notes: data.notes,
-        autoEnded: false,
-      },
-      include: {
-        booking: {
-          include: {
-            schedule: true,
+    // Update session, booking, and schedule in a transaction
+    return await prisma.$transaction(async (tx) => {
+      // Update session to COMPLETED
+      const updatedSession = await tx.session.update({
+        where: { id: data.sessionId },
+        data: {
+          endedAt: new Date(),
+          status: 'COMPLETED',
+          notes: data.notes,
+          autoEnded: false,
+        },
+        include: {
+          booking: {
+            include: {
+              schedule: true,
+            },
           },
         },
-      },
+      });
+
+      // Update booking to COMPLETED
+      await tx.booking.update({
+        where: { id: session.bookingId },
+        data: { status: 'COMPLETED' },
+      });
+
+      // Update schedule to COMPLETED
+      await tx.schedule.update({
+        where: { id: session.booking.schedule.id },
+        data: { status: 'COMPLETED' },
+      });
+
+      return updatedSession;
     });
   }
 
   async getSessionsByMentor(mentorUserId: number) {
-    return await prisma.session.findMany({
+    const sessions = await prisma.session.findMany({
       where: { mentorId: mentorUserId },
       include: {
         booking: {
@@ -271,10 +324,25 @@ export class SessionsService {
         { startedAt: 'desc' },
       ],
     });
+
+    // Transform to add mentor/mentee at session level
+    return sessions.map(session => ({
+      ...session,
+      mentor: session.booking?.schedule?.user ? {
+        id: session.booking.schedule.user.id,
+        email: session.booking.schedule.user.email,
+        mentorProfile: session.booking.schedule.user.mentorprofile,
+      } : undefined,
+      mentee: session.booking?.user ? {
+        id: session.booking.user.id,
+        email: session.booking.user.email,
+        menteeProfile: session.booking.user.menteeprofile,
+      } : undefined,
+    }));
   }
 
   async getSessionsByMentee(menteeId: number) {
-    return await prisma.session.findMany({
+    const sessions = await prisma.session.findMany({
       where: { menteeId },
       include: {
         booking: {
@@ -331,6 +399,21 @@ export class SessionsService {
         { startedAt: 'desc' },
       ],
     });
+
+    // Transform to add mentor/mentee at session level
+    return sessions.map(session => ({
+      ...session,
+      mentor: session.booking?.schedule?.user ? {
+        id: session.booking.schedule.user.id,
+        email: session.booking.schedule.user.email,
+        mentorProfile: session.booking.schedule.user.mentorprofile,
+      } : undefined,
+      mentee: session.booking?.user ? {
+        id: session.booking.user.id,
+        email: session.booking.user.email,
+        menteeProfile: session.booking.user.menteeprofile,
+      } : undefined,
+    }));
   }
 
   async getAllSessions() {

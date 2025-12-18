@@ -107,9 +107,8 @@ const SessionList: React.FC = () => {
   if (loading) {
     return (
       <div className="sessions-container">
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Đang tải sessions...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );

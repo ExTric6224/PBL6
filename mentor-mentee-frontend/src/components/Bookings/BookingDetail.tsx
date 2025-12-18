@@ -4,6 +4,8 @@ import { bookingApi } from '../../services/bookingApi';
 import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmDialog from '../Toast/ConfirmDialog';
+import ErrorDialog from '../Toast/ErrorDialog';
 import './BookingDetail.css';
 
 const BookingDetail: React.FC = () => {
@@ -13,6 +15,10 @@ const BookingDetail: React.FC = () => {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showStartSessionConfirm, setShowStartSessionConfirm] = useState(false);
+  const [showConfirmBookingDialog, setShowConfirmBookingDialog] = useState(false);
+  const [showCancelBookingDialog, setShowCancelBookingDialog] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
   const isMentor = user?.role === 'MENTOR';
 
@@ -42,7 +48,8 @@ const BookingDetail: React.FC = () => {
   };
 
   const handleConfirmBooking = async () => {
-    if (!booking || !window.confirm('Bạn có chắc chắn muốn xác nhận booking này?')) return;
+    setShowConfirmBookingDialog(false);
+    if (!booking) return;
 
     try {
       await bookingApi.confirmBooking(booking.id);
@@ -54,7 +61,8 @@ const BookingDetail: React.FC = () => {
   };
 
   const handleCancelBooking = async () => {
-    if (!booking || !window.confirm('Bạn có chắc chắn muốn hủy booking này?')) return;
+    setShowCancelBookingDialog(false);
+    if (!booking) return;
 
     try {
       await bookingApi.cancelBooking(booking.id);
@@ -70,14 +78,15 @@ const BookingDetail: React.FC = () => {
   };
 
   const handleStartSession = async () => {
-    if (!booking || !window.confirm('Bắt đầu session ngay bây giờ?')) return;
+    setShowStartSessionConfirm(false);
+    if (!booking) return;
 
     try {
       await sessionApi.startSession({ bookingId: booking.id });
       setSuccess('Bắt đầu session thành công! Chuyển đến trang Sessions...');
       setTimeout(() => navigate('/sessions'), 1500);
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Không thể bắt đầu session' });
       console.error('Failed to start session:', err);
     }
   };
@@ -118,9 +127,8 @@ const BookingDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="booking-detail-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải booking...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );
@@ -291,7 +299,7 @@ const BookingDetail: React.FC = () => {
           {isMentor && booking.status === 'PENDING' && (
             <button 
               className="btn btn-success btn-large"
-              onClick={handleConfirmBooking}
+              onClick={() => setShowConfirmBookingDialog(true)}
             >
               ✓ Xác Nhận Booking
             </button>
@@ -300,7 +308,7 @@ const BookingDetail: React.FC = () => {
           {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
             <button 
               className="btn btn-primary btn-large"
-              onClick={handleStartSession}
+              onClick={() => setShowStartSessionConfirm(true)}
             >
               ▶️ Bắt Đầu Session
             </button>
@@ -309,7 +317,7 @@ const BookingDetail: React.FC = () => {
           {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
             <button 
               className="btn btn-danger btn-large"
-              onClick={handleCancelBooking}
+              onClick={() => setShowCancelBookingDialog(true)}
             >
               ✖ Hủy Booking
             </button>
@@ -325,6 +333,50 @@ const BookingDetail: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Confirm Dialog for Start Session */}
+      <ConfirmDialog
+        isOpen={showStartSessionConfirm}
+        title="Bắt đầu Session"
+        message="Bạn có chắc chắn muốn bắt đầu session ngay bây giờ không?"
+        confirmText="OK"
+        cancelText="Cancel"
+        onConfirm={handleStartSession}
+        onCancel={() => setShowStartSessionConfirm(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Confirm Booking */}
+      <ConfirmDialog
+        isOpen={showConfirmBookingDialog}
+        title="Xác nhận Booking"
+        message="Bạn có chắc chắn muốn xác nhận booking này?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        onConfirm={handleConfirmBooking}
+        onCancel={() => setShowConfirmBookingDialog(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Cancel Booking */}
+      <ConfirmDialog
+        isOpen={showCancelBookingDialog}
+        title="Hủy Booking"
+        message="Bạn có chắc chắn muốn hủy booking này?"
+        confirmText="Hủy booking"
+        cancelText="Không"
+        onConfirm={handleCancelBooking}
+        onCancel={() => setShowCancelBookingDialog(false)}
+        type="danger"
+      />
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={errorDialog.isOpen}
+        message={errorDialog.message}
+        onClose={() => setErrorDialog({ isOpen: false, message: '' })}
+        type="error"
+      />
     </div>
   );
 };

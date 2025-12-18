@@ -17,8 +17,7 @@ const Dashboard: React.FC = () => {
   if (!user) {
     return (
       <div className="dashboard-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading your dashboard...</p>
+        <div className="loading-message">Loading...</div>
       </div>
     );
   }
@@ -27,8 +26,7 @@ const Dashboard: React.FC = () => {
   if (user.role === 'ADMIN') {
     return (
       <div className="dashboard-loading">
-        <div className="loading-spinner"></div>
-        <p>Redirecting to admin dashboard...</p>
+        <div className="loading-message">Loading...</div>
       </div>
     );
   }

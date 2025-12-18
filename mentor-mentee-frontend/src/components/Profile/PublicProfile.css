@@ -254,6 +254,52 @@
   font-size: 16px;
 }
 
+/* Permission Denied State */
+.permission-denied {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.permission-denied .error-icon {
+  font-size: 72px;
+  display: block;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.permission-denied h3 {
+  color: #e53e3e;
+  margin-bottom: 12px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.permission-denied p {
+  color: #718096;
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.permission-denied .btn {
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.permission-denied .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 167, 38, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .public-profile-container {
@@ -458,18 +504,33 @@
 }
 
 .status-available {
-  background: #d4edda;
-  color: #155724;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .status-booked {
-  background: #d1ecf1;
-  color: #0c5460;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-booked-by-you {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-booked-by-other {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.status-completed {
+  background: #e0e7ff;
+  color: #4338ca;
 }
 
 .status-cancelled {
-  background: #f8d7da;
-  color: #721c24;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .schedule-time {

@@ -1,5 +1,5 @@
 import api from './api';
-import { Feedback, CreateFeedbackData, FeedbackQueryParams } from '../types/feedback';
+import { Feedback, CreateFeedbackData, FeedbackQueryParams, FeedbacksByMentorResponse } from '../types/feedback';
 import { ApiResponse, PaginatedResponse } from '../types/common';
 
 export const feedbackApi = {
@@ -10,12 +10,12 @@ export const feedbackApi = {
   },
 
   // Get feedbacks by mentor
-  getFeedbacksByMentor: async (mentorId: number, params?: FeedbackQueryParams): Promise<PaginatedResponse<Feedback>> => {
+  getFeedbacksByMentor: async (mentorId: number, params?: FeedbackQueryParams): Promise<FeedbacksByMentorResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await api.get<ApiResponse<PaginatedResponse<Feedback>>>(`/feedbacks/mentor/${mentorId}?${queryParams.toString()}`);
+    const response = await api.get<ApiResponse<FeedbacksByMentorResponse>>(`/feedbacks/mentor/${mentorId}?${queryParams.toString()}`);
     return response.data.data;
   },
 

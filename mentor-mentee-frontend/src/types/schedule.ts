@@ -12,6 +12,16 @@ export interface Schedule {
   status: ScheduleStatus;
   createdAt: string;
   updatedAt?: string;
+  booking?: {
+    id: number;
+    userId: number;
+    status: string;
+    notes?: string;
+    user?: {
+      id: number;
+      email: string;
+    };
+  }[];
   mentor?: {
     id: number;
     email: string;

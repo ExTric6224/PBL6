@@ -46,7 +46,7 @@ export class BookingsService {
     }
 
     // Create booking - this is a 1-1 booking (one mentor, one mentee)
-    return await prisma.booking.create({
+    const booking = await prisma.booking.create({
       data: {
         scheduleId: data.scheduleId,
         menteeId: menteeId,
@@ -73,6 +73,14 @@ export class BookingsService {
         },
       },
     });
+
+    // Update schedule status to BOOKED
+    await prisma.schedule.update({
+      where: { id: data.scheduleId },
+      data: { status: 'BOOKED' },
+    });
+
+    return booking;
   }
 
   async confirmBooking(bookingId: number, mentorUserId: number) {
@@ -216,31 +224,39 @@ export class BookingsService {
       ]);
       return updatedBooking;
     } else {
-      // If booking was only pending, just cancel it
-      return await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: 'CANCELLED' },
-        include: {
-          schedule: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  mentorprofile: true,
+      // If booking was only pending, cancel it and free up the schedule
+      const [updatedBooking] = await prisma.$transaction([
+        prisma.booking.update({
+          where: { id: bookingId },
+          data: { status: 'CANCELLED' },
+          include: {
+            schedule: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: true,
+                  },
                 },
               },
             },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-              menteeprofile: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: true,
+              },
             },
           },
-        },
-      });
+        }),
+        // Free up the schedule for new bookings
+        prisma.schedule.update({
+          where: { id: booking.scheduleId },
+          data: { status: 'AVAILABLE' },
+        }),
+      ]);
+      return updatedBooking;
     }
   }
 

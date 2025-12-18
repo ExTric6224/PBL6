@@ -306,9 +306,8 @@ const PostList: React.FC = () => {
   if (loading && posts.length === 0) {
     return (
       <div className="posts-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải bài viết...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );

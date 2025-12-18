@@ -54,14 +54,13 @@ const AdminScheduleManagement: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch all schedules with pagination
+      // Fetch all schedules (backend returns all schedules without pagination)
       const response = await scheduleApi.getAllSchedules({
-        page: pagination.page,
-        limit: pagination.limit,
         status: statusFilter !== 'ALL' ? statusFilter as any : undefined,
       });
 
-      let allSchedules = response.data;
+      // Backend returns array directly, not PaginatedResponse
+      let allSchedules = Array.isArray(response) ? response : (response.data || []);
 
       // Apply search filter on frontend
       if (searchTerm) {
@@ -74,12 +73,18 @@ const AdminScheduleManagement: React.FC = () => {
         );
       }
 
-      setSchedules(allSchedules);
+      // Calculate pagination on filtered data
+      const total = allSchedules.length;
+      const totalPages = Math.ceil(total / pagination.limit);
+      const start = (pagination.page - 1) * pagination.limit;
+      const end = start + pagination.limit;
+      const paginatedSchedules = allSchedules.slice(start, end);
+
+      setSchedules(paginatedSchedules);
       setPagination({
-        page: response.page,
-        limit: response.limit,
-        total: response.total,
-        totalPages: response.totalPages,
+        ...pagination,
+        total,
+        totalPages,
       });
     } catch (err: any) {
       console.error('Error fetching schedules:', err);
@@ -346,11 +351,11 @@ const AdminScheduleManagement: React.FC = () => {
         </table>
       </div>
 
-      {pagination.totalPages > 1 && (
+      {pagination.total > 0 && (
         <div className="pagination">
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-            disabled={pagination.page === 1}
+            disabled={pagination.page === 1 || pagination.totalPages <= 1}
             className="pagination-button"
           >
             Previous
@@ -360,7 +365,7 @@ const AdminScheduleManagement: React.FC = () => {
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-            disabled={pagination.page === pagination.totalPages}
+            disabled={pagination.page === pagination.totalPages || pagination.totalPages <= 1}
             className="pagination-button"
           >
             Next

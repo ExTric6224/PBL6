@@ -18,10 +18,19 @@ export interface Session {
   mentor?: {
     id: number;
     email: string;
+    mentorProfile?: {
+      fullName?: string;
+      avatar?: string;
+      bio?: string;
+    };
   };
   mentee?: {
     id: number;
     email: string;
+    menteeProfile?: {
+      fullName?: string;
+      avatar?: string;
+    };
   };
   booking?: {
     id: number;

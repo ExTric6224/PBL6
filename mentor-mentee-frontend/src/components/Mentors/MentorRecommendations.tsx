@@ -15,6 +15,7 @@ const MentorRecommendations: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState<'sessions' | 'rating' | 'experience' | 'feedbacks'>('sessions');
   const [selectedTopic, setSelectedTopic] = useState<number | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
@@ -58,7 +59,20 @@ const MentorRecommendations: React.FC = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [sortBy, selectedTopic]);
+  }, [sortBy, selectedTopic, searchQuery]);
+
+  // Filter mentors based on search query
+  const getFilteredMentors = () => {
+    if (!searchQuery.trim()) return mentors;
+    
+    const query = searchQuery.toLowerCase();
+    return mentors.filter(mentor => 
+      mentor.fullName?.toLowerCase().includes(query) ||
+      mentor.user.email.toLowerCase().includes(query) ||
+      mentor.school?.toLowerCase().includes(query) ||
+      mentor.bio?.toLowerCase().includes(query)
+    );
+  };
 
   const renderStars = (rating: number) => {
     const fullStars = Math.floor(rating);
@@ -82,9 +96,8 @@ const MentorRecommendations: React.FC = () => {
   if (loading && mentors.length === 0) {
     return (
       <div className="mentor-recommendations-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải danh sách mentor...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );
@@ -100,6 +113,21 @@ const MentorRecommendations: React.FC = () => {
 
       {/* Filters */}
       <div className="filters-section">
+        <div className="search-box-mentor">
+          <input
+            type="text"
+            placeholder="Tìm kiếm mentor theo tên, email, trường..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input-mentor"
+          />
+          {searchQuery && (
+            <button className="clear-search" onClick={() => setSearchQuery('')}>
+              ×
+            </button>
+          )}
+        </div>
+
         <div className="filter-group">
           <label>Sắp xếp theo:</label>
           <select
@@ -138,16 +166,16 @@ const MentorRecommendations: React.FC = () => {
       )}
 
       {/* Mentors Grid */}
-      {mentors.length === 0 ? (
+      {getFilteredMentors().length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">🔍</div>
-          <h3>Không tìm thấy mentor</h3>
-          <p>Thử thay đổi bộ lọc để xem thêm mentor khác</p>
+          <h3>{searchQuery ? 'Không tìm thấy mentor' : 'Không tìm thấy mentor'}</h3>
+          <p>{searchQuery ? `Không có kết quả cho "${searchQuery}"` : 'Thử thay đổi bộ lọc để xem thêm mentor khác'}</p>
         </div>
       ) : (
         <>
           <div className="mentors-grid">
-            {mentors.map((mentor) => (
+            {getFilteredMentors().map((mentor) => (
               <div 
                 key={mentor.id} 
                 className="mentor-card"

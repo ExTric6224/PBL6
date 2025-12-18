@@ -41,3 +41,11 @@ export interface FeedbackQueryParams {
   page?: number;
   limit?: number;
 }
+
+export interface FeedbacksByMentorResponse {
+  feedbacks: Feedback[];
+  stats: {
+    totalFeedbacks: number;
+    averageRating: number;
+  };
+}

@@ -97,4 +97,23 @@ export class SessionsController {
       throw error;
     }
   }
+
+  async triggerAutoProcessing(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (req.user!.role !== 'ADMIN') {
+        return authError(res, 'Only admins can trigger auto-processing');
+      }
+
+      const startedSessions = await sessionsService.autoStartSessions();
+      const endedSessions = await sessionsService.autoEndSessions();
+
+      return success(res, {
+        startedSessions: startedSessions.length,
+        endedSessions: endedSessions.length,
+        message: `Auto-started ${startedSessions.length} session(s) and auto-ended ${endedSessions.length} session(s)`
+      });
+    } catch (error: any) {
+      throw error;
+    }
+  }
 }

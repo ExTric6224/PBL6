@@ -306,6 +306,7 @@ model UserPermission {
 enum booking_status {
   PENDING
   CONFIRMED
+  COMPLETED
   CANCELLED
 }
 
@@ -325,5 +326,6 @@ enum user_role {
 enum schedule_status {
   AVAILABLE
   BOOKED
+  COMPLETED
   CANCELLED
 }

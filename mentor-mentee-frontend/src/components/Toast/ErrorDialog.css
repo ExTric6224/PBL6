@@ -13,6 +13,15 @@
   padding: 20px;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .error-dialog {
   background: white;
   border-radius: 16px;
@@ -24,31 +33,46 @@
   position: relative;
 }
 
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .error-dialog-icon {
   width: 64px;
   height: 64px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 48px;
   margin: 0 auto 24px;
-  animation: scaleIn 0.4s ease-out 0.1s backwards;
+}
+
+@keyframes fadeInIcon {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .error-dialog-icon.permission {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
 }
 
 .error-dialog-icon.error {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
 }
 
 .error-dialog-icon.warning {
-  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+}
+
+.error-dialog-icon.success {
 }
 
 .error-dialog-content {

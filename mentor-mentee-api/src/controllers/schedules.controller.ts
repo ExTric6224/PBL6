@@ -35,8 +35,8 @@ export class SchedulesController {
 
   async getSchedules(req: AuthenticatedRequest, res: Response) {
     try {
-      const schedules = await schedulesService.getSchedules(req.query as any);
-      return success(res, schedules);
+      const result = await schedulesService.getSchedules(req.query as any);
+      return res.status(200).json(result);
     } catch (error: any) {
       throw error;
     }
@@ -96,8 +96,8 @@ export class SchedulesController {
         return authError(res, 'Only mentors can access their schedules');
       }
 
-      const schedules = await schedulesService.getMentorSchedules(req.user!.sub, req.query as any);
-      return success(res, schedules);
+      const result = await schedulesService.getMentorSchedules(req.user!.sub, req.query as any);
+      return res.status(200).json(result);
     } catch (error: any) {
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found');
