@@ -1,0 +1,10 @@
+# Compressed archives
+*.tar.gz
+*.zip
+*.tar
+*.rar
+*.7z
+
+# Deployment files
+*.tar.bz2
+*.tgz
