@@ -10,6 +10,7 @@ const notificationsController = new NotificationsController();
 
 // All routes require authentication
 router.get('/', authenticate, authorizePermissions('notification:view_own'), notificationsController.getNotifications.bind(notificationsController));
+router.get('/unread-count', authenticate, authorizePermissions('notification:view_own'), notificationsController.getUnreadCount.bind(notificationsController));
 router.post('/', authenticate, authorizePermissions('notification:create'), validate(createNotificationSchema), notificationsController.createNotification.bind(notificationsController));
 router.post('/broadcast', authenticate, authorizePermissions('notification:create'), validate(broadcastNotificationSchema), notificationsController.broadcastNotification.bind(notificationsController));
 router.patch('/:id/read', authenticate, authorizePermissions('notification:update_own'), notificationsController.markAsRead.bind(notificationsController));

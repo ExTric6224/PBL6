@@ -3,6 +3,7 @@ import { PostsController } from '../controllers/posts.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorizePermissions } from '../middleware/permission.middleware';
 import { uploadPostImages } from '../middleware/upload.middleware';
+
 import prisma from '../db/client';
 
 const router = Router();
@@ -55,7 +56,7 @@ router.delete('/:id',
     // Regular users need post:delete_own and ownership check
     return authorizePermissions('post:delete', {
       scope: 'own',
-      getResourceOwnerId: async (req) => {
+      getResourceOwnerId: async (req: Request) => {
         const post = await prisma.post.findUnique({ 
           where: { id: Number(req.params.id) } 
         });

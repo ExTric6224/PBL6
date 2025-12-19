@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import './Navigation.css';
 
 const Navigation: React.FC = () => {
@@ -9,6 +10,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -24,6 +26,25 @@ const Navigation: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get('/notifications/unread-count');
+        setUnreadNotifications(response.data.count || 0);
+      } catch (error) {
+        console.error('Failed to fetch unread notifications:', error);
+      }
+    };
+
+    if (user) {
+      fetchUnreadCount();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -65,6 +86,7 @@ const Navigation: React.FC = () => {
         { path: '/bookings', label: 'Bookings' },
         { path: '/sessions', label: 'Sessions' },
         { path: '/feedback', label: 'Feedback' },
+        { path: '/notifications', label: 'Notifications', hasBadge: true },
         { path: '/profile', label: 'Profile' },
       ];
 
@@ -91,6 +113,9 @@ const Navigation: React.FC = () => {
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-label">{item.label}</span>
+                  {item.hasBadge && unreadNotifications > 0 && (
+                    <span className="nav-badge">{unreadNotifications}</span>
+                  )}
                 </Link>
               </li>
             ))}
@@ -159,6 +184,9 @@ const Navigation: React.FC = () => {
                   onClick={closeMobileMenu}
                 >
                   <span className="nav-label">{item.label}</span>
+                  {item.hasBadge && unreadNotifications > 0 && (
+                    <span className="mobile-nav-badge">{unreadNotifications}</span>
+                  )}
                 </Link>
               </li>
             ))}

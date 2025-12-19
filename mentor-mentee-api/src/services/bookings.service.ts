@@ -1,5 +1,6 @@
 import prisma from '../db/client';
 import { CreateBookingDto } from '../schemas/bookings.schema';
+import { NotificationsService } from './notifications.service';
 
 export class BookingsService {
   async createBooking(menteeId: number, data: CreateBookingDto) {
@@ -46,7 +47,7 @@ export class BookingsService {
     }
 
     // Create booking - this is a 1-1 booking (one mentor, one mentee)
-    return await prisma.booking.create({
+    const booking = await prisma.booking.create({
       data: {
         scheduleId: data.scheduleId,
         menteeId: menteeId,
@@ -73,6 +74,18 @@ export class BookingsService {
         },
       },
     });
+
+    // Send notification to mentor about new booking request
+    const notificationsService = new NotificationsService();
+    const bookingTime = new Date(booking.schedule.startAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    await notificationsService.createNotification(
+      booking.schedule.user.id,
+      'booking_request',
+      'New Booking Request',
+      `${booking.user.email} has requested to book your session on ${bookingTime}.`
+    );
+
+    return booking;
   }
 
   async confirmBooking(bookingId: number, mentorUserId: number) {
@@ -136,6 +149,16 @@ export class BookingsService {
         data: { status: 'BOOKED' },
       }),
     ]);
+
+    // Send notification to mentee about booking confirmation
+    const notificationsService = new NotificationsService();
+    const confirmedTime = new Date(updatedBooking.schedule.startAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    await notificationsService.createNotification(
+      updatedBooking.user.id,
+      'booking_confirmed',
+      'Booking Confirmed',
+      `Your booking with ${updatedBooking.schedule.user.email} on ${confirmedTime} has been confirmed.`
+    );
 
     return updatedBooking;
   }
@@ -248,6 +271,7 @@ export class BookingsService {
     const bookings = await prisma.booking.findMany({
       where: { menteeId },
       include: {
+        session: true,
         schedule: {
           include: {
             user: {
@@ -295,6 +319,7 @@ export class BookingsService {
         },
       },
       include: {
+        session: true,
         schedule: {
           include: {
             user: {

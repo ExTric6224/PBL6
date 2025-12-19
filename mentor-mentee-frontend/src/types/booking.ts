@@ -8,6 +8,12 @@ export interface Booking {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  session?: {
+    id: number;
+    status: string;
+    startedAt?: string;
+    endedAt?: string;
+  };
   mentee?: {
     id: number;
     email: string;

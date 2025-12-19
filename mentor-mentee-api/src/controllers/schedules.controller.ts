@@ -9,16 +9,38 @@ const schedulesService = new SchedulesService();
 export class SchedulesController {
   async createSchedule(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('[CREATE SCHEDULE] Request from user:', req.user!.sub, 'Body:', req.body);
+      
       if (req.user!.role !== 'MENTOR') {
         return authError(res, 'Only mentors can create schedules');
       }
 
       const schedule = await schedulesService.createSchedule(req.user!.sub, req.body);
+      console.log('[CREATE SCHEDULE] Success, schedule ID:', schedule.id);
       return success(res, schedule, 201);
     } catch (error: any) {
+      console.error('[CREATE SCHEDULE] Error:', error.message);
+      
+      // Handle validation errors
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found. Please create your profile first.');
       }
+      if (error.message === 'Schedule start time must be in the future') {
+        return validationError(res, error.message);
+      }
+      if (error.message === 'Schedule end time must be after start time') {
+        return validationError(res, error.message);
+      }
+      if (error.message === 'Schedule duration must be at least 30 minutes') {
+        return validationError(res, error.message);
+      }
+      if (error.message === 'Schedule duration cannot exceed 8 hours') {
+        return validationError(res, error.message);
+      }
+      if (error.message === 'Schedule overlaps with existing schedule(s)') {
+        return validationError(res, error.message);
+      }
+      
       throw error;
     }
   }

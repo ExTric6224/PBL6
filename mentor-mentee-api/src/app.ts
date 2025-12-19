@@ -17,7 +17,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = ['http://localhost:3000', 'http://165.227.7.221'];
+    const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://165.227.7.221', 'http://165.227.7.221:80'];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
@@ -59,6 +59,10 @@ app.use('/api/auth/register', rateLimit({
 app.use(pinoHttp({
   level: process.env.LOG_LEVEL || 'info',
   redact: ['req.headers.authorization', 'req.body.password'],
+  // Skip logging for health check endpoint
+  autoLogging: {
+    ignore: (req) => req.url === '/api/health',
+  },
 }));
 
 // Body parsing middleware

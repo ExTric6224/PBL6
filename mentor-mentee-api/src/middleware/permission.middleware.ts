@@ -121,7 +121,7 @@ export function authorizePermissions(...args: any[]) {
           return forbiddenError(res, `Insufficient permissions. Required one of: ${requiredPermissions.join(', ')}`);
         }
 
-        console.log(`[PERMISSION GRANTED] User ${userId} has required permission`);
+        // console.log(`[PERMISSION GRANTED] User ${userId} has required permission`);
         return next();
       }
 
@@ -194,7 +194,7 @@ export function authorizePermissions(...args: any[]) {
         return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
       }
 
-      console.log(`[PERMISSION GRANTED] User ${userId} has ${requiredPermission}`);
+      // console.log(`[PERMISSION GRANTED] User ${userId} has ${requiredPermission}`);
       return next();
     } catch (error) {
       console.error('Permission check error:', error);

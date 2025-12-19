@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../services/bookingApi';
+import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
 import './BookingList.css';
@@ -116,6 +117,18 @@ const BookingList: React.FC = () => {
   const handleGiveFeedback = (booking: Booking) => {
     // Navigate to feedback page with booking info
     navigate('/feedback/create', { state: { booking } });
+  };
+
+  const handleStartSession = async (bookingId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Bắt đầu session ngay bây giờ?')) return;
+    try {
+      const session = await sessionApi.startSession({ bookingId });
+      alert('Session đã được bắt đầu!');
+      navigate(`/sessions/${session.id}`);
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
+    }
   };
 
   const formatDateTime = (dateString: string) => {
@@ -279,6 +292,12 @@ const BookingList: React.FC = () => {
                 {isMentor && booking.status === 'PENDING' && (
                   <button className="confirm-btn-small" onClick={() => handleConfirmBooking(booking.id)}>
                     ✓ Xác nhận
+                  </button>
+                )}
+
+                {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
+                  <button className="confirm-btn-small" onClick={(e) => handleStartSession(booking.id, e)}>
+                    ▶️ Bắt đầu
                   </button>
                 )}
 

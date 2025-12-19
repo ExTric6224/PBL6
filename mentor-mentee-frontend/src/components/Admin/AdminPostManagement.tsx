@@ -62,7 +62,7 @@ const AdminPostManagement: React.FC = () => {
     type: ToastType;
   }>({ show: false, message: '', type: 'info' });
 
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
   useEffect(() => {
     fetchPosts();

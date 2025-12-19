@@ -66,6 +66,7 @@ export class FeedbacksService {
   }
 
   async getFeedbacksByMentor(mentorId: number, query: FeedbackQueryDto) {
+    console.log('[GET FEEDBACKS BY MENTOR] mentorId:', mentorId, 'query:', query);
     const where: any = { mentorId };
 
     if (query.ratingMin !== undefined || query.ratingMax !== undefined) {
@@ -89,7 +90,11 @@ export class FeedbacksService {
               select: {
                 fullName: true,
                 bio: true,
-                expertise: true,
+                expertise: {
+                  select: {
+                    topic: true,
+                  },
+                },
               },
             },
           },
@@ -105,20 +110,14 @@ export class FeedbacksService {
             },
           },
         },
-        session: {
-          include: {
-            booking: {
-              include: {
-                schedule: true,
-              },
-            },
-          },
-        },
+        session: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
+
+    console.log('[GET FEEDBACKS BY MENTOR] Found feedbacks:', feedbacks.length);
 
     // Calculate average rating
     const totalRating = feedbacks.reduce((sum: any, feedback: { rating: any; }) => sum + feedback.rating, 0);
@@ -144,6 +143,7 @@ export class FeedbacksService {
   }
 
   async getFeedbacksByMentee(menteeId: number) {
+    console.log('[GET FEEDBACKS BY MENTEE] menteeId:', menteeId);
     const feedbacks = await prisma.feedback.findMany({
       where: { menteeId },
       include: {
@@ -155,7 +155,11 @@ export class FeedbacksService {
               select: {
                 fullName: true,
                 bio: true,
-                expertise: true,
+                expertise: {
+                  select: {
+                    topic: true,
+                  },
+                },
               },
             },
           },

@@ -58,6 +58,15 @@ export class NotificationsService {
     });
   }
 
+  async getUnreadCount(userId: number) {
+    return await prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+      },
+    });
+  }
+
   async broadcastNotification(userIds: number[], type: string, title: string, content: string) {
     // Create notifications for multiple users
     const notifications = await Promise.all(

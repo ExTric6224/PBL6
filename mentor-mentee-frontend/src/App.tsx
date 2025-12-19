@@ -21,6 +21,7 @@ import BookingDetail from './components/Bookings/BookingDetail';
 import FeedbackForm from './components/Feedbacks/FeedbackForm';
 import ProfileForm from './components/Profile/ProfileForm';
 import PublicProfile from './components/Profile/PublicProfile';
+import NotificationList from './components/Notifications/NotificationList';
 import SessionList from './components/Sessions/SessionList';
 import SessionDetail from './components/Sessions/SessionDetail';
 import AdminDashboard from './components/Admin/AdminDashboard';
@@ -188,6 +189,18 @@ function App() {
                   <>
                     <Navigation />
                     <FeedbackForm />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <NotificationList />
                   </>
                 </ProtectedRoute>
               } 

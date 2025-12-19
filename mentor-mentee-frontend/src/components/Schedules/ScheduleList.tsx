@@ -11,6 +11,7 @@ const ScheduleList: React.FC = () => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({ 
     topic: '', 
@@ -20,9 +21,6 @@ const ScheduleList: React.FC = () => {
   });
   const [filters, setFilters] = useState<ScheduleQueryParams>({ status: undefined });
   const [searchQuery, setSearchQuery] = useState('');
-  const [bookingNotes, setBookingNotes] = useState('');
-  const [showBookForm, setShowBookForm] = useState(false);
-  const [selectedScheduleForBooking, setSelectedScheduleForBooking] = useState<Schedule | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('upcoming');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
@@ -37,9 +35,9 @@ const ScheduleList: React.FC = () => {
         : await scheduleApi.getAllSchedules(filters);
       
       setSchedules(response.data);
+      setError(null);
     } catch (err: any) {
-      // Error will be handled by ErrorDialog via axios interceptor
-      console.error('Failed to load schedules:', err);
+      setError(err.response?.data?.error?.message || 'Không thể tải danh sách lịch');
     } finally {
       setLoading(false);
     }
@@ -136,28 +134,11 @@ const ScheduleList: React.FC = () => {
     }
   };
 
-  const handleBookSchedule = (scheduleId: number) => {
-    const schedule = schedules.find(s => s.id === scheduleId);
-    if (schedule) {
-      setSelectedScheduleForBooking(schedule);
-      setShowBookForm(true);
-      // Scroll to top to show the form
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleConfirmBook = async () => {
-    if (!selectedScheduleForBooking) return;
-
+  const handleBookSchedule = async (scheduleId: number) => {
+    const notes = prompt('Nhập ghi chú cho mentor (tùy chọn):');
     try {
-      await bookingApi.createBooking({ 
-        scheduleId: selectedScheduleForBooking.id, 
-        notes: bookingNotes.trim() || undefined 
-      });
+      await bookingApi.createBooking({ scheduleId, notes: notes || undefined });
       alert('Đặt lịch thành công! Chờ mentor xác nhận.');
-      setShowBookForm(false);
-      setBookingNotes('');
-      setSelectedScheduleForBooking(null);
       loadSchedules();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Không thể đặt lịch');
@@ -225,6 +206,14 @@ const ScheduleList: React.FC = () => {
         )}
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="notification error">
+          <span>{error}</span>
+          <button className="close-btn" onClick={() => setError(null)}>×</button>
+        </div>
+      )}
+
       {/* Search and Controls */}
       <div className="controls-section">
         <div className="search-box">
@@ -287,48 +276,6 @@ const ScheduleList: React.FC = () => {
         </div>
       </div>
 
-      {/* Book Schedule Form */}
-      {showBookForm && selectedScheduleForBooking && !isMentor && (
-        <div className="book-form">
-          <h2>Đặt lịch: {selectedScheduleForBooking.topic}</h2>
-          <div className="schedule-info">
-            <p><strong>Mentor:</strong> {selectedScheduleForBooking.mentor?.mentorProfile?.fullName || selectedScheduleForBooking.mentor?.email}</p>
-            <p><strong>Thời gian:</strong> {formatDate(selectedScheduleForBooking.startAt)} {formatTime(selectedScheduleForBooking.startAt)} - {formatTime(selectedScheduleForBooking.endAt)}</p>
-            {selectedScheduleForBooking.description && (
-              <p><strong>Mô tả:</strong> {selectedScheduleForBooking.description}</p>
-            )}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); handleConfirmBook(); }}>
-            <div className="form-group">
-              <label>Ghi chú cho mentor (tùy chọn)</label>
-              <textarea
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                placeholder="Ví dụ: Tôi muốn học về React hooks..."
-                rows={4}
-                className="form-textarea"
-              />
-            </div>
-            <div className="form-actions">
-              <button 
-                type="button" 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setShowBookForm(false);
-                  setBookingNotes('');
-                  setSelectedScheduleForBooking(null);
-                }}
-              >
-                Hủy
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Đặt lịch
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* Create Schedule Form */}
       {showCreateForm && isMentor && (
         <div className="create-form">
@@ -379,44 +326,6 @@ const ScheduleList: React.FC = () => {
               </button>
               <button type="submit" className="btn btn-primary">
                 Tạo lịch
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Book Schedule Form */}
-      {showBookForm && selectedScheduleForBooking && !isMentor && (
-        <div className="book-form">
-          <h2>Đặt lịch: {selectedScheduleForBooking.topic}</h2>
-          <div className="schedule-info">
-            <p><strong>Mentor:</strong> {selectedScheduleForBooking.mentor?.mentorProfile?.fullName || selectedScheduleForBooking.mentor?.email}</p>
-            <p><strong>Thời gian:</strong> {formatDate(selectedScheduleForBooking.startAt)} {formatTime(selectedScheduleForBooking.startAt)} - {formatTime(selectedScheduleForBooking.endAt)}</p>
-            {selectedScheduleForBooking.description && (
-              <p><strong>Mô tả:</strong> {selectedScheduleForBooking.description}</p>
-            )}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); handleConfirmBook(); }}>
-            <div className="form-group">
-              <label>Ghi chú cho mentor (tùy chọn)</label>
-              <textarea
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                placeholder="Ví dụ: Tôi muốn học về React hooks..."
-                rows={4}
-                className="form-textarea"
-              />
-            </div>
-            <div className="form-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => {
-                setShowBookForm(false);
-                setBookingNotes('');
-                setSelectedScheduleForBooking(null);
-              }}>
-                Hủy
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Đặt lịch
               </button>
             </div>
           </form>
@@ -512,7 +421,6 @@ const ScheduleList: React.FC = () => {
           ))}
         </div>
       )}
-
     </div>
   );
 };

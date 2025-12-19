@@ -109,10 +109,10 @@ const FeedbackForm: React.FC = () => {
   return (
     <div className="feedback-container">
       <div className="feedback-header">
-        <h1>⭐ Feedback</h1>
+        <h1>⭐ Đánh giá</h1>
         <p className="feedback-subtitle">
-          {isMentee && 'View feedbacks you have given to mentors'}
-          {isMentor && 'View feedbacks you have received from mentees'}
+          {isMentee && 'Xem các đánh giá bạn đã gửi cho mentor'}
+          {isMentor && 'Xem các đánh giá bạn đã nhận từ mentee'}
         </p>
       </div>
 
@@ -193,8 +193,8 @@ const FeedbackForm: React.FC = () => {
       {/* Display feedback list based on role */}
       <div className="feedback-list">
         <h2>
-          {isMentee && 'Feedbacks I Have Given'}
-          {isMentor && 'Feedbacks I Have Received'}
+          {isMentee && 'Các đánh giá tôi đã gửi'}
+          {isMentor && 'Đánh giá đã nhận'}
         </h2>
         
         {loading ? (
@@ -218,7 +218,7 @@ const FeedbackForm: React.FC = () => {
                 {/* MENTEE sees: Feedback for Mentor X */}
                 {isMentee && (
                   <span>
-                    Feedback for: {
+                    Đánh giá đến từ: {
                       feedback.mentor?.mentorprofile?.fullName || 
                       feedback.mentor?.email || 
                       'Unknown Mentor'
@@ -229,7 +229,7 @@ const FeedbackForm: React.FC = () => {
                 {/* MENTOR sees: Feedback from Mentee X */}
                 {isMentor && (
                   <span>
-                    Feedback from: {
+                    Đánh giá đến từ: {
                       feedback.mentee?.menteeprofile?.fullName || 
                       feedback.mentee?.email || 
                       'Anonymous Mentee'

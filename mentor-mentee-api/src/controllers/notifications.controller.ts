@@ -39,6 +39,15 @@ export class NotificationsController {
     }
   }
 
+  async getUnreadCount(req: AuthenticatedRequest, res: Response) {
+    try {
+      const count = await notificationsService.getUnreadCount(req.user!.sub);
+      return success(res, { count });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
   async createNotification(req: AuthenticatedRequest, res: Response) {
     try {
       const { userId, type, title, content } = req.body;

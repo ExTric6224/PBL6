@@ -32,13 +32,13 @@ export async function getEffectivePermissions(userId: number): Promise<Set<strin
         }
       }
     });
-    console.log(`[PERMISSIONS] User ${userId} roleId: ${user.roleId}, permissions: ${rolePermissions.length}`);
+    // console.log(`[PERMISSIONS] User ${userId} roleId: ${user.roleId}, permissions: ${rolePermissions.length}`);
     rolePermissions.forEach(rp => {
       result.add(rp.permission.code);
-      console.log(`  [ROLE] Added: ${rp.permission.code}`);
+      // console.log(`  [ROLE] Added: ${rp.permission.code}`);
     });
   } else {
-    console.log(`[PERMISSIONS] User ${userId} has NO roleId`);
+    // console.log(`[PERMISSIONS] User ${userId} has NO roleId`);
   }
 
   // 2) Apply user-specific overrides (grant or revoke)
@@ -50,7 +50,7 @@ export async function getEffectivePermissions(userId: number): Promise<Set<strin
     }
   });
 
-  console.log(`[PERMISSIONS] User ${userId} effective permissions: ${Array.from(result).join(', ')}`);
+  // console.log(`[PERMISSIONS] User ${userId} effective permissions: ${Array.from(result).join(', ')}`);
 
   return result;
 }
