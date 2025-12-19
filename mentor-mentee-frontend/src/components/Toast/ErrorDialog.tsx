@@ -6,7 +6,7 @@ interface ErrorDialogProps {
   title?: string;
   message: string;
   onClose: () => void;
-  type?: 'permission' | 'error' | 'warning';
+  type?: 'permission' | 'error' | 'warning' | 'success';
 }
 
 const ErrorDialog: React.FC<ErrorDialogProps> = ({
@@ -26,6 +26,8 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
         return '❌';
       case 'warning':
         return '⚠️';
+      case 'success':
+        return '✅';
       default:
         return '❌';
     }
@@ -41,6 +43,8 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
         return 'Error';
       case 'warning':
         return 'Warning';
+      case 'success':
+        return 'Success';
       default:
         return 'Error';
     }

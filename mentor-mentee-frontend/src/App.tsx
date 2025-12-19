@@ -24,6 +24,7 @@ import PublicProfile from './components/Profile/PublicProfile';
 import NotificationList from './components/Notifications/NotificationList';
 import SessionList from './components/Sessions/SessionList';
 import SessionDetail from './components/Sessions/SessionDetail';
+import MentorRecommendations from './components/Mentors/MentorRecommendations';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminUserManagement from './components/Admin/AdminUserManagement';
 import AdminPermissionManagement from './components/Admin/AdminPermissionManagement';
@@ -141,6 +142,18 @@ function App() {
                   <>
                     <Navigation />
                     <BookingDetail />
+                  </>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/mentors" 
+              element={
+                <ProtectedRoute>
+                  <>
+                    <Navigation />
+                    <MentorRecommendations />
                   </>
                 </ProtectedRoute>
               } 

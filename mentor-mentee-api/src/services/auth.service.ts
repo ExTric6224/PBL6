@@ -89,6 +89,7 @@ export class AuthService {
         updatedAt: true,
         mentorprofile: true,
         menteeprofile: true,
+        roleId: true,
       },
     });
 
@@ -96,7 +97,17 @@ export class AuthService {
       throw new Error('User not found');
     }
 
-    return user;
+    // Get user permissions from RBAC
+    let permissions: string[] = [];
+    if (user.roleId) {
+      const rolePermissions = await prisma.rolePermission.findMany({
+        where: { roleId: user.roleId },
+        include: { permission: true },
+      });
+      permissions = rolePermissions.map(rp => rp.permission.code);
+    }
+
+    return { ...user, permissions };
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {

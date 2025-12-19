@@ -4,6 +4,8 @@ import { bookingApi } from '../../services/bookingApi';
 import { sessionApi } from '../../services/sessionApi';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmDialog from '../Toast/ConfirmDialog';
+import ErrorDialog from '../Toast/ErrorDialog';
 import './BookingList.css';
 
 const BookingList: React.FC = () => {
@@ -15,6 +17,12 @@ const BookingList: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [showStartSessionConfirm, setShowStartSessionConfirm] = useState(false);
+  const [showConfirmBookingDialog, setShowConfirmBookingDialog] = useState(false);
+  const [showCancelBookingDialog, setShowCancelBookingDialog] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+  const [successDialog, setSuccessDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
   const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   const isMentor = user?.role === 'MENTOR';
@@ -92,43 +100,46 @@ const BookingList: React.FC = () => {
     return sorted;
   };
 
-  const handleConfirmBooking = async (id: number) => {
-    if (!window.confirm('Confirm this booking?')) return;
+  const handleConfirmBooking = async () => {
+    setShowConfirmBookingDialog(false);
+    if (selectedBookingId === null) return;
+    
     try {
-      await bookingApi.confirmBooking(id);
-      alert('Booking confirmed successfully!');
+      await bookingApi.confirmBooking(selectedBookingId);
+      setSuccessDialog({ isOpen: true, message: 'Booking confirmed successfully!' });
       loadBookings();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to confirm booking');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to confirm booking' });
     }
   };
 
-  const handleCancelBooking = async (id: number) => {
-    if (!window.confirm('Cancel this booking?')) return;
+  const handleCancelBooking = async () => {
+    setShowCancelBookingDialog(false);
+    if (selectedBookingId === null) return;
+    
     try {
-      await bookingApi.cancelBooking(id);
-      alert('Booking cancelled.');
+      await bookingApi.cancelBooking(selectedBookingId);
+      setSuccessDialog({ isOpen: true, message: 'Booking cancelled.' });
       loadBookings();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to cancel booking');
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to cancel booking' });
     }
   };
-
+  const handleStartSession = async () => {
+    setShowStartSessionConfirm(false);
+    if (selectedBookingId === null) return;
+    
+    try {
+      await sessionApi.startSession({ bookingId: selectedBookingId });
+      setSuccessDialog({ isOpen: true, message: 'Bắt đầu session thành công!' });
+      setTimeout(() => navigate('/sessions'), 1500);
+    } catch (err: any) {
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Không thể bắt đầu session' });
+    }
+  };
   const handleGiveFeedback = (booking: Booking) => {
     // Navigate to feedback page with booking info
     navigate('/feedback/create', { state: { booking } });
-  };
-
-  const handleStartSession = async (bookingId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!window.confirm('Bắt đầu session ngay bây giờ?')) return;
-    try {
-      const session = await sessionApi.startSession({ bookingId });
-      alert('Session đã được bắt đầu!');
-      navigate(`/sessions/${session.id}`);
-    } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Không thể bắt đầu session');
-    }
   };
 
   const formatDateTime = (dateString: string) => {
@@ -154,66 +165,66 @@ const BookingList: React.FC = () => {
         <h1>📅 {isMentor ? 'Booking Nhận Được' : 'Booking Của Tôi'}</h1>
       </div>
 
-      {/* Search and Filters */}
-      <div className="search-filter-section">
-        {/* Search Bar */}
+      {/* Search and Controls */}
+      <div className="controls-section">
         <div className="search-box">
           <input
             type="text"
-            placeholder="Tìm kiếm booking theo tên, chủ đề, ghi chú..."
+            placeholder="Tìm kiếm booking..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
           {searchQuery && (
             <button className="clear-search" onClick={() => setSearchQuery('')}>
-              ✖
+              ×
             </button>
           )}
         </div>
 
-        {/* Status Filter */}
-        <div className="status-filter">
+        <div className="controls-group">
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="status-select"
+            className="filter-select"
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="PENDING">⏳ Chờ xác nhận</option>
-            <option value="CONFIRMED">✅ Đã xác nhận</option>
-            <option value="COMPLETED">🎉 Hoàn thành</option>
-            <option value="CANCELLED">❌ Đã hủy</option>
+            <option value="PENDING">Chờ xác nhận</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="CANCELLED">Đã hủy</option>
           </select>
-        </div>
 
-        {/* Sort Dropdown */}
-        <div className="filter-container" ref={filterDropdownRef}>
-          <button className="filter-btn" onClick={() => setShowFilters(!showFilters)}>
-            🔽 Sắp xếp
-          </button>
-          {showFilters && (
-            <div className="filter-dropdown">
-              <div className="filter-option" onClick={() => { setSortBy('newest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'newest' ? 'active' : ''}`}>
-                  {sortBy === 'newest' ? '●' : '○'}
-                </span>
-                <span>Mới nhất</span>
+          <div className="sort-container" ref={filterDropdownRef}>
+            <button 
+              className="sort-btn"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              Sắp xếp
+            </button>
+            {showFilters && (
+              <div className="sort-menu">
+                <button 
+                  className={`sort-option ${sortBy === 'upcoming' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}
+                >
+                  Sắp diễn ra
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'newest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('newest'); setShowFilters(false); }}
+                >
+                  Mới nhất
+                </button>
+                <button 
+                  className={`sort-option ${sortBy === 'oldest' ? 'active' : ''}`}
+                  onClick={() => { setSortBy('oldest'); setShowFilters(false); }}
+                >
+                  Cũ nhất
+                </button>
               </div>
-              <div className="filter-option" onClick={() => { setSortBy('oldest'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'oldest' ? 'active' : ''}`}>
-                  {sortBy === 'oldest' ? '●' : '○'}
-                </span>
-                <span>Cũ nhất</span>
-              </div>
-              <div className="filter-option" onClick={() => { setSortBy('upcoming'); setShowFilters(false); }}>
-                <span className={`option-radio ${sortBy === 'upcoming' ? 'active' : ''}`}>
-                  {sortBy === 'upcoming' ? '●' : '○'}
-                </span>
-                <span>Sắp diễn ra</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -290,19 +301,28 @@ const BookingList: React.FC = () => {
 
               <div className="booking-actions-quick" onClick={(e) => e.stopPropagation()}>
                 {isMentor && booking.status === 'PENDING' && (
-                  <button className="confirm-btn-small" onClick={() => handleConfirmBooking(booking.id)}>
+                  <button className="confirm-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowConfirmBookingDialog(true);
+                  }}>
                     ✓ Xác nhận
                   </button>
                 )}
 
                 {isMentor && booking.status === 'CONFIRMED' && !booking.session && (
-                  <button className="confirm-btn-small" onClick={(e) => handleStartSession(booking.id, e)}>
+                  <button className="confirm-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowStartSessionConfirm(true);
+                  }}>
                     ▶️ Bắt đầu
                   </button>
                 )}
 
                 {booking.status === 'PENDING' && (
-                  <button className="cancel-btn-small" onClick={() => handleCancelBooking(booking.id)}>
+                  <button className="cancel-btn-small" onClick={() => {
+                    setSelectedBookingId(booking.id);
+                    setShowCancelBookingDialog(true);
+                  }}>
                     ✖ Hủy
                   </button>
                 )}
@@ -311,6 +331,58 @@ const BookingList: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Confirm Dialog for Start Session */}
+      <ConfirmDialog
+        isOpen={showStartSessionConfirm}
+        title="Bắt đầu Session"
+        message="Bạn có chắc chắn muốn bắt đầu session ngay bây giờ không?"
+        confirmText="OK"
+        cancelText="Cancel"
+        onConfirm={handleStartSession}
+        onCancel={() => setShowStartSessionConfirm(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Confirm Booking */}
+      <ConfirmDialog
+        isOpen={showConfirmBookingDialog}
+        title="Xác nhận Booking"
+        message="Confirm this booking?"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        onConfirm={handleConfirmBooking}
+        onCancel={() => setShowConfirmBookingDialog(false)}
+        type="info"
+      />
+
+      {/* Confirm Dialog for Cancel Booking */}
+      <ConfirmDialog
+        isOpen={showCancelBookingDialog}
+        title="Hủy Booking"
+        message="Cancel this booking?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={handleCancelBooking}
+        onCancel={() => setShowCancelBookingDialog(false)}
+        type="danger"
+      />
+
+      {/* Success Dialog */}
+      <ErrorDialog
+        isOpen={successDialog.isOpen}
+        message={successDialog.message}
+        onClose={() => setSuccessDialog({ isOpen: false, message: '' })}
+        type="success"
+      />
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={errorDialog.isOpen}
+        message={errorDialog.message}
+        onClose={() => setErrorDialog({ isOpen: false, message: '' })}
+        type="error"
+      />
     </div>
   );
 };

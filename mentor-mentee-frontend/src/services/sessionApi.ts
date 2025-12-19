@@ -25,4 +25,10 @@ export const sessionApi = {
   deleteSession: async (id: number): Promise<void> => {
     await api.delete(`/sessions/${id}`);
   },
+
+  // Update session (ADMIN)
+  updateSession: async (id: number, data: any): Promise<Session> => {
+    const response = await api.put<ApiResponse<Session>>(`/sessions/${id}`, data);
+    return response.data.data;
+  },
 };

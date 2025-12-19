@@ -1,4 +1,5 @@
 import { BookingStatus } from './common';
+import { Session } from './session';
 
 export interface Booking {
   id: number;
@@ -8,12 +9,7 @@ export interface Booking {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  session?: {
-    id: number;
-    status: string;
-    startedAt?: string;
-    endedAt?: string;
-  };
+  session?: Session;
   mentee?: {
     id: number;
     email: string;

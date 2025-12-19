@@ -26,8 +26,14 @@ const AdminBookingManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [bookingToDelete, setBookingToDelete] = useState<number | null>(null);
+  const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    status: '',
+    notes: '',
+  });
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -139,6 +145,61 @@ const AdminBookingManagement: React.FC = () => {
     setSelectedBooking(null);
   };
 
+  const handleEditBooking = (booking: Booking) => {
+    setBookingToEdit(booking);
+    setEditFormData({
+      status: booking.status,
+      notes: booking.notes || '',
+    });
+    setShowEditModal(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setBookingToEdit(null);
+    setEditFormData({
+      status: '',
+      notes: '',
+    });
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingToEdit) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.put(
+        `${API_URL}/bookings/${bookingToEdit.id}`,
+        {
+          status: editFormData.status as 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED',
+          notes: editFormData.notes || undefined,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setToast({
+        show: true,
+        message: 'Booking updated successfully',
+        type: 'success',
+      });
+      fetchBookings();
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error('Error updating booking:', err);
+      setToast({
+        show: true,
+        message: err.response?.data?.error || 'Failed to update booking',
+        type: 'error',
+      });
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPagination({ ...pagination, page: 1 });
@@ -147,12 +208,18 @@ const AdminBookingManagement: React.FC = () => {
 
   const getUserFullName = (user?: any) => {
     if (!user) return 'Unknown';
-    if (user.mentorProfile?.fullName) {
-      return user.mentorProfile.fullName;
+    
+    // Check for mentor profile (both camelCase and lowercase)
+    if (user.mentorProfile?.fullName || user.mentorprofile?.fullName) {
+      return user.mentorProfile?.fullName || user.mentorprofile?.fullName;
     }
-    if (user.menteeProfile?.fullName) {
-      return user.menteeProfile.fullName;
+    
+    // Check for mentee profile (both camelCase and lowercase)
+    if (user.menteeProfile?.fullName || user.menteeprofile?.fullName) {
+      return user.menteeProfile?.fullName || user.menteeprofile?.fullName;
     }
+    
+    // Fallback to email only if no profile name exists
     return user.email || 'Unknown';
   };
 
@@ -273,6 +340,13 @@ const AdminBookingManagement: React.FC = () => {
                       View
                     </button>
                     <button
+                      onClick={() => handleEditBooking(booking)}
+                      className="action-button edit-button"
+                      title="Edit Booking"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeleteBooking(booking.id)}
                       className="action-button delete-button"
                       title="Delete Booking"
@@ -382,12 +456,76 @@ const AdminBookingManagement: React.FC = () => {
                 Close
               </button>
               <button
+                onClick={() => handleEditBooking(selectedBooking)}
+                className="button button-primary"
+              >
+                Edit Booking
+              </button>
+              <button
                 onClick={() => handleDeleteBooking(selectedBooking.id)}
                 className="button button-danger"
               >
                 Delete Booking
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && bookingToEdit && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Booking</h2>
+              <button onClick={handleCloseEditModal} className="close-button">
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="edit-status">Status *</label>
+                  <select
+                    id="edit-status"
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                    required
+                    className="form-select"
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-notes">Notes</label>
+                  <textarea
+                    id="edit-notes"
+                    value={editFormData.notes}
+                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                    rows={5}
+                    className="form-textarea"
+                    placeholder="Add booking notes..."
+                  />
+                </div>
+                <div className="booking-meta-info">
+                  <p><strong>Mentee:</strong> {getUserFullName(bookingToEdit.mentee)}</p>
+                  <p><strong>Mentor:</strong> {getUserFullName(bookingToEdit.schedule?.mentor)}</p>
+                  <p><strong>Topic:</strong> {bookingToEdit.schedule?.topic || 'N/A'}</p>
+                  <p><strong>Schedule:</strong> {bookingToEdit.schedule ? formatDateTime(bookingToEdit.schedule.startAt) : 'N/A'}</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

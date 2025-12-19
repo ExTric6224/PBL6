@@ -31,6 +31,7 @@ router.patch('/:id/cancel', authenticate, authorizePermissions('booking:cancel',
   }
 }), bookingsController.cancelBooking.bind(bookingsController));
 router.get('/my', authenticate, authorizePermissions('booking:view_own'), bookingsController.getMyBookings.bind(bookingsController));
+router.put('/:id', authenticate, authorizePermissions('booking:update_any', 'booking:update'), bookingsController.updateBooking.bind(bookingsController));
 router.delete('/:id', authenticate, authorizePermissions('booking:delete'), bookingsController.deleteBooking.bind(bookingsController));
 
 export default router;

@@ -19,6 +19,8 @@ router.post('/end', authenticate, authorizePermissions('session:update', {
   }
 }), validate(endSessionSchema), sessionsController.endSession.bind(sessionsController));
 router.get('/my', authenticate, authorizePermissions('session:view_own'), sessionsController.getMySessions.bind(sessionsController));
+router.post('/trigger-auto-processing', authenticate, sessionsController.triggerAutoProcessing.bind(sessionsController));
+router.put('/:id', authenticate, authorizePermissions('session:update_any', 'session:update'), sessionsController.updateSession.bind(sessionsController));
 router.delete('/:id', authenticate, authorizePermissions('session:delete'), sessionsController.deleteSession.bind(sessionsController));
 
 export default router;

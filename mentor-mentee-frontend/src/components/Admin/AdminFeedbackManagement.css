@@ -172,6 +172,15 @@
   background-color: #0056b3;
 }
 
+.edit-button {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #138496;
+}
+
 .delete-button {
   background-color: #dc3545;
   color: white;
@@ -348,6 +357,15 @@
   transition: all 0.2s;
 }
 
+.button-primary {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: #4338ca;
+}
+
 .button-secondary {
   background-color: #6c757d;
   color: white;
@@ -364,6 +382,67 @@
 
 .button-danger:hover {
   background-color: #c82333;
+}
+
+/* Edit Modal Styles */
+.edit-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.feedback-meta-info {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.feedback-meta-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.feedback-meta-info strong {
+  color: #6b7280;
+  font-weight: 500;
+  display: inline-block;
+  min-width: 100px;
 }
 
 .admin-loading {

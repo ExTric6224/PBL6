@@ -71,14 +71,24 @@ const Navigation: React.FC = () => {
   // Admin có các tab quản lý riêng
   const navItems = user.role === 'ADMIN' 
     ? [
-        { path: '/admin', label: '🛡️ Dashboard' },
-        { path: '/admin/users', label: '👥 Users' },
-        { path: '/admin/posts', label: '📝 Posts' },
-        { path: '/admin/schedules', label: '🗓️ Schedules' },
-        { path: '/admin/bookings', label: '📅 Bookings' },
-        { path: '/admin/sessions', label: '🎓 Sessions' },
-        { path: '/admin/feedbacks', label: '⭐ Feedbacks' },
-        { path: '/admin/permissions', label: '🔐 Permissions' },
+        { path: '/admin', label: 'Dashboard' },
+        { path: '/admin/users', label: 'Users' },
+        { path: '/admin/posts', label: 'Posts' },
+        { path: '/admin/schedules', label: 'Schedules' },
+        { path: '/admin/bookings', label: 'Bookings' },
+        { path: '/admin/sessions', label: 'Sessions' },
+        { path: '/admin/feedbacks', label: 'Feedbacks' },
+        { path: '/admin/permissions', label: 'Permissions' },
+      ]
+    : user.role === 'MENTEE'
+    ? [
+        { path: '/posts', label: 'Posts' },
+        { path: '/mentors', label: 'Mentors' },
+        { path: '/schedules', label: 'Schedules' },
+        { path: '/bookings', label: 'Bookings' },
+        { path: '/sessions', label: 'Sessions' },
+        { path: '/feedback', label: 'Feedback' },
+        { path: '/profile', label: 'Profile' },
       ]
     : [
         { path: '/posts', label: 'Posts' },

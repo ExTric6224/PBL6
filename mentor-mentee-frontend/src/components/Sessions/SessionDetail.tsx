@@ -156,9 +156,8 @@ const SessionDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="session-detail-container">
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Đang tải session...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );

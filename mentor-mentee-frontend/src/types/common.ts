@@ -28,4 +28,4 @@ export interface ApiError {
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
 export type SessionStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-export type ScheduleStatus = 'AVAILABLE' | 'BOOKED' | 'CANCELLED';
+export type ScheduleStatus = 'AVAILABLE' | 'BOOKED' | 'COMPLETED' | 'CANCELLED';

@@ -40,6 +40,11 @@ const ScheduleDetail: React.FC = () => {
   };
 
   const handleBookSchedule = () => {
+    // Check if schedule already has a booking
+    if (schedule && schedule.booking && schedule.booking.length > 0) {
+      setError('Lịch này đã được đặt!');
+      return;
+    }
     setShowBookDialog(true);
   };
 
@@ -60,15 +65,30 @@ const ScheduleDetail: React.FC = () => {
     }
   };
 
+  const canDeleteSchedule = (schedule: Schedule) => {
+    // Only show delete button if schedule is AVAILABLE and has no active bookings
+    if (schedule.status !== 'AVAILABLE') return false;
+    
+    // Check if there's any booking (active or not)
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return false;
+    }
+    
+    return true;
+  };
+
   const handleDeleteSchedule = async () => {
-    if (!schedule || !window.confirm('Bạn có chắc chắn muốn xóa lịch này?')) return;
+    if (!schedule || !window.confirm('Bạn có chắc chắn muốn hủy lịch này?')) return;
 
     try {
       await scheduleApi.deleteSchedule(schedule.id);
-      setSuccess('Xóa lịch thành công!');
+      setSuccess('hủy lịch thành công!');
       setTimeout(() => navigate('/schedules'), 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Không thể xóa lịch');
+      setError(err.response?.data?.error?.message || 'Không thể hủy lịch');
     }
   };
 
@@ -95,21 +115,40 @@ const ScheduleDetail: React.FC = () => {
     })}`;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (schedule: Schedule) => {
+    // For mentee: check if they booked this schedule
+    if (isMentee && user && schedule.booking && schedule.booking.length > 0) {
+      const userBooking = schedule.booking.find(b => b.userId === user.id);
+      if (userBooking) {
+        // User has booked this schedule
+        if (userBooking.status === 'COMPLETED') {
+          return { text: 'Đã hoàn thành', class: 'status-completed' };
+        }
+        return { text: 'Đã đặt (bạn)', class: 'status-booked-by-you' };
+      }
+      // Someone else booked it
+      const hasActiveBooking = schedule.booking.some(
+        b => (b.status === 'PENDING' || b.status === 'CONFIRMED') && b.userId !== user.id
+      );
+      if (hasActiveBooking) {
+        return { text: 'Đã có người đặt', class: 'status-booked-by-other' };
+      }
+    }
+    
     const badges = {
       AVAILABLE: { text: 'Có thể đặt', class: 'status-available' },
       BOOKED: { text: 'Đã đặt', class: 'status-booked' },
+      COMPLETED: { text: 'Đã hoàn thành', class: 'status-completed' },
       CANCELLED: { text: 'Đã hủy', class: 'status-cancelled' }
     };
-    return badges[status as keyof typeof badges] || badges.AVAILABLE;
+    return badges[schedule.status as keyof typeof badges] || badges.AVAILABLE;
   };
 
   if (loading) {
     return (
       <div className="schedule-detail-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Đang tải lịch...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );
@@ -142,7 +181,15 @@ const ScheduleDetail: React.FC = () => {
     );
   }
 
-  const statusBadge = getStatusBadge(schedule.status);
+  const statusBadge = getStatusBadge(schedule);
+  
+  // Check if user can book this schedule
+  const canBook = isMentee && schedule.status === 'AVAILABLE' && 
+                  (!schedule.booking || schedule.booking.length === 0 || 
+                   !schedule.booking.some(b => (b.status === 'PENDING' || b.status === 'CONFIRMED')));
+  
+  // Check if this is user's own booking
+  const userBooking = isMentee && user && schedule.booking?.find(b => b.userId === user.id);
 
   return (
     <div className="schedule-detail-container">
@@ -232,7 +279,7 @@ const ScheduleDetail: React.FC = () => {
 
         {/* Actions */}
         <div className="action-section">
-          {isMentee && schedule.status === 'AVAILABLE' && (
+          {canBook && (
             <button 
               className="btn btn-primary"
               onClick={handleBookSchedule}
@@ -241,12 +288,30 @@ const ScheduleDetail: React.FC = () => {
             </button>
           )}
           
-          {isMentor && schedule.mentorId === user?.id && (
+          {isMentee && userBooking && (
+            <div className="booking-info-alert">
+              <span className="alert-icon">✅</span>
+              <span>
+                {userBooking.status === 'COMPLETED' 
+                  ? 'Bạn đã hoàn thành buổi học này'
+                  : 'Bạn đã đặt lịch này'}
+              </span>
+            </div>
+          )}
+          
+          {isMentee && !canBook && !userBooking && schedule.booking && schedule.booking.length > 0 && (
+            <div className="booking-info-alert warning">
+              <span className="alert-icon">⚠️</span>
+              <span>Lịch này đã có người đặt</span>
+            </div>
+          )}
+          
+          {isMentor && schedule.mentorId === user?.id && canDeleteSchedule(schedule) && (
             <button 
               className="btn btn-danger"
               onClick={handleDeleteSchedule}
             >
-              Xóa Lịch
+              hủy Lịch
             </button>
           )}
         </div>

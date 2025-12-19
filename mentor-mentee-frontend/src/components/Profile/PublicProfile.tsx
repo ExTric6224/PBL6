@@ -4,6 +4,7 @@ import { profileApi } from '../../services/profileApi';
 import { postApi } from '../../services/postApi';
 import { scheduleApi } from '../../services/scheduleApi';
 import { feedbackApi } from '../../services/feedbackApi';
+import { useAuth } from '../../context/AuthContext';
 import { MentorProfile, MenteeProfile } from '../../types/profile';
 import { Post } from '../../types/post';
 import { Schedule } from '../../types/schedule';
@@ -13,6 +14,7 @@ import './PublicProfile.css';
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<MentorProfile | MenteeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<'MENTOR' | 'MENTEE' | null>(null);
@@ -25,10 +27,75 @@ const PublicProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'posts' | 'schedules' | 'feedbacks'>('profile');
 
   const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace('/api', '');
+  const isMentee = user?.role === 'MENTEE';
+
+  // Helper functions for schedule status (same as ScheduleList)
+  const getStatusBadgeClass = (schedule: Schedule) => {
+    // For mentee: check if they booked this schedule
+    if (isMentee && user && schedule.booking && schedule.booking.length > 0) {
+      const userBooking = schedule.booking.find(b => b.userId === user.id);
+      if (userBooking) {
+        // User has booked this schedule
+        if (userBooking.status === 'COMPLETED') return 'completed';
+        return 'booked-by-you';
+      }
+      // Someone else booked it
+      const hasActiveBooking = schedule.booking.some(
+        b => (b.status === 'PENDING' || b.status === 'CONFIRMED') && b.userId !== user.id
+      );
+      if (hasActiveBooking) return 'booked-by-other';
+    }
+    
+    // For mentor or general status
+    if (schedule.status === 'COMPLETED') return 'completed';
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return 'booked';
+    }
+    return schedule.status.toLowerCase();
+  };
+
+  const getStatusText = (schedule: Schedule) => {
+    // For mentee: show personalized status
+    if (isMentee && user && schedule.booking && schedule.booking.length > 0) {
+      const userBooking = schedule.booking.find(b => b.userId === user.id);
+      if (userBooking) {
+        // User has booked this schedule
+        if (userBooking.status === 'COMPLETED') return 'Đã hoàn thành';
+        return 'Đã đặt (bạn)';
+      }
+      // Someone else booked it
+      const hasActiveBooking = schedule.booking.some(
+        b => (b.status === 'PENDING' || b.status === 'CONFIRMED') && b.userId !== user.id
+      );
+      if (hasActiveBooking) return 'Đã có người đặt';
+    }
+    
+    // General status mapping
+    if (schedule.status === 'COMPLETED') return 'Đã hoàn thành';
+    if (schedule.booking && schedule.booking.length > 0) {
+      const hasActiveBooking = schedule.booking.some(
+        b => b.status === 'PENDING' || b.status === 'CONFIRMED'
+      );
+      if (hasActiveBooking) return 'Đã đặt';
+    }
+    
+    const statusMap: { [key: string]: string } = {
+      'AVAILABLE': 'Có thể đặt',
+      'BOOKED': 'Đã đặt',
+      'CANCELLED': 'Đã hủy'
+    };
+    return statusMap[schedule.status] || schedule.status;
+  };
 
   useEffect(() => {
     loadProfile();
   }, [userId]);
+
+  // Check if current user can view feedbacks
+  const canViewFeedbacks = user?.role === 'MENTEE' || user?.permissions?.includes('feedback:view_any') || false;
 
   useEffect(() => {
     // Load posts và schedules ngay khi profile được load
@@ -36,10 +103,13 @@ const PublicProfile: React.FC = () => {
       loadPosts();
       if (profileType === 'MENTOR') {
         loadSchedules();
-        loadFeedbacks();
+        // Only load feedbacks if user has permission
+        if (canViewFeedbacks) {
+          loadFeedbacks();
+        }
       }
     }
-  }, [userId, profileType]);
+  }, [userId, profileType, canViewFeedbacks]);
 
   const loadProfile = async () => {
     if (!userId) return;
@@ -124,8 +194,8 @@ const PublicProfile: React.FC = () => {
     try {
       setLoadingFeedbacks(true);
       const response = await feedbackApi.getFeedbacksByMentor(parseInt(userId), { limit: 50 });
-      // Ensure response.data is an array
-      setFeedbacks(Array.isArray(response.data) ? response.data : []);
+      // Response structure: { feedbacks: [], stats: { totalFeedbacks, averageRating } }
+      setFeedbacks(response.feedbacks || []);
     } catch (err) {
       console.error('Error loading feedbacks:', err);
       setFeedbacks([]);
@@ -164,9 +234,8 @@ const PublicProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="public-profile-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải profile...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );
@@ -252,14 +321,16 @@ const PublicProfile: React.FC = () => {
                 <span>Lịch Hẹn</span>
                 <span className="tab-count">{schedules.length}</span>
               </button>
-              <button
-                className={`tab-btn ${activeTab === 'feedbacks' ? 'active' : ''}`}
-                onClick={() => setActiveTab('feedbacks')}
-              >
-                <span className="tab-icon">⭐</span>
-                <span>Đánh Giá</span>
-                <span className="tab-count">{feedbacks.length}</span>
-              </button>
+              {canViewFeedbacks && (
+                <button
+                  className={`tab-btn ${activeTab === 'feedbacks' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('feedbacks')}
+                >
+                  <span className="tab-icon">⭐</span>
+                  <span>Đánh Giá</span>
+                  <span className="tab-count">{feedbacks.length}</span>
+                </button>
+              )}
             </>
           )}
         </div>
@@ -413,10 +484,8 @@ const PublicProfile: React.FC = () => {
                   >
                     <div className="schedule-header">
                       <h4 className="schedule-title">{schedule.topic || 'Không có chủ đề'}</h4>
-                      <span className={`schedule-status status-${schedule.status?.toLowerCase()}`}>
-                        {schedule.status === 'AVAILABLE' && '✅ Có thể đặt'}
-                        {schedule.status === 'BOOKED' && '📅 Đã đặt'}
-                        {schedule.status === 'CANCELLED' && '❌ Đã hủy'}
+                      <span className={`schedule-status status-${getStatusBadgeClass(schedule)}`}>
+                        {getStatusText(schedule)}
                       </span>
                     </div>
                     <div className="schedule-time">
@@ -437,7 +506,7 @@ const PublicProfile: React.FC = () => {
         )}
 
         {/* Feedbacks Tab */}
-        {activeTab === 'feedbacks' && profileType === 'MENTOR' && (
+        {activeTab === 'feedbacks' && profileType === 'MENTOR' && canViewFeedbacks && (
           <div className="feedbacks-section">
             {loadingFeedbacks ? (
               <div className="loading-text">Đang tải đánh giá...</div>

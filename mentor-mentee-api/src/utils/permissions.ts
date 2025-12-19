@@ -215,23 +215,28 @@ export const ROLE_PERMISSIONS = {
   ],
   MENTEE: [
     // Schedule viewing
+    PERMISSIONS.SCHEDULE_VIEW_OWN,
     PERMISSIONS.SCHEDULE_VIEW_ANY,
 
     // Booking management
     PERMISSIONS.BOOKING_CREATE,
     PERMISSIONS.BOOKING_VIEW_OWN,
+    PERMISSIONS.BOOKING_VIEW_ANY, // Mentees can see all bookings
     PERMISSIONS.BOOKING_CANCEL_OWN,
 
     // Session viewing
     PERMISSIONS.SESSION_VIEW_OWN,
+    PERMISSIONS.SESSION_VIEW_ANY, // Mentees can see all sessions
 
     // Feedback
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_VIEW_OWN,
+    PERMISSIONS.FEEDBACK_VIEW_ANY, // Mentees can see all feedback
 
-    // Posts - MENTEE chỉ được xem posts (không được tạo/cập nhật/xóa/like)
+    // Posts - MENTEE chỉ có quyền xem và like, không được tạo/sửa/xóa bài viết
     PERMISSIONS.POST_VIEW_OWN,
     PERMISSIONS.POST_VIEW_ANY,
+    PERMISSIONS.POST_LIKE,
 
     // Profile
     PERMISSIONS.PROFILE_VIEW_OWN,

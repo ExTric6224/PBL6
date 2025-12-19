@@ -300,15 +300,14 @@ const PostList: React.FC = () => {
   };
 
   const canUserPost = () => {
-    return user?.role === 'MENTOR';
+    return user?.role === 'ADMIN' || user?.role === 'MENTOR';
   };
 
   if (loading && posts.length === 0) {
     return (
       <div className="posts-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải bài viết...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );
@@ -343,14 +342,16 @@ const PostList: React.FC = () => {
           <span className="tab-text">Tất Cả</span>
           <span className="tab-count">{posts.length}</span>
         </button>
-        <button
-          className={`tab-btn ${activeTab === 'my' ? 'active' : ''}`}
-          onClick={() => handleTabChange('my')}
-        >
-          <span className="tab-icon">👤</span>
-          <span className="tab-text">Của Tôi</span>
-          <span className="tab-count">{posts.filter(p => p.authorId === user?.id).length}</span>
-        </button>
+        {canUserPost() && (
+          <button
+            className={`tab-btn ${activeTab === 'my' ? 'active' : ''}`}
+            onClick={() => handleTabChange('my')}
+          >
+            <span className="tab-icon">👤</span>
+            <span className="tab-text">Của Tôi</span>
+            <span className="tab-count">{posts.filter(p => p.authorId === user?.id).length}</span>
+          </button>
+        )}
       </div>
 
       {/* Search and Filter */}

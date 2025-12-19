@@ -43,6 +43,10 @@ export class BookingsService {
     });
 
     if (existingBooking) {
+      // If previous booking was cancelled, show specific rejection message
+      if (existingBooking.status === 'CANCELLED') {
+        throw new Error('Bạn đã đặt 1 lần và bị từ chối, không thể đặt nữa');
+      }
       throw new Error('You have already booked this schedule');
     }
 
@@ -73,6 +77,12 @@ export class BookingsService {
           },
         },
       },
+    });
+
+    // Update schedule status to BOOKED
+    await prisma.schedule.update({
+      where: { id: data.scheduleId },
+      data: { status: 'BOOKED' },
     });
 
     // Send notification to mentor about new booking request
@@ -239,31 +249,39 @@ export class BookingsService {
       ]);
       return updatedBooking;
     } else {
-      // If booking was only pending, just cancel it
-      return await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: 'CANCELLED' },
-        include: {
-          schedule: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  mentorprofile: true,
+      // If booking was only pending, cancel it and free up the schedule
+      const [updatedBooking] = await prisma.$transaction([
+        prisma.booking.update({
+          where: { id: bookingId },
+          data: { status: 'CANCELLED' },
+          include: {
+            schedule: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    mentorprofile: true,
+                  },
                 },
               },
             },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-              menteeprofile: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: true,
+              },
             },
           },
-        },
-      });
+        }),
+        // Free up the schedule for new bookings
+        prisma.schedule.update({
+          where: { id: booking.scheduleId },
+          data: { status: 'AVAILABLE' },
+        }),
+      ]);
+      return updatedBooking;
     }
   }
 
@@ -455,6 +473,60 @@ export class BookingsService {
           data: { status: 'AVAILABLE' },
         });
       }
+    });
+  }
+
+  async updateBooking(bookingId: number, data: any) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new Error('Booking not found');
+    }
+
+    // Validate status if provided
+    const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
+    if (data.status && !validStatuses.includes(data.status)) {
+      throw new Error('Invalid status. Must be one of: ' + validStatuses.join(', '));
+    }
+
+    // Update booking
+    const updateData: any = {};
+    if (data.status) updateData.status = data.status;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+
+    return await prisma.booking.update({
+      where: { id: bookingId },
+      data: updateData,
+      include: {
+        schedule: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                mentorprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            menteeprofile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

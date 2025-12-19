@@ -106,4 +106,20 @@ export class BookingsController {
       throw error;
     }
   }
+
+  async updateBooking(req: AuthenticatedRequest, res: Response) {
+    try {
+      const bookingId = parseInt(req.params.id, 10);
+      const booking = await bookingsService.updateBooking(bookingId, req.body);
+      return success(res, booking);
+    } catch (error: any) {
+      if (error.message === 'Booking not found') {
+        return notFoundError(res, 'Booking not found');
+      }
+      if (error.message.includes('Invalid status')) {
+        return conflictError(res, error.message);
+      }
+      throw error;
+    }
+  }
 }

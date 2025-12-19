@@ -105,6 +105,55 @@ async function main() {
       phoneNumber: '+84908901234',
       goals: 'Tìm hiểu về Blockchain và Web3',
       interests: ['Blockchain', 'Web Development']
+    },
+    {
+      email: 'mentee9@example.com',
+      fullName: 'Nguyễn Minh Khoa',
+      phoneNumber: '+84909012345',
+      goals: 'Học testing và QA để làm QA Engineer',
+      interests: ['Testing & QA', 'Software Architecture']
+    },
+    {
+      email: 'mentee10@example.com',
+      fullName: 'Lê Thị Linh',
+      phoneNumber: '+84910123456',
+      goals: 'Project Management và Agile',
+      interests: ['Project Management', 'Soft Skills']
+    },
+    {
+      email: 'mentee11@example.com',
+      fullName: 'Phạm Văn Minh',
+      phoneNumber: '+84911234567',
+      goals: 'Backend Development với microservices',
+      interests: ['Web Development', 'Software Architecture', 'Cloud Computing']
+    },
+    {
+      email: 'mentee12@example.com',
+      fullName: 'Trần Thị Nga',
+      phoneNumber: '+84912345678',
+      goals: 'Chuyên về database optimization',
+      interests: ['Database', 'Software Architecture']
+    },
+    {
+      email: 'mentee13@example.com',
+      fullName: 'Hoàng Văn Oanh',
+      phoneNumber: '+84913456789',
+      goals: 'Làm iOS Developer',
+      interests: ['Mobile Development', 'UI/UX Design']
+    },
+    {
+      email: 'mentee14@example.com',
+      fullName: 'Đặng Thị Phương',
+      phoneNumber: '+84914567890',
+      goals: 'Machine Learning Engineer',
+      interests: ['Data Science', 'Software Architecture']
+    },
+    {
+      email: 'mentee15@example.com',
+      fullName: 'Vũ Văn Quang',
+      phoneNumber: '+84915678901',
+      goals: 'Cloud Architect',
+      interests: ['Cloud Computing', 'DevOps', 'Software Architecture']
     }
   ];
 
@@ -240,6 +289,56 @@ async function main() {
       yearsExp: 6,
       bio: 'Mobile Developer chuyên React Native và Flutter. Đã phát triển hơn 20 ứng dụng mobile thành công trên cả iOS và Android.',
       expertise: ['Mobile Development', 'Web Development', 'UI/UX Design']
+    },
+    {
+      email: 'mentor11@example.com',
+      fullName: 'Nguyễn Thị Rồng',
+      phoneNumber: '+84921234567',
+      school: 'Đại học Bách Khoa',
+      degree: 'Thạc sĩ Software Testing',
+      yearsExp: 7,
+      bio: 'QA Lead với kinh nghiệm test automation. Chuyên Selenium, Cypress, Jest. Đã build test framework cho nhiều dự án lớn.',
+      expertise: ['Testing & QA', 'Web Development', 'Software Architecture']
+    },
+    {
+      email: 'mentor12@example.com',
+      fullName: 'Trần Văn Sơn',
+      phoneNumber: '+84922345678',
+      school: 'Đại học FPT',
+      degree: 'MBA + PMP Certified',
+      yearsExp: 10,
+      bio: 'Technical Project Manager. Quản lý các dự án Agile/Scrum. Giúp teams làm việc hiệu quả và deliver on time.',
+      expertise: ['Project Management', 'Soft Skills', 'Career Development']
+    },
+    {
+      email: 'mentor13@example.com',
+      fullName: 'Lê Thị Tâm',
+      phoneNumber: '+84923456789',
+      school: 'Đại học Công nghệ TP.HCM',
+      degree: 'Tiến sĩ Database Systems',
+      yearsExp: 11,
+      bio: 'Database Expert. Chuyên PostgreSQL, MongoDB, Redis. Performance tuning, indexing, sharding. Consultant cho nhiều enterprise.',
+      expertise: ['Database', 'Software Architecture', 'Cloud Computing']
+    },
+    {
+      email: 'mentor14@example.com',
+      fullName: 'Phạm Văn Ưng',
+      phoneNumber: '+84924567890',
+      school: 'Đại học Quốc gia Singapore',
+      degree: 'Thạc sĩ Computer Vision',
+      yearsExp: 8,
+      bio: 'AI/ML Engineer chuyên Computer Vision. Object detection, image segmentation. Published research papers.',
+      expertise: ['Data Science', 'Software Architecture', 'Mobile Development']
+    },
+    {
+      email: 'mentor15@example.com',
+      fullName: 'Đỗ Thị Vân',
+      phoneNumber: '+84925678901',
+      school: 'Đại học Carnegie Mellon',
+      degree: 'PhD Distributed Systems',
+      yearsExp: 13,
+      bio: 'Cloud Solutions Architect. AWS/Azure/GCP certified. Design scalable systems cho millions of users. Tech advisor cho startups.',
+      expertise: ['Cloud Computing', 'Software Architecture', 'DevOps', 'Database']
     }
   ];
 
@@ -579,67 +678,6 @@ Learn nền tảng blockchain, nhưng realistic về challenges!`,
 
 Cả hai đều tốt, chọn theo team và project requirements!`,
       isPublic: true
-    },
-    {
-      authorId: createdMentees[0].id,
-      title: 'Hành trình 3 tháng học Web Development',
-      content: `Xin chào mọi người! Mình muốn chia sẻ kinh nghiệm 3 tháng học web development:
-
-**Tháng 1: HTML/CSS/JavaScript**
-- FreeCodeCamp
-- Build 5 static websites
-- Responsive design
-
-**Tháng 2: React**
-- Official React docs
-- Todo app, Weather app
-- React Router, Context API
-
-**Tháng 3: Backend & Database**
-- Node.js + Express
-- MongoDB basics
-- Full-stack MERN app
-
-**Challenges:**
-- JavaScript async khó hiểu
-- State management confusing
-- Debugging takes time
-
-**Tips:**
-- Code mỗi ngày
-- Build projects, not just tutorials
-- Join communities
-
-Vẫn còn nhiều thứ phải học nhưng đã confident hơn rất nhiều!`,
-      isPublic: true
-    },
-    {
-      authorId: createdMentees[1].id,
-      title: 'Resources học AI/ML miễn phí',
-      content: `Tổng hợp resources học AI/ML mình thấy hay:
-
-**Courses:**
-- Andrew Ng's ML Course (Coursera)
-- Fast.ai (Practical Deep Learning)
-- Stanford CS229
-
-**Books:**
-- "Hands-On Machine Learning" - Aurélien Géron
-- "Deep Learning" - Ian Goodfellow
-- "Pattern Recognition" - Christopher Bishop
-
-**Practice:**
-- Kaggle competitions
-- Google Colab (free GPU!)
-- TensorFlow tutorials
-
-**Communities:**
-- r/MachineLearning
-- Papers with Code
-- AI Discord servers
-
-Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`,
-      isPublic: true
     }
   ];
 
@@ -800,6 +838,188 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       endAt: createDate(4, 12),
       capacity: 1, // 1-on-1 mentoring session
       status: 'AVAILABLE' as const
+    },
+    // New schedules from mentors 11-15
+    {
+      mentorId: createdMentors[10].id,
+      topic: 'Test Automation with Cypress',
+      description: 'E2E testing với Cypress. Setup, best practices, CI/CD integration. Viết tests cho real-world apps.',
+      startAt: createDate(3, 10),
+      endAt: createDate(3, 13),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[10].id,
+      topic: 'Unit Testing Best Practices',
+      description: 'Jest và React Testing Library. Test-driven development, mocking, coverage. Viết tests maintainable.',
+      startAt: createDate(6, 9),
+      endAt: createDate(6, 11),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[11].id,
+      topic: 'Agile & Scrum Workshop',
+      description: 'Scrum framework, sprint planning, daily standups, retrospectives. Làm việc hiệu quả trong team.',
+      startAt: createDate(4, 13),
+      endAt: createDate(4, 16),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[11].id,
+      topic: 'Leadership Skills for Developers',
+      description: 'Technical leadership, mentoring juniors, decision making. Communication skills cho tech leads.',
+      startAt: createDate(7, 10),
+      endAt: createDate(7, 12),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[12].id,
+      topic: 'PostgreSQL Performance Tuning',
+      description: 'Query optimization, indexing strategies, EXPLAIN ANALYZE. Giải quyết N+1 queries, slow queries.',
+      startAt: createDate(2, 9),
+      endAt: createDate(2, 12),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[12].id,
+      topic: 'MongoDB & NoSQL Design',
+      description: 'Document database design patterns. Sharding, replication, aggregation pipeline. Khi nào dùng NoSQL.',
+      startAt: createDate(8, 14),
+      endAt: createDate(8, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[13].id,
+      topic: 'Deep Learning with PyTorch',
+      description: 'Neural networks với PyTorch. CNNs, transfer learning, training tips. Build image classifier.',
+      startAt: createDate(5, 9),
+      endAt: createDate(5, 13),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[13].id,
+      topic: 'Natural Language Processing',
+      description: 'NLP fundamentals, word embeddings, transformers, BERT. Build chatbot with Hugging Face.',
+      startAt: createDate(9, 10),
+      endAt: createDate(9, 14),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[14].id,
+      topic: 'AWS Cloud Architecture',
+      description: 'EC2, S3, RDS, Lambda, API Gateway. Serverless architecture, cost optimization. Deploy production apps.',
+      startAt: createDate(3, 14),
+      endAt: createDate(3, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[14].id,
+      topic: 'Microservices with Docker & K8s',
+      description: 'Thiết kế microservices, service mesh, monitoring. Deploy lên Kubernetes cluster.',
+      startAt: createDate(6, 13),
+      endAt: createDate(6, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[0].id,
+      topic: 'GraphQL API Development',
+      description: 'Build GraphQL API với Apollo Server. Schema design, resolvers, subscriptions, authentication.',
+      startAt: createDate(7, 9),
+      endAt: createDate(7, 12),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[1].id,
+      topic: 'Data Visualization with D3.js',
+      description: 'Interactive charts và dashboards. D3.js fundamentals, real-time data visualization.',
+      startAt: createDate(9, 14),
+      endAt: createDate(9, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[2].id,
+      topic: 'CI/CD Pipeline Setup',
+      description: 'GitHub Actions, GitLab CI, Jenkins. Automated testing, deployment. Infrastructure as code.',
+      startAt: createDate(4, 10),
+      endAt: createDate(4, 13),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[3].id,
+      topic: 'Design System Creation',
+      description: 'Xây dựng design system scalable. Component library, design tokens, documentation.',
+      startAt: createDate(8, 9),
+      endAt: createDate(8, 12),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[4].id,
+      topic: 'OAuth 2.0 & Authentication',
+      description: 'JWT, OAuth flows, security best practices. Implement social login, SSO.',
+      startAt: createDate(5, 13),
+      endAt: createDate(5, 16),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    // Additional schedules for more test data
+    {
+      mentorId: createdMentors[5].id,
+      topic: 'Unity 3D Game Development',
+      description: '3D game development basics. Camera controls, lighting, particle systems.',
+      startAt: createDate(10, 14),
+      endAt: createDate(10, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[6].id,
+      topic: 'Microservices Architecture',
+      description: 'Design microservices, API gateway, service discovery, event-driven architecture.',
+      startAt: createDate(11, 9),
+      endAt: createDate(11, 13),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[7].id,
+      topic: 'Negotiation Skills Workshop',
+      description: 'Salary negotiation, project scope negotiation, conflict resolution.',
+      startAt: createDate(12, 15),
+      endAt: createDate(12, 17),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[8].id,
+      topic: 'DeFi Protocol Development',
+      description: 'Build DeFi protocol: lending, staking, yield farming. Smart contract security.',
+      startAt: createDate(13, 10),
+      endAt: createDate(13, 14),
+      capacity: 1,
+      status: 'AVAILABLE' as const
+    },
+    {
+      mentorId: createdMentors[9].id,
+      topic: 'Flutter Advanced Topics',
+      description: 'State management (Riverpod), animations, performance optimization.',
+      startAt: createDate(14, 13),
+      endAt: createDate(14, 16),
+      capacity: 1,
+      status: 'AVAILABLE' as const
     }
   ];
 
@@ -815,28 +1035,184 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   console.log('📋 Creating bookings...');
   
   const bookings = [
-    // Confirmed bookings
+    // Confirmed bookings - có sessions
     {
       scheduleId: schedules[0].id,
       menteeId: createdMentees[0].id,
-      status: 'CONFIRMED' as const
+      status: 'CONFIRMED' as const,
+      notes: 'Muốn học về custom hooks và performance optimization'
     },
     {
       scheduleId: schedules[2].id,
       menteeId: createdMentees[1].id,
-      status: 'CONFIRMED' as const
+      status: 'CONFIRMED' as const,
+      notes: 'Quan tâm đến CNN và image classification'
     },
-    // Pending bookings
+    {
+      scheduleId: schedules[4].id,
+      menteeId: createdMentees[2].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Cần học Docker cho dự án công ty'
+    },
+    {
+      scheduleId: schedules[6].id,
+      menteeId: createdMentees[3].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Portfolio cần improve UI/UX'
+    },
+    {
+      scheduleId: schedules[8].id,
+      menteeId: createdMentees[4].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Chuẩn bị cho phỏng vấn security engineer'
+    },
+    {
+      scheduleId: schedules[13].id,
+      menteeId: createdMentees[5].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Làm indie game đầu tiên'
+    },
+    {
+      scheduleId: schedules[15].id,
+      menteeId: createdMentees[6].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Học Cypress cho automation testing'
+    },
+    {
+      scheduleId: schedules[17].id,
+      menteeId: createdMentees[7].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Team đang áp dụng Scrum'
+    },
+    {
+      scheduleId: schedules[19].id,
+      menteeId: createdMentees[8].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Database đang slow, cần optimize'
+    },
+    {
+      scheduleId: schedules[21].id,
+      menteeId: createdMentees[9].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Build ML model cho dự án tốt nghiệp'
+    },
+    // Pending bookings - chờ mentor xác nhận
     {
       scheduleId: schedules[1].id,
-      menteeId: createdMentees[2].id,
-      status: 'PENDING' as const
+      menteeId: createdMentees[10].id,
+      status: 'PENDING' as const,
+      notes: 'TypeScript beginner, cần guidance'
     },
     {
       scheduleId: schedules[3].id,
-      menteeId: createdMentees[3].id,
-      status: 'PENDING' as const
+      menteeId: createdMentees[11].id,
+      status: 'PENDING' as const,
+      notes: 'Quan tâm computer vision applications'
     },
+    {
+      scheduleId: schedules[5].id,
+      menteeId: createdMentees[12].id,
+      status: 'PENDING' as const,
+      notes: 'Muốn deploy app lên K8s'
+    },
+    {
+      scheduleId: schedules[7].id,
+      menteeId: createdMentees[13].id,
+      status: 'PENDING' as const,
+      notes: 'Penetration testing cơ bản'
+    },
+    {
+      scheduleId: schedules[9].id,
+      menteeId: createdMentees[14].id,
+      status: 'PENDING' as const,
+      notes: 'Unity 2D game development'
+    },
+    {
+      scheduleId: schedules[11].id,
+      menteeId: createdMentees[0].id,
+      status: 'PENDING' as const,
+      notes: 'Chuẩn bị mock interview'
+    },
+    {
+      scheduleId: schedules[14].id,
+      menteeId: createdMentees[1].id,
+      status: 'PENDING' as const,
+      notes: 'Unit testing best practices'
+    },
+    {
+      scheduleId: schedules[16].id,
+      menteeId: createdMentees[2].id,
+      status: 'PENDING' as const,
+      notes: 'Leadership skills cho tech lead'
+    },
+    {
+      scheduleId: schedules[18].id,
+      menteeId: createdMentees[3].id,
+      status: 'PENDING' as const,
+      notes: 'MongoDB cho scalable app'
+    },
+    {
+      scheduleId: schedules[20].id,
+      menteeId: createdMentees[4].id,
+      status: 'PENDING' as const,
+      notes: 'NLP cho chatbot'
+    },
+    // Additional bookings
+    {
+      scheduleId: schedules[22].id,
+      menteeId: createdMentees[5].id,
+      status: 'PENDING' as const,
+      notes: 'Muốn học CI/CD pipeline'
+    },
+    {
+      scheduleId: schedules[23].id,
+      menteeId: createdMentees[6].id,
+      status: 'PENDING' as const,
+      notes: 'Tìm hiểu design system'
+    },
+    {
+      scheduleId: schedules[24].id,
+      menteeId: createdMentees[7].id,
+      status: 'PENDING' as const,
+      notes: 'OAuth 2.0 implementation'
+    },
+    {
+      scheduleId: schedules[25].id,
+      menteeId: createdMentees[8].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Unity 3D cho dự án game'
+    },
+    {
+      scheduleId: schedules[26].id,
+      menteeId: createdMentees[9].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Microservices architecture cho startup'
+    },
+    {
+      scheduleId: schedules[27].id,
+      menteeId: createdMentees[10].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Chuẩn bị cho negotiation với client'
+    },
+    {
+      scheduleId: schedules[28].id,
+      menteeId: createdMentees[11].id,
+      status: 'CONFIRMED' as const,
+      notes: 'DeFi protocol research'
+    },
+    {
+      scheduleId: schedules[29].id,
+      menteeId: createdMentees[12].id,
+      status: 'CONFIRMED' as const,
+      notes: 'Flutter state management'
+    },
+    // Cancelled bookings
+    {
+      scheduleId: schedules[10].id,
+      menteeId: createdMentees[13].id,
+      status: 'CANCELLED' as const,
+      notes: 'System design session - cancelled due to schedule conflict'
+    }
   ];
 
   const createdBookings = [];
@@ -848,15 +1224,15 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   }
   console.log(`✅ Created ${createdBookings.length} bookings\n`);
 
-  // Update schedule status for confirmed bookings
-  await prisma.schedule.update({
-    where: { id: schedules[0].id },
-    data: { status: 'BOOKED' }
-  });
-  await prisma.schedule.update({
-    where: { id: schedules[2].id },
-    data: { status: 'BOOKED' }
-  });
+  // Update schedule status based on bookings
+  // For confirmed bookings that will have sessions
+  const confirmedScheduleIndices = [0, 2, 4, 6, 8, 13, 15, 17, 19, 21, 25, 26, 27, 28, 29];
+  for (const idx of confirmedScheduleIndices) {
+    await prisma.schedule.update({
+      where: { id: schedules[idx].id },
+      data: { status: 'BOOKED' }
+    });
+  }
 
   // ============= SESSIONS =============
   console.log('🎓 Creating sessions...');
@@ -864,56 +1240,123 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   const sessionNow = new Date();
   const yesterday = new Date(sessionNow.getTime() - 24 * 60 * 60 * 1000);
   const twoDaysAgo = new Date(sessionNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const threeDaysAgo = new Date(sessionNow.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const fourDaysAgo = new Date(sessionNow.getTime() - 4 * 24 * 60 * 60 * 1000);
   const oneHourAgo = new Date(sessionNow.getTime() - 60 * 60 * 1000);
   const twoHoursAgo = new Date(sessionNow.getTime() - 2 * 60 * 60 * 1000);
+  const threeHoursAgo = new Date(sessionNow.getTime() - 3 * 60 * 60 * 1000);
   
   const sessions = [
-    // Completed session with feedback
+    // Completed sessions với feedback
     {
       bookingId: createdBookings[0].id,
       mentorId: createdMentors[0].id,
       menteeId: createdMentees[0].id,
-      startedAt: twoDaysAgo,
-      endedAt: new Date(twoDaysAgo.getTime() + 60 * 60 * 1000), // 1 hour later
+      startedAt: fourDaysAgo,
+      endedAt: new Date(fourDaysAgo.getTime() + 2 * 60 * 60 * 1000),
       status: 'COMPLETED' as const,
       autoStarted: false,
       autoEnded: false,
-      notes: 'Session went great! Student grasped React Hooks concepts well. We covered useState, useEffect, and custom hooks.'
+      notes: 'Excellent session! Student grasped React Hooks concepts well. We covered useState, useEffect, useContext, and custom hooks. Practice assignments given.'
     },
-    // Completed session yesterday (no feedback yet)
     {
       bookingId: createdBookings[1].id,
       mentorId: createdMentors[1].id,
       menteeId: createdMentees[1].id,
-      startedAt: yesterday,
-      endedAt: new Date(yesterday.getTime() + 90 * 60 * 1000), // 1.5 hours later
+      startedAt: threeDaysAgo,
+      endedAt: new Date(threeDaysAgo.getTime() + 3 * 60 * 60 * 1000),
       status: 'COMPLETED' as const,
       autoStarted: true,
       autoEnded: true,
-      notes: 'Covered basics of neural networks and backpropagation. Student needs more practice with calculus.'
+      notes: 'Covered neural network basics: perceptrons, activation functions, backpropagation. Implemented simple network in TensorFlow. Student needs more practice with calculus.'
     },
-    // In-progress session (started but not ended) - CAN TEST END BUTTON
     {
       bookingId: createdBookings[2].id,
       mentorId: createdMentors[2].id,
       menteeId: createdMentees[2].id,
+      startedAt: twoDaysAgo,
+      endedAt: new Date(twoDaysAgo.getTime() + 2 * 60 * 60 * 1000),
+      status: 'COMPLETED' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'Docker fundamentals covered. Created Dockerfile, docker-compose for multi-container app. Student successfully containerized their project.'
+    },
+    {
+      bookingId: createdBookings[3].id,
+      mentorId: createdMentors[3].id,
+      menteeId: createdMentees[3].id,
+      startedAt: yesterday,
+      endedAt: new Date(yesterday.getTime() + 3 * 60 * 60 * 1000),
+      status: 'COMPLETED' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'UI/UX workshop was productive. Designed wireframes and prototypes in Figma. Learned design system principles and component organization.'
+    },
+    {
+      bookingId: createdBookings[4].id,
+      mentorId: createdMentors[4].id,
+      menteeId: createdMentees[4].id,
+      startedAt: fourDaysAgo,
+      endedAt: new Date(fourDaysAgo.getTime() + 3 * 60 * 60 * 1000),
+      status: 'COMPLETED' as const,
+      autoStarted: true,
+      autoEnded: true,
+      notes: 'Security session covered SQL Injection, XSS, CSRF. Demonstrated attacks and prevention. Student tested their app and found 3 vulnerabilities!'
+    },
+    // In-progress sessions - CAN TEST END BUTTON
+    {
+      bookingId: createdBookings[5].id,
+      mentorId: createdMentors[5].id,
+      menteeId: createdMentees[5].id,
+      startedAt: twoHoursAgo,
+      status: 'IN_PROGRESS' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'Currently working on Unity 2D game. Implementing player movement and basic physics.'
+    },
+    {
+      bookingId: createdBookings[6].id,
+      mentorId: createdMentors[10].id,
+      menteeId: createdMentees[6].id,
       startedAt: oneHourAgo,
       status: 'IN_PROGRESS' as const,
       autoStarted: false,
       autoEnded: false,
-      notes: null
+      notes: 'Cypress E2E testing in progress. Writing tests for authentication flow.'
     },
-    // Another completed session with auto start/end
+    // Completed sessions without feedback yet
     {
-      bookingId: createdBookings[3].id,
-      mentorId: createdMentors[0].id,
-      menteeId: createdMentees[2].id,
-      startedAt: twoHoursAgo,
-      endedAt: oneHourAgo,
+      bookingId: createdBookings[7].id,
+      mentorId: createdMentors[11].id,
+      menteeId: createdMentees[7].id,
+      startedAt: yesterday,
+      endedAt: new Date(yesterday.getTime() + 3 * 60 * 60 * 1000),
+      status: 'COMPLETED' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'Agile & Scrum workshop. Practiced sprint planning, daily standups, retrospectives. Team collaboration exercises.'
+    },
+    {
+      bookingId: createdBookings[8].id,
+      mentorId: createdMentors[12].id,
+      menteeId: createdMentees[8].id,
+      startedAt: twoDaysAgo,
+      endedAt: new Date(twoDaysAgo.getTime() + 3 * 60 * 60 * 1000),
       status: 'COMPLETED' as const,
       autoStarted: true,
       autoEnded: true,
-      notes: 'Great discussion about TypeScript generics and advanced types.'
+      notes: 'PostgreSQL performance tuning. Analyzed slow queries with EXPLAIN ANALYZE. Created indexes, optimized JOIN operations. 10x performance improvement!'
+    },
+    {
+      bookingId: createdBookings[9].id,
+      mentorId: createdMentors[13].id,
+      menteeId: createdMentees[9].id,
+      startedAt: threeDaysAgo,
+      endedAt: new Date(threeDaysAgo.getTime() + 4 * 60 * 60 * 1000),
+      status: 'COMPLETED' as const,
+      autoStarted: false,
+      autoEnded: false,
+      notes: 'Deep Learning with PyTorch. Built CNN for image classification. Transfer learning with ResNet. Achieved 92% accuracy on validation set!'
     }
   ];
 
@@ -923,6 +1366,26 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
       data: session
     });
     createdSessions.push(created);
+    
+    // If session is COMPLETED, update booking and schedule status to COMPLETED
+    if (session.status === 'COMPLETED' && session.endedAt) {
+      const booking = await prisma.booking.findUnique({
+        where: { id: session.bookingId },
+        include: { schedule: true }
+      });
+      
+      if (booking) {
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: 'COMPLETED' }
+        });
+        
+        await prisma.schedule.update({
+          where: { id: booking.scheduleId },
+          data: { status: 'COMPLETED' }
+        });
+      }
+    }
   }
   console.log(`✅ Created ${createdSessions.length} sessions (${sessions.filter(s => s.status === 'COMPLETED').length} completed, ${sessions.filter(s => s.status === 'IN_PROGRESS').length} in-progress)\n`);
 
@@ -930,26 +1393,69 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   console.log('⭐ Creating feedbacks...');
   
   const feedbacks = [
+    // Feedback for first completed session
     {
-      sessionId: createdSessions[0].id, // Completed session
+      sessionId: createdSessions[0].id,
       mentorId: createdMentors[0].id,
       menteeId: createdMentees[0].id,
       rating: 5,
       comment: 'Mentor rất nhiệt tình và giải thích rất dễ hiểu. Học được rất nhiều về React Hooks. Highly recommended!'
     },
+    // Feedback for second completed session
     {
-      sessionId: createdSessions[1].id, // Completed session yesterday
+      sessionId: createdSessions[1].id,
       mentorId: createdMentors[1].id,
       menteeId: createdMentees[1].id,
       rating: 4,
       comment: 'Session rất bổ ích! Mentor có kinh nghiệm và kiến thức sâu về AI. Tuy nhiên có một số phần giải thích hơi nhanh.'
     },
+    // Feedback for third completed session
     {
-      sessionId: createdSessions[3].id, // Another completed session
-      mentorId: createdMentors[0].id,
+      sessionId: createdSessions[2].id,
+      mentorId: createdMentors[2].id,
       menteeId: createdMentees[2].id,
       rating: 5,
-      comment: 'Excellent session! Mentor explained TypeScript generics with clear examples. Will definitely book again!'
+      comment: 'Docker workshop thực sự xuất sắc! Mentor giải thích từng bước rất chi tiết. Đã containerize được app của mình thành công!'
+    },
+    // Feedback for fourth completed session
+    {
+      sessionId: createdSessions[3].id,
+      mentorId: createdMentors[3].id,
+      menteeId: createdMentees[3].id,
+      rating: 5,
+      comment: 'UI/UX design session vượt mong đợi. Mentor có tư duy design rất tốt. Học được nhiều về Figma và design systems.'
+    },
+    // Feedback for fifth completed session
+    {
+      sessionId: createdSessions[4].id,
+      mentorId: createdMentors[4].id,
+      menteeId: createdMentees[4].id,
+      rating: 5,
+      comment: 'Security session cực kỳ hữu ích! Mentor demonstrated các loại attack và cách prevent rất thực tế. Tìm được 3 lỗ hổng trong app của mình!'
+    },
+    // Feedback for eighth completed session
+    {
+      sessionId: createdSessions[7].id,
+      mentorId: createdMentors[11].id,
+      menteeId: createdMentees[7].id,
+      rating: 4,
+      comment: 'Agile workshop rất practical. Thích phần sprint planning và retrospective nhất. Sẽ áp dụng vào team ngay!'
+    },
+    // Feedback for ninth completed session
+    {
+      sessionId: createdSessions[8].id,
+      mentorId: createdMentors[12].id,
+      menteeId: createdMentees[8].id,
+      rating: 5,
+      comment: 'PostgreSQL tuning session vô cùng giá trị! Mentor chỉ cách analyze queries và tạo indexes hiệu quả. Performance cải thiện 10x!'
+    },
+    // Feedback for tenth completed session
+    {
+      sessionId: createdSessions[9].id,
+      mentorId: createdMentors[13].id,
+      menteeId: createdMentees[9].id,
+      rating: 5,
+      comment: 'Deep Learning với PyTorch - best session ever! Mentor giảng dạy rất có tâm, code examples rất clear. Model đạt 92% accuracy!'
     }
   ];
 
@@ -1007,12 +1513,15 @@ Tất cả đều miễn phí! Không có lý do gì để không bắt đầu!`
   console.log('📊 Summary:');
   console.log(`  👤 ${createdMentees.length} Mentees (password: 123456)`);
   console.log(`  👨‍🏫 ${createdMentors.length} Mentors (password: 123456)`);
-  console.log(`  📝 ${createdPosts.length} Posts`);
-  console.log(`  📅 ${schedules.length} Schedules`);
-  console.log(`  📋 ${createdBookings.length} Bookings`);
-  console.log(`  🎓 ${createdSessions.length} Sessions`);
-  console.log(`  ⭐ 1 Feedback`);
+  console.log(`  📝 ${createdPosts.length} Posts (Mentor only - mentees cannot create posts)`);
+  console.log(`  📅 ${schedules.length} Schedules (All capacity = 1 for 1-on-1 mentoring)`);
+  console.log(`  📋 ${createdBookings.length} Bookings (15 confirmed + 14 pending + 1 cancelled)`);
+  console.log(`  🎓 ${createdSessions.length} Sessions (8 completed + 2 in-progress)`);
+  console.log(`  ⭐ ${feedbacks.length} Feedbacks`);
   console.log(`  🔔 ${notifications.length} Notifications`);
+  console.log(`\n  Status breakdown:`);
+  console.log(`    📅 Schedules: ${schedules.filter((s: any) => s.status === 'AVAILABLE').length} available, ${schedules.filter((s: any) => s.status === 'BOOKED').length} booked (will be updated to COMPLETED for completed sessions)`);
+  console.log(`    📋 Bookings: 15 confirmed, 14 pending, 1 cancelled (8 will be COMPLETED after sessions)`);
   console.log('\n📧 Login với email bất kỳ ở trên, password: 123456');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }

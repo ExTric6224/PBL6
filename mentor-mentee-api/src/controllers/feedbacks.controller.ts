@@ -84,6 +84,22 @@ export class FeedbacksController {
     }
   }
 
+  async updateFeedback(req: AuthenticatedRequest, res: Response) {
+    try {
+      const feedbackId = parseInt(req.params.id, 10);
+      const feedback = await feedbacksService.updateFeedback(feedbackId, req.body);
+      return success(res, feedback);
+    } catch (error: any) {
+      if (error.message === 'Feedback not found') {
+        return notFoundError(res, 'Feedback not found');
+      }
+      if (error.message.includes('Rating must be')) {
+        return conflictError(res, error.message);
+      }
+      throw error;
+    }
+  }
+
   async deleteFeedback(req: AuthenticatedRequest, res: Response) {
     try {
       const feedbackId = parseInt(req.params.id, 10);

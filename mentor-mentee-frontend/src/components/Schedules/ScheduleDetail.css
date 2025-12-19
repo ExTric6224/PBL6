@@ -126,6 +126,21 @@
   color: #92400e;
 }
 
+.status-booked-by-you {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-booked-by-other {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.status-completed {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
 .status-cancelled {
   background: #fee2e2;
   color: #991b1b;
@@ -259,6 +274,29 @@
   display: flex;
   gap: 12px;
   justify-content: center;
+  align-items: center;
+}
+
+.booking-info-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #dbeafe;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.booking-info-alert.warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+
+.alert-icon {
+  font-size: 20px;
 }
 
 .btn {

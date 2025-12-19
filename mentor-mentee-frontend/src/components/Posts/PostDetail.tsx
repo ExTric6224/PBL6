@@ -95,9 +95,8 @@ const PostDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="post-detail-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Đang tải bài viết...</p>
+        <div className="loading-message">
+          Loading...
         </div>
       </div>
     );

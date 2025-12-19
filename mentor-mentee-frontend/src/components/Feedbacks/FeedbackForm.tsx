@@ -141,19 +141,14 @@ const FeedbackForm: React.FC = () => {
               >
                 <option value="">-- Select a session to rate --</option>
                 {sessions.map((session) => {
-                  const sessionDate = new Date(session.startTime).toLocaleString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                  const mentorEmail = session.mentor?.email || 'Unknown mentor';
-                  const bookingNotes = session.booking?.notes ? ` - ${session.booking.notes}` : '';
+                  const scheduleTopic = session.booking?.schedule?.topic || 'Session';
+                  const mentorName = session.mentor?.mentorProfile?.fullName || 
+                                    session.mentor?.email || 
+                                    'Unknown mentor';
                   
                   return (
                     <option key={session.id} value={session.id}>
-                      {sessionDate} with {mentorEmail}{bookingNotes}
+                      {scheduleTopic} with {mentorName}
                     </option>
                   );
                 })}

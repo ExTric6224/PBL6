@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Toast, { ToastType } from '../Toast/Toast';
 import './AdminPermissionManagement.css';
 
 interface Permission {
@@ -28,6 +29,11 @@ const AdminPermissionManagement: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: ToastType;
+  }>({ show: false, message: '', type: 'info' });
 
   useEffect(() => {
     loadData();
@@ -51,7 +57,11 @@ const AdminPermissionManagement: React.FC = () => {
       setPermissions(permissionsResponse.data.data.permissions || []);
     } catch (error) {
       console.error('Failed to load data:', error);
-      alert('Failed to load permissions data');
+      setToast({
+        show: true,
+        message: 'Failed to load permissions data',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -91,10 +101,18 @@ const AdminPermissionManagement: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Permissions updated successfully!');
+      setToast({
+        show: true,
+        message: 'Permissions updated successfully!',
+        type: 'success',
+      });
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error?.message || 'Failed to update permissions');
+      setToast({
+        show: true,
+        message: error.response?.data?.error?.message || 'Failed to update permissions',
+        type: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -211,6 +229,13 @@ const AdminPermissionManagement: React.FC = () => {
           )}
         </div>
       </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </div>
   );
 };
