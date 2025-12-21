@@ -202,7 +202,7 @@ const AdminUserPermissions: React.FC = () => {
   if (loading && !user) {
     return (
       <div className="admin-user-permissions-container">
-        <div className="loading">Loading user permissions...</div>
+        <div className="loading">Đang tải quyền người dùng...</div>
       </div>
     );
   }
@@ -211,14 +211,14 @@ const AdminUserPermissions: React.FC = () => {
     <div className="admin-user-permissions-container">
       <div className="permissions-header">
         <button className="btn-back" onClick={() => navigate('/admin/users')}>
-          ← Back to Users
+          ← Quay lại Quản lý người dùng
         </button>
         <div className="header-info">
-          <h1>🔐 User Permissions</h1>
+          <h1>🔐 Quyền người dùng</h1>
           <div className="user-info-card">
-            <p><strong>User:</strong> {userName}</p>
+            <p><strong>Người dùng:</strong> {userName}</p>
             <p><strong>Email:</strong> {user?.email}</p>
-            <p><strong>Role:</strong> <span className={`role-badge role-${user?.role.toLowerCase()}`}>{user?.role}</span></p>
+            <p><strong>Vai trò:</strong> <span className={`role-badge role-${user?.role.toLowerCase()}`}>{user?.role}</span></p>
           </div>
         </div>
       </div>
@@ -243,19 +243,19 @@ const AdminUserPermissions: React.FC = () => {
       {permissions && (
         <div className="permissions-summary">
           <div className="summary-card">
-            <h3>📋 Role Permissions</h3>
+            <h3>📋 Quyền vai trò</h3>
             <p className="count">{permissions.rolePermissions.length}</p>
-            <p className="desc">From {user?.role} role</p>
+            <p className="desc">Từ vai trò {user?.role}</p>
           </div>
           <div className="summary-card">
-            <h3>⭐ Direct Permissions</h3>
+            <h3>⭐ Quyền trực tiếp</h3>
             <p className="count">{permissions.directPermissions.length}</p>
-            <p className="desc">User-specific</p>
+            <p className="desc">Quyền trực tiếp</p>
           </div>
           <div className="summary-card">
-            <h3>✅ Total Effective</h3>
+            <h3>✅ Tổng quyền hiệu lực</h3>
             <p className="count">{permissions.effectivePermissions.length}</p>
-            <p className="desc">Combined permissions</p>
+            <p className="desc">Quyền kết hợp</p>
           </div>
         </div>
       )}
@@ -263,13 +263,13 @@ const AdminUserPermissions: React.FC = () => {
       {/* Permission Editor */}
       <div className="permissions-editor">
         <div className="editor-header">
-          <h2>Edit Direct Permissions</h2>
+          <h2>Chỉnh sửa quyền trực tiếp</h2>
           <button 
             className="btn-save"
             onClick={handleSavePermissions}
             disabled={loading}
           >
-            {loading ? 'Saving...' : '💾 Save Changes'}
+            {loading ? 'Đang lưu...' : '💾 Lưu thay đổi'}
           </button>
         </div>
 
@@ -320,7 +320,7 @@ const AdminUserPermissions: React.FC = () => {
       {/* Effective Permissions View */}
       {permissions && permissions.effectivePermissions.length > 0 && (
         <div className="effective-permissions">
-          <h2>✅ All Effective Permissions ({permissions.effectivePermissions.length})</h2>
+          <h2>✅ Tất cả quyền hiệu lực ({permissions.effectivePermissions.length})</h2>
           <div className="permissions-grid">
             {permissions.effectivePermissions.map((perm, index) => (
               <div key={perm.code || perm.id || index} className="permission-tag">

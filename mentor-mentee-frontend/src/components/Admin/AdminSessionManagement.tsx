@@ -32,8 +32,6 @@ const AdminSessionManagement: React.FC = () => {
   const [editFormData, setEditFormData] = useState({
     status: '',
     notes: '',
-    startedAt: '',
-    endedAt: '',
   });
   const [toast, setToast] = useState<{
     show: boolean;
@@ -87,7 +85,7 @@ const AdminSessionManagement: React.FC = () => {
       console.error('Error fetching sessions:', err);
       setToast({
         show: true,
-        message: 'Failed to fetch sessions',
+        message: 'Tải danh sách phiên thất bại',
         type: 'error',
       });
     } finally {
@@ -108,7 +106,7 @@ const AdminSessionManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Session deleted successfully',
+        message: 'Xóa phiên thành công',
         type: 'success',
       });
       fetchSessions();
@@ -117,7 +115,7 @@ const AdminSessionManagement: React.FC = () => {
       console.error('Error deleting session:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to delete session',
+        message: err.response?.data?.error || 'Xóa phiên thất bại',
         type: 'error',
       });
     } finally {
@@ -146,8 +144,6 @@ const AdminSessionManagement: React.FC = () => {
     setEditFormData({
       status: session.status,
       notes: session.notes || '',
-      startedAt: session.startedAt ? new Date(session.startedAt).toISOString().slice(0, 16) : '',
-      endedAt: session.endedAt ? new Date(session.endedAt).toISOString().slice(0, 16) : '',
     });
     setShowEditModal(true);
     setShowDetailModal(false);
@@ -159,8 +155,6 @@ const AdminSessionManagement: React.FC = () => {
     setEditFormData({
       status: '',
       notes: '',
-      startedAt: '',
-      endedAt: '',
     });
   };
 
@@ -175,27 +169,32 @@ const AdminSessionManagement: React.FC = () => {
         notes: editFormData.notes || null,
       };
 
-      if (editFormData.startedAt) {
-        updateData.startedAt = new Date(editFormData.startedAt).toISOString();
-      }
-      if (editFormData.endedAt) {
-        updateData.endedAt = new Date(editFormData.endedAt).toISOString();
-      }
-
       await sessionApi.updateSession(sessionToEdit.id, updateData);
 
       setToast({
         show: true,
-        message: 'Session updated successfully',
+        message: 'Cập nhật phiên thành công',
         type: 'success',
       });
       fetchSessions();
       handleCloseEditModal();
     } catch (err: any) {
       console.error('Error updating session:', err);
+      // Handle error response properly
+      let errorMessage = 'Cập nhật phiên thất bại';
+      if (err.response?.data?.error) {
+        // If error is an object, extract message
+        if (typeof err.response.data.error === 'object') {
+          errorMessage = err.response.data.error.message || JSON.stringify(err.response.data.error);
+        } else {
+          errorMessage = err.response.data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to update session',
+        message: errorMessage,
         type: 'error',
       });
     }
@@ -237,27 +236,27 @@ const AdminSessionManagement: React.FC = () => {
   };
 
   if (loading && sessions.length === 0) {
-    return <div className="admin-loading">Loading sessions...</div>;
+    return <div className="admin-loading">Đang tải phiên...</div>;
   }
 
   return (
     <div className="admin-session-management">
       <div className="admin-header">
-        <h1>Session Management</h1>
-        <p>Manage all sessions in the system</p>
+        <h1>Quản lý phiên</h1>
+        <p>Quản lý tất cả phiên trong hệ thống</p>
       </div>
 
       <div className="admin-controls">
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
-            placeholder="Search sessions by topic, mentor, mentee, or notes..."
+            placeholder="Tìm kiếm phiên theo chủ đề, mentor, mentee, hoặc ghi chú..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-button">
-            Search
+            Tìm kiếm
           </button>
           {searchTerm && (
             <button
@@ -268,7 +267,7 @@ const AdminSessionManagement: React.FC = () => {
               }}
               className="clear-button"
             >
-              Clear
+              Xóa
             </button>
           )}
         </form>
@@ -281,11 +280,11 @@ const AdminSessionManagement: React.FC = () => {
           }}
           className="status-filter"
         >
-          <option value="ALL">All Status</option>
-          <option value="SCHEDULED">Scheduled</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="SCHEDULED">Đã lên lịch</option>
+          <option value="IN_PROGRESS">Đang diễn ra</option>
+          <option value="COMPLETED">Hoàn thành</option>
+          <option value="CANCELLED">Đã hủy</option>
         </select>
       </div>
 
@@ -296,18 +295,18 @@ const AdminSessionManagement: React.FC = () => {
               <th>ID</th>
               <th>Mentor</th>
               <th>Mentee</th>
-              <th>Topic</th>
-              <th>Started At</th>
-              <th>Ended At</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Chủ đề</th>
+              <th>Bắt đầu lúc</th>
+              <th>Kết thúc lúc</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {sessions.length === 0 ? (
               <tr>
                 <td colSpan={8} className="no-data">
-                  No sessions found
+                  Không tìm thấy phiên
                 </td>
               </tr>
             ) : (
@@ -328,23 +327,23 @@ const AdminSessionManagement: React.FC = () => {
                     <button
                       onClick={() => handleViewSession(session)}
                       className="action-button view-button"
-                      title="View Details"
+                      title="Xem chi tiết"
                     >
-                      View
+                      Xem
                     </button>
                     <button
                       onClick={() => handleEditSession(session)}
                       className="action-button edit-button"
-                      title="Edit Session"
+                      title="Sửa phiên"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDeleteSession(session.id)}
                       className="action-button delete-button"
-                      title="Delete Session"
+                      title="Xóa phiên"
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -361,17 +360,17 @@ const AdminSessionManagement: React.FC = () => {
             disabled={pagination.page === 1}
             className="pagination-button"
           >
-            Previous
+            Trước
           </button>
           <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages} (Total: {pagination.total} sessions)
+            Trang {pagination.page} / {pagination.totalPages} (Tổng: {pagination.total} phiên)
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
             disabled={pagination.page === pagination.totalPages}
             className="pagination-button"
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -380,17 +379,17 @@ const AdminSessionManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Session Details</h2>
+              <h2>Chi tiết phiên</h2>
               <button onClick={handleCloseModal} className="close-button">
                 ×
               </button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
-                <h3>Session #{selectedSession.id}</h3>
+                <h3>Phiên #{selectedSession.id}</h3>
                 <div className="session-meta">
                   <div className="meta-row">
-                    <strong>Status:</strong>
+                    <strong>Trạng thái:</strong>
                     <span className={`status-badge ${getStatusBadge(selectedSession.status).class}`}>
                       {getStatusBadge(selectedSession.status).text}
                     </span>
@@ -410,55 +409,55 @@ const AdminSessionManagement: React.FC = () => {
                   {selectedSession.booking?.schedule && (
                     <>
                       <div className="meta-row">
-                        <strong>Topic:</strong>
+                        <strong>Chủ đề:</strong>
                         <span>{selectedSession.booking.schedule.topic}</span>
                       </div>
                       {selectedSession.booking.schedule.description && (
                         <div className="meta-row">
-                          <strong>Schedule Description:</strong>
+                          <strong>Mô tả lịch:</strong>
                           <span>{selectedSession.booking.schedule.description}</span>
                         </div>
                       )}
                     </>
                   )}
                   <div className="meta-row">
-                    <strong>Started At:</strong>
+                    <strong>Bắt đầu lúc:</strong>
                     <span>{formatDateTime(selectedSession.startedAt)}</span>
                   </div>
                   {selectedSession.endedAt && (
                     <div className="meta-row">
-                      <strong>Ended At:</strong>
+                      <strong>Kết thúc lúc:</strong>
                       <span>{formatDateTime(selectedSession.endedAt)}</span>
                     </div>
                   )}
                   {selectedSession.autoStarted && (
                     <div className="meta-row">
-                      <strong>Auto Started:</strong>
-                      <span className="auto-badge">Yes</span>
+                      <strong>Tự động bắt đầu:</strong>
+                      <span className="auto-badge">Có</span>
                     </div>
                   )}
                   {selectedSession.autoEnded && (
                     <div className="meta-row">
-                      <strong>Auto Ended:</strong>
-                      <span className="auto-badge">Yes</span>
+                      <strong>Tự động kết thúc:</strong>
+                      <span className="auto-badge">Có</span>
                     </div>
                   )}
                   {selectedSession.notes && (
                     <div className="meta-row">
-                      <strong>Notes:</strong>
+                      <strong>Ghi chú:</strong>
                       <span>{selectedSession.notes}</span>
                     </div>
                   )}
                   {selectedSession.feedback && (
                     <div className="feedback-section">
-                      <h4>Feedback</h4>
+                      <h4>Đánh giá</h4>
                       <div className="meta-row">
-                        <strong>Rating:</strong>
+                        <strong>Xếp hạng:</strong>
                         <span className="rating">{'⭐'.repeat(selectedSession.feedback.rating)}</span>
                       </div>
                       {selectedSession.feedback.comment && (
                         <div className="meta-row">
-                          <strong>Comment:</strong>
+                          <strong>Bình luận:</strong>
                           <span>{selectedSession.feedback.comment}</span>
                         </div>
                       )}
@@ -469,19 +468,19 @@ const AdminSessionManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button onClick={handleCloseModal} className="button button-secondary">
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => handleEditSession(selectedSession)}
                 className="button button-primary"
               >
-                Edit Session
+                Sửa phiên
               </button>
               <button
                 onClick={() => handleDeleteSession(selectedSession.id)}
                 className="button button-danger"
               >
-                Delete Session
+                Xóa phiên
               </button>
             </div>
           </div>
@@ -493,7 +492,7 @@ const AdminSessionManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Session</h2>
+              <h2>Sửa phiên</h2>
               <button onClick={handleCloseEditModal} className="close-button">
                 ×
               </button>
@@ -501,7 +500,7 @@ const AdminSessionManagement: React.FC = () => {
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="edit-status">Status *</label>
+                  <label htmlFor="edit-status">Trạng thái *</label>
                   <select
                     id="edit-status"
                     value={editFormData.status}
@@ -509,55 +508,34 @@ const AdminSessionManagement: React.FC = () => {
                     required
                     className="form-select"
                   >
-                    <option value="SCHEDULED">Scheduled</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
+                    <option value="IN_PROGRESS">Đang diễn ra</option>
+                    <option value="COMPLETED">Hoàn thành</option>
+                    <option value="CANCELLED">Đã hủy</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-started">Started At</label>
-                  <input
-                    id="edit-started"
-                    type="datetime-local"
-                    value={editFormData.startedAt}
-                    onChange={(e) => setEditFormData({ ...editFormData, startedAt: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="edit-ended">Ended At</label>
-                  <input
-                    id="edit-ended"
-                    type="datetime-local"
-                    value={editFormData.endedAt}
-                    onChange={(e) => setEditFormData({ ...editFormData, endedAt: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="edit-notes">Notes</label>
+                  <label htmlFor="edit-notes">Ghi chú</label>
                   <textarea
                     id="edit-notes"
                     value={editFormData.notes}
                     onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
                     rows={5}
                     className="form-textarea"
-                    placeholder="Add session notes..."
+                    placeholder="Thêm ghi chú phiên..."
                   />
                 </div>
                 <div className="session-meta-info">
                   <p><strong>Mentor:</strong> {getUserFullName((sessionToEdit as any).user_session_mentorIdTouser, (sessionToEdit as any).user_session_mentorIdTouser?.mentorprofile)}</p>
                   <p><strong>Mentee:</strong> {getUserFullName((sessionToEdit as any).user_session_menteeIdTouser, (sessionToEdit as any).user_session_menteeIdTouser?.menteeprofile)}</p>
-                  <p><strong>Topic:</strong> {(sessionToEdit as any).booking?.schedule?.topic || 'N/A'}</p>
+                  <p><strong>Chủ đề:</strong> {(sessionToEdit as any).booking?.schedule?.topic || 'N/A'}</p>
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
-                  Cancel
+                  Hủy
                 </button>
                 <button type="submit" className="button button-primary">
-                  Save Changes
+                  Lưu thay đổi
                 </button>
               </div>
             </form>
@@ -567,10 +545,10 @@ const AdminSessionManagement: React.FC = () => {
 
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        title="Delete Session"
-        message="Are you sure you want to delete this session? This action cannot be undone and will also delete any related feedback."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Xóa phiên"
+        message="Bạn có chắc chắn muốn xóa phiên này? Hành động này không thể hoàn tác và sẽ xóa cả đánh giá liên quan."
+        confirmText="Xóa"
+        cancelText="Hủy"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}

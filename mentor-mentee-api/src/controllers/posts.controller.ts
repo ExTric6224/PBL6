@@ -131,7 +131,7 @@ export class PostsController {
         });
       }
 
-      const post = await postsService.updatePost(postId, userId, result.data);
+      const post = await postsService.updatePost(postId, userId, result.data, req.user?.role);
 
       res.json({
         success: true,

@@ -55,15 +55,15 @@ const OtpRegister: React.FC = () => {
 
   const validateForm = () => {
     if (!formData.email || !formData.email.includes('@')) {
-      setError('Please enter a valid email address');
+      setError('Vui lòng nhập địa chỉ email hợp lệ');
       return false;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Mật khẩu không khớp');
       return false;
     }
     return true;
@@ -93,9 +93,9 @@ const OtpRegister: React.FC = () => {
       setStep('verify');
       setCountdown(60); // 60 seconds cooldown for resend
       setCanResend(false);
-      setSuccess(`Verification code sent to ${response.email}. Code expires in ${response.ttlMinutes} minutes.`);
+      setSuccess(`Mã xác minh đã được gửi đến ${response.email}. Mã hết hạn sau ${response.ttlMinutes} phút.`);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Registration failed. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -106,7 +106,7 @@ const OtpRegister: React.FC = () => {
     e.preventDefault();
     
     if (!otpData.code || otpData.code.length !== 6) {
-      setError('Please enter a valid 6-digit code');
+      setError('Vui lòng nhập mã 6 chữ số hợp lệ');
       return;
     }
 
@@ -119,10 +119,10 @@ const OtpRegister: React.FC = () => {
         code: otpData.code,
       });
       
-      setSuccess('Registration successful! Redirecting to dashboard...');
+      setSuccess('Đăng ký thành công! Đang chuyển hướng đến bảng điều khiển...');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Verification failed. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Xác thực thất bại. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -140,9 +140,9 @@ const OtpRegister: React.FC = () => {
       const response = await resendOtpCode(otpData.email);
       setCountdown(60);
       setCanResend(false);
-      setSuccess(`New verification code sent to ${response.email}`);
+      setSuccess(`Mã xác minh mới đã được gửi đến ${response.email}`);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Failed to resend code. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Gửi lại mã thất bại. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -160,8 +160,8 @@ const OtpRegister: React.FC = () => {
       <div className="auth-container">
         <div className="auth-form">
           <div className="auth-header">
-            <h2>Create Account with Email Verification</h2>
-            <p>We'll send you a verification code to confirm your email</p>
+            <h2>Tạo tài khoản với xác minh email</h2>
+            <p>Chúng tôi sẽ gửi mã xác minh để xác nhận email của bạn</p>
           </div>
 
           {error && <div className="error-message">{error}</div>}
@@ -169,7 +169,7 @@ const OtpRegister: React.FC = () => {
 
           <form onSubmit={handleRegisterSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">Địa chỉ Email</label>
               <input
                 type="email"
                 id="email"
@@ -178,12 +178,12 @@ const OtpRegister: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                placeholder="Enter your email address"
+                placeholder="Nhập địa chỉ email của bạn"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Mật khẩu</label>
               <input
                 type="password"
                 id="password"
@@ -192,12 +192,12 @@ const OtpRegister: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                placeholder="At least 6 characters"
+                placeholder="Ít nhất 6 ký tự"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">Xác nhận Mật khẩu</label>
               <input
                 type="password"
                 id="confirmPassword"
@@ -206,12 +206,12 @@ const OtpRegister: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                placeholder="Re-enter your password"
+                placeholder="Nhập lại mật khẩu của bạn"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="role">I want to register as</label>
+              <label htmlFor="role">Tôi muốn đăng ký với vai trò</label>
               <select
                 id="role"
                 name="role"
@@ -220,22 +220,22 @@ const OtpRegister: React.FC = () => {
                 required
                 disabled={isLoading}
               >
-                <option value="MENTEE">Mentee (Looking for mentorship)</option>
-                <option value="MENTOR">Mentor (Providing mentorship)</option>
+                <option value="MENTEE">Học viên</option>
+                <option value="MENTOR">Chuyên gia</option>
               </select>
             </div>
 
             <button type="submit" className="auth-button" disabled={isLoading}>
-              {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+              {isLoading ? 'Đang gửi mã...' : 'Gửi mã xác minh'}
             </button>
           </form>
 
           <div className="auth-footer">
             <p>
-              Already have an account? <Link to="/login">Sign in here</Link>
+              Bạn đã có tài khoản? <Link to="/login">Đăng nhập tại đây</Link>
             </p>
             <p>
-              <Link to="/register">Use legacy registration (no email verification)</Link>
+              <Link to="/register">Sử dụng đăng ký cũ (không xác minh email)</Link>
             </p>
           </div>
         </div>
@@ -247,8 +247,8 @@ const OtpRegister: React.FC = () => {
     <div className="auth-container">
       <div className="auth-form">
         <div className="auth-header">
-          <h2>Verify Your Email</h2>
-          <p>Enter the 6-digit code sent to <strong>{otpData.email}</strong></p>
+          <h2>Xác minh Email của bạn</h2>
+          <p>Nhập mã 6 chữ số đã gửi đến <strong>{otpData.email}</strong></p>
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -256,7 +256,7 @@ const OtpRegister: React.FC = () => {
 
         <form onSubmit={handleVerifySubmit}>
           <div className="form-group">
-            <label htmlFor="code">Verification Code</label>
+            <label htmlFor="code">Mã xác minh</label>
             <input
               type="text"
               id="code"
@@ -265,7 +265,7 @@ const OtpRegister: React.FC = () => {
               onChange={handleChange}
               required
               disabled={isLoading}
-              placeholder="Enter 6-digit code"
+              placeholder="Nhập mã 6 chữ số"
               maxLength={6}
               pattern="\d{6}"
               style={{
@@ -278,14 +278,14 @@ const OtpRegister: React.FC = () => {
           </div>
 
           <button type="submit" className="auth-button" disabled={isLoading}>
-            {isLoading ? 'Verifying...' : 'Verify & Create Account'}
+            {isLoading ? 'Xác thực...' : 'Xác thực & Tạo tài khoản'}
           </button>
         </form>
 
         <div className="auth-footer">
           <div className="resend-section">
             {countdown > 0 ? (
-              <p>Resend code in {formatCountdown(countdown)}</p>
+              <p>Gửi lại mã sau {formatCountdown(countdown)}</p>
             ) : (
               <button
                 type="button"
@@ -293,7 +293,7 @@ const OtpRegister: React.FC = () => {
                 disabled={!canResend || isLoading}
                 className="link-button"
               >
-                {isLoading ? 'Sending...' : 'Resend Code'}
+                {isLoading ? 'Đang gửi...' : 'Gửi lại mã'}
               </button>
             )}
           </div>
@@ -304,7 +304,7 @@ const OtpRegister: React.FC = () => {
               className="link-button"
               disabled={isLoading}
             >
-              ← Back to registration
+              ← Quay lại đăng ký
             </button>
           </p>
         </div>

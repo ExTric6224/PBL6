@@ -11,7 +11,7 @@ datasource db {
 
 model EmailVerification {
   id           Int       @id @default(autoincrement())
-  email        String    @unique(map: "EmailVerification_email_key")
+  email        String    @unique
   codeHash     String
   expiresAt    DateTime
   attempts     Int       @default(0)
@@ -21,13 +21,13 @@ model EmailVerification {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
 
-  @@index([email], map: "EmailVerification_email_idx")
-  @@index([expiresAt], map: "EmailVerification_expiresAt_idx")
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model PasswordReset {
   id         Int      @id @default(autoincrement())
-  email      String   @unique(map: "PasswordReset_email_key")
+  email      String   @unique
   codeHash   String
   expiresAt  DateTime
   attempts   Int      @default(0)
@@ -36,8 +36,8 @@ model PasswordReset {
   createdAt  DateTime @default(now())
   updatedAt  DateTime
 
-  @@index([email], map: "PasswordReset_email_idx")
-  @@index([expiresAt], map: "PasswordReset_expiresAt_idx")
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model booking {
@@ -103,10 +103,10 @@ model mentorprofile {
   avatar      String?                @db.VarChar(500)
   phoneNumber String?                @db.VarChar(20)
   school      String?
-  expertise   MentorTopicExpertise[]
   degree      String?
   yearsExp    Int?
   bio         String?
+  expertise   MentorTopicExpertise[]
   user        user                   @relation(fields: [userId], references: [id], map: "MentorProfile_userId_fkey")
 
   @@fulltext([fullName], map: "MentorProfile_fullName_idx")
@@ -121,7 +121,7 @@ model Topic {
   menteeInterests MenteeTopicInterest[]
   mentorExpertise MentorTopicExpertise[]
 
-  @@index([name], map: "Topic_name_idx")
+  @@index([name])
 }
 
 model MenteeTopicInterest {
@@ -132,8 +132,8 @@ model MenteeTopicInterest {
   topic           Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@id([menteeProfileId, topicId])
-  @@index([menteeProfileId], map: "MenteeTopicInterest_menteeProfileId_idx")
-  @@index([topicId], map: "MenteeTopicInterest_topicId_idx")
+  @@index([menteeProfileId])
+  @@index([topicId])
 }
 
 model MentorTopicExpertise {
@@ -144,8 +144,8 @@ model MentorTopicExpertise {
   topic           Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@id([mentorProfileId, topicId])
-  @@index([mentorProfileId], map: "MentorTopicExpertise_mentorProfileId_idx")
-  @@index([topicId], map: "MentorTopicExpertise_topicId_idx")
+  @@index([mentorProfileId])
+  @@index([topicId])
 }
 
 model notification {
@@ -170,8 +170,8 @@ model post {
   createdAt DateTime    @default(now())
   updatedAt DateTime
   like      like[]
-  images    postimage[]
   user      user        @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey")
+  images    postimage[]
 
   @@index([authorId], map: "Post_authorId_idx")
   @@index([createdAt], map: "Post_createdAt_idx")
@@ -196,7 +196,7 @@ model schedule {
   description String?         @db.Text
   startAt     DateTime
   endAt       DateTime
-  capacity    Int             @default(1) // Always 1 for 1-on-1 mentoring sessions
+  capacity    Int             @default(1)
   status      schedule_status @default(AVAILABLE)
   createdAt   DateTime        @default(now())
   booking     booking[]
@@ -235,6 +235,7 @@ model user {
   roleId                           Int?
   createdAt                        DateTime         @default(now())
   updatedAt                        DateTime
+  userPermissions                  UserPermission[]
   booking                          booking[]
   feedback_feedback_menteeIdTouser feedback[]       @relation("feedback_menteeIdTouser")
   feedback_feedback_mentorIdTouser feedback[]       @relation("feedback_mentorIdTouser")
@@ -247,7 +248,6 @@ model user {
   session_session_menteeIdTouser   session[]        @relation("session_menteeIdTouser")
   session_session_mentorIdTouser   session[]        @relation("session_mentorIdTouser")
   roleRelation                     Role?            @relation(fields: [roleId], references: [id])
-  userPermissions                  UserPermission[]
 
   @@index([role], map: "User_role_idx")
   @@index([roleId], map: "User_roleId_idx")
@@ -273,20 +273,20 @@ model Permission {
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
 
-  @@index([resource], map: "Permission_resource_idx")
-  @@index([action], map: "Permission_action_idx")
+  @@index([resource])
+  @@index([action])
 }
 
 model RolePermission {
   roleId       Int
   permissionId Int
   createdAt    DateTime   @default(now())
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
-  @@index([roleId], map: "RolePermission_roleId_idx")
-  @@index([permissionId], map: "RolePermission_permissionId_idx")
+  @@index([roleId])
+  @@index([permissionId])
 }
 
 model UserPermission {
@@ -295,19 +295,12 @@ model UserPermission {
   isGranted    Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime
-  user         user       @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  user         user       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, permissionId])
-  @@index([userId], map: "UserPermission_userId_idx")
-  @@index([permissionId], map: "UserPermission_permissionId_idx")
-}
-
-enum booking_status {
-  PENDING
-  CONFIRMED
-  COMPLETED
-  CANCELLED
+  @@index([userId])
+  @@index([permissionId])
 }
 
 enum session_status {
@@ -323,9 +316,15 @@ enum user_role {
   MENTEE
 }
 
+enum booking_status {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
 enum schedule_status {
   AVAILABLE
   BOOKED
-  COMPLETED
   CANCELLED
 }

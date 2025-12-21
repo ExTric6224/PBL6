@@ -157,7 +157,7 @@ const SessionDetail: React.FC = () => {
     return (
       <div className="session-detail-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );
@@ -168,7 +168,7 @@ const SessionDetail: React.FC = () => {
       <div className="session-detail-container">
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <h3>Session not found</h3>
+          <h3>Không tìm thấy session</h3>
           <button className="btn-back" onClick={() => navigate('/sessions')}>
             ← Quay lại danh sách
           </button>
@@ -183,7 +183,7 @@ const SessionDetail: React.FC = () => {
         <button className="btn-back" onClick={() => navigate('/sessions')}>
           ← Quay lại
         </button>
-        <h1>{session.booking?.schedule?.topic || 'Session Details'}</h1>
+        <h1>{session.booking?.schedule?.topic || 'Chi tiết session'}</h1>
         <span className={`status-badge ${getStatusColor(session.status)}`}>
           {getStatusLabel(session.status)}
         </span>
@@ -340,7 +340,7 @@ const SessionDetail: React.FC = () => {
         {session.notes && (
           <div className="detail-card">
             <div className="card-header">
-              <h2>📝 Notes</h2>
+              <h2>📝 Ghi chú</h2>
             </div>
             <div className="card-body">
               <div className="notes-content">{session.notes}</div>

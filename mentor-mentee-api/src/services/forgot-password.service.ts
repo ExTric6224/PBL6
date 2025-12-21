@@ -32,7 +32,7 @@ export class ForgotPasswordService {
     if (existing && !existing.isUsed) {
       const diffSec = (now.getTime() - new Date(existing.lastSentAt).getTime()) / 1000;
       if (diffSec < RESEND_INTERVAL_SECONDS) {
-        throw new Error('Too many requests');
+        throw new Error('Quá nhiều yêu cầu');
       }
     }
 
@@ -75,7 +75,7 @@ export class ForgotPasswordService {
       console.log(`🔐 [FALLBACK] Password reset code for ${email}: ${code}`);
       
       if (process.env.NODE_ENV === 'production') {
-        throw new Error('Failed to send password reset email');
+        throw new Error('Không thể gửi email đặt lại mật khẩu');
       }
     }
 
@@ -96,12 +96,12 @@ export class ForgotPasswordService {
         where: { email },
         data: { attempts: { increment: 1 }, updatedAt: new Date() },
       });
-      throw new Error('Code expired');
+      throw new Error('Mã đã hết hạn');
     }
 
     // Quá số lần thử?
     if (rec.attempts >= MAX_ATTEMPTS) {
-      throw new Error('Too many attempts');
+      throw new Error('Quá nhiều lần thử');
     }
 
     // So sánh mã
@@ -111,7 +111,7 @@ export class ForgotPasswordService {
         where: { email },
         data: { attempts: { increment: 1 }, updatedAt: new Date() },
       });
-      throw new Error('Invalid code');
+      throw new Error('Mã không đúng');
     }
 
     // Mã đúng
@@ -149,14 +149,14 @@ export class ForgotPasswordService {
     const { email } = params;
     
     const rec = await prisma.passwordReset.findUnique({ where: { email } });
-    if (!rec) throw new Error('Reset request not found');
+    if (!rec) throw new Error('Không tìm thấy yêu cầu đặt lại');
 
     if (rec.isUsed) throw new Error('Code already used');
 
     const now = new Date();
     const diffSec = (now.getTime() - new Date(rec.lastSentAt).getTime()) / 1000;
     if (diffSec < RESEND_INTERVAL_SECONDS) {
-      throw new Error('Too many requests');
+      throw new Error('Quá nhiều yêu cầu');
     }
 
     const code = generateCode();

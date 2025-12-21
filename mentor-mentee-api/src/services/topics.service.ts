@@ -15,7 +15,7 @@ export class TopicsService {
     });
 
     if (!topic) {
-      throw new Error('Topic not found');
+      throw new Error('Không tìm thấy chủ đề');
     }
 
     return topic;

@@ -227,7 +227,7 @@ export class PostsService {
     });
 
     if (!post) {
-      throw new Error('Post not found');
+      throw new Error('Không tìm thấy bài viết');
     }
 
     // Check permission to view this specific post
@@ -242,7 +242,7 @@ export class PostsService {
         (!isOwnPost && hasViewAny);   // Others' post and has view_any
 
       if (!canView) {
-        throw new Error('You do not have permission to view this post');
+        throw new Error('Bạn không có quyền xem bài viết này');
       }
     }
 
@@ -253,17 +253,18 @@ export class PostsService {
     };
   }
 
-  async updatePost(postId: number, authorId: number, data: UpdatePostDto) {
-    // Kiểm tra quyền sở hữu
+  async updatePost(postId: number, authorId: number, data: UpdatePostDto, userRole?: string) {
+    // Admin có thể edit bất kỳ post nào, user khác chỉ edit post của mình
+    const whereCondition = userRole === 'ADMIN' 
+      ? { id: postId }
+      : { id: postId, authorId: authorId };
+    
     const post = await prisma.post.findFirst({
-      where: {
-        id: postId,
-        authorId: authorId,
-      },
+      where: whereCondition,
     });
 
     if (!post) {
-      throw new Error('Post not found or access denied');
+      throw new Error('Không tìm thấy bài viết hoặc không có quyền truy cập');
     }
 
     return await prisma.post.update({
@@ -307,7 +308,7 @@ export class PostsService {
     });
 
     if (!post) {
-      throw new Error('Post not found');
+      throw new Error('Không tìm thấy bài viết');
     }
 
     // Check if user has permission to delete this post
@@ -315,7 +316,7 @@ export class PostsService {
     const isAuthor = post.authorId === userId;
 
     if (!hasDeleteAny && !isAuthor) {
-      throw new Error('Post not found or access denied');
+      throw new Error('Không tìm thấy bài viết hoặc không có quyền truy cập');
     }
 
     return await prisma.post.delete({
@@ -330,7 +331,7 @@ export class PostsService {
     });
 
     if (!post) {
-      throw new Error('Post not found');
+      throw new Error('Không tìm thấy bài viết');
     }
 
     // Tất cả authenticated users có thể like bất kỳ post nào
@@ -369,7 +370,7 @@ export class PostsService {
     });
 
     if (!post) {
-      throw new Error('Post not found');
+      throw new Error('Không tìm thấy bài viết');
     }
 
     const likes = await prisma.like.findMany({
@@ -415,7 +416,7 @@ export class PostsService {
       files.forEach(file => {
         deletePostImageFile(path.join('storage', 'posts', file.filename));
       });
-      throw new Error('Post not found or access denied');
+      throw new Error('Không tìm thấy bài viết hoặc không có quyền truy cập');
     }
 
     // Get current max order for this post
@@ -450,7 +451,7 @@ export class PostsService {
     });
 
     if (!post || post.authorId !== userId) {
-      throw new Error('Post not found or access denied');
+      throw new Error('Không tìm thấy bài viết hoặc không có quyền truy cập');
     }
 
     // Get image
@@ -459,7 +460,7 @@ export class PostsService {
     });
 
     if (!image || image.postId !== postId) {
-      throw new Error('Image not found');
+      throw new Error('Không tìm thấy hình ảnh');
     }
 
     // Delete image file

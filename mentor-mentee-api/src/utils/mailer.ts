@@ -80,9 +80,9 @@ export async function sendVerificationEmail(to: string, code: string) {
       subject: `${appName} - Mã xác thực email`,
       html,
     });
-    console.log(`📧 Verification email sent to: ${to}`);
+    console.log(`📧 Email xác thực đã được gửi đến: ${to}`);
   } catch (error) {
-    console.error('❌ Failed to send verification email:', error);
+    console.error('❌ Không thể gửi email xác thực:', error);
     throw error;
   }
 }
@@ -123,9 +123,9 @@ export async function sendPasswordResetEmail(to: string, code: string) {
       subject: `${appName} - Mã đặt lại mật khẩu`,
       html,
     });
-    console.log(`📧 Password reset email sent to: ${to}`);
+    console.log(`📧 Email đặt lại mật khẩu đã được gửi đến: ${to}`);
   } catch (error) {
-    console.error('❌ Failed to send password reset email:', error);
+    console.error('❌ Không thể gửi email đặt lại mật khẩu:', error);
     throw error;
   }
 }

@@ -17,13 +17,13 @@ export class SessionsController {
       return success(res, session, 201);
     } catch (error: any) {
       if (error.message === 'Booking not found, not confirmed, or access denied') {
-        return notFoundError(res, 'Booking not found, not confirmed, or you do not have permission');
+        return notFoundError(res, 'Không tìm thấy lượt đặt lịch, chưa được xác nhận, hoặc bạn không có quyền');
       }
       if (error.message === 'Session already started') {
         return conflictError(res, 'Session has already been started');
       }
       if (error.message === 'Mentor profile not found') {
-        return notFoundError(res, 'Mentor profile not found');
+        return notFoundError(res, 'Không tìm thấy hồ sơ mentor');
       }
       throw error;
     }
@@ -39,7 +39,7 @@ export class SessionsController {
       return success(res, session);
     } catch (error: any) {
       if (error.message === 'Session not found or access denied') {
-        return notFoundError(res, 'Session not found or you do not have permission');
+        return notFoundError(res, 'Không tìm thấy buổi học hoặc bạn không có quyền');
       }
       if (error.message === 'Session has already ended') {
         return conflictError(res, error.message);
@@ -76,7 +76,7 @@ export class SessionsController {
       return success(res, { message: 'Session deleted successfully' });
     } catch (error: any) {
       if (error.message === 'Session not found') {
-        return notFoundError(res, 'Session not found');
+        return notFoundError(res, 'Không tìm thấy buổi học');
       }
       throw error;
     }
@@ -85,13 +85,16 @@ export class SessionsController {
   async updateSession(req: AuthenticatedRequest, res: Response) {
     try {
       const sessionId = parseInt(req.params.id, 10);
-      const session = await sessionsService.updateSession(sessionId, req.body);
+      const session = await sessionsService.updateSession(sessionId, req.body, req.user?.role);
       return success(res, session);
     } catch (error: any) {
       if (error.message === 'Session not found') {
-        return notFoundError(res, 'Session not found');
+        return notFoundError(res, 'Không tìm thấy buổi học');
       }
-      if (error.message.includes('Invalid status')) {
+      if (error.message.includes('Invalid status') ||
+          error.message.includes('Cannot edit') ||
+          error.message.includes('Cannot change') ||
+          error.message.includes('Only admin')) {
         return conflictError(res, error.message);
       }
       throw error;

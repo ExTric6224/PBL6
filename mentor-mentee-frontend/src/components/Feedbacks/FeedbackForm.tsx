@@ -34,7 +34,7 @@ const FeedbackForm: React.FC = () => {
       const paginatedResponse = await feedbackApi.getMyFeedbacks();
       setFeedbacks(paginatedResponse.data || []);
     } catch (err: any) {
-      console.error('Failed to load feedbacks:', err);
+      console.error('Không thể tải đánh giá:', err);
       setFeedbacks([]);
     } finally {
       setLoading(false);
@@ -56,7 +56,7 @@ const FeedbackForm: React.FC = () => {
       
       setSessions(completedSessions);
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error('Lỗi khi tải buổi học:', error);
       setSessions([]);
     } finally {
       setLoadingSessions(false);
@@ -80,12 +80,12 @@ const FeedbackForm: React.FC = () => {
     e.preventDefault();
     try {
       await feedbackApi.createFeedback(formData);
-      alert('Feedback submitted successfully!');
+      alert('Gửi đánh giá thành công!');
       setShowForm(false);
       setFormData({ sessionId: 0, rating: 5, comment: '' });
       loadMyFeedbacks();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to submit feedback');
+      alert(err.response?.data?.error?.message || 'Không thể gửi đánh giá');
     }
   };
 
@@ -119,17 +119,17 @@ const FeedbackForm: React.FC = () => {
       {/* Only MENTEE can create feedback */}
       {isMentee && showForm && (
         <form className="feedback-form" onSubmit={handleSubmit}>
-          <h2>Give Feedback</h2>
+          <h2>Gửi đánh giá</h2>
           <div className="rating-input">
-            <label>Rating</label>
+            <label>Đánh giá</label>
             {renderStars(formData.rating, true)}
           </div>
           <div className="form-group">
-            <label>Select Session</label>
+            <label>Chọn buổi học</label>
             {loadingSessions ? (
-              <p className="loading-text">Loading sessions...</p>
+              <p className="loading-text">Đang tải buổi học...</p>
             ) : sessions.length === 0 ? (
-              <p className="info-text">No completed sessions available for feedback</p>
+              <p className="info-text">Không có buổi học nào để đánh giá</p>
             ) : (
               <select
                 value={formData.sessionId || ''}
@@ -139,7 +139,7 @@ const FeedbackForm: React.FC = () => {
                 })}
                 required
               >
-                <option value="">-- Select a session to rate --</option>
+                <option value="">-- Chọn buổi học để đánh giá --</option>
                 {sessions.map((session) => {
                   const scheduleTopic = session.booking?.schedule?.topic || 'Session';
                   const mentorName = session.mentor?.mentorProfile?.fullName || 
@@ -148,7 +148,7 @@ const FeedbackForm: React.FC = () => {
                   
                   return (
                     <option key={session.id} value={session.id}>
-                      {scheduleTopic} with {mentorName}
+                      {scheduleTopic} với {mentorName}
                     </option>
                   );
                 })}
@@ -156,23 +156,23 @@ const FeedbackForm: React.FC = () => {
             )}
           </div>
           <div className="form-group">
-            <label>Comment (optional)</label>
+            <label>Nhận xét (tùy chọn)</label>
             <textarea
               value={formData.comment}
               onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-              placeholder="Share your experience..."
+              placeholder="Chia sẻ trải nghiệm của bạn..."
             />
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
-              Cancel
+              Hủy
             </button>
             <button 
               type="submit" 
               className="btn btn-primary"
               disabled={!formData.sessionId || loadingSessions}
             >
-              Submit Feedback
+              Gửi đánh giá
             </button>
           </div>
         </form>
@@ -181,7 +181,7 @@ const FeedbackForm: React.FC = () => {
       {/* Only MENTEE can see create button */}
       {isMentee && !showForm && (
         <button className="create-post-btn" onClick={() => setShowForm(true)}>
-          ✚ Give Feedback
+          ✚ Gửi đánh giá
         </button>
       )}
 
@@ -193,11 +193,11 @@ const FeedbackForm: React.FC = () => {
         </h2>
         
         {loading ? (
-          <div className="loading">Loading feedbacks...</div>
+          <div className="loading">Đang tải đánh giá...</div>
         ) : feedbacks.length === 0 ? (
           <div className="empty-state">
-            {isMentee && 'You haven\'t given any feedback yet.'}
-            {isMentor && 'You haven\'t received any feedback yet.'}
+            {isMentee && 'Bạn chưa gửi đánh giá nào.'}
+            {isMentor && 'Bạn chưa nhận được đánh giá nào.'}
           </div>
         ) : (
           feedbacks.map((feedback) => (

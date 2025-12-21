@@ -37,15 +37,15 @@ const AdminUserManagement: React.FC = () => {
       });
       setUsers(response.data.data || []);
     } catch (error) {
-      console.error('Failed to load users:', error);
-      alert('Failed to load users. You may not have permission.');
+      console.error('Không thể tải người dùng:', error);
+      alert('Không thể tải người dùng. Có thể bạn không có quyền.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId: number, email: string) => {
-    if (!window.confirm(`Are you sure you want to delete user: ${email}?`)) {
+    if (!window.confirm(`Bạn có chắc muốn xoá người dùng: ${email}?`)) {
       return;
     }
 
@@ -54,10 +54,10 @@ const AdminUserManagement: React.FC = () => {
       await axios.delete(`${process.env.REACT_APP_API_URL}/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('User deleted successfully');
+      alert('Đã xoá người dùng thành công');
       loadUsers();
     } catch (error: any) {
-      alert(error.response?.data?.error?.message || 'Failed to delete user');
+      alert(error.response?.data?.error?.message || 'Không thể xoá người dùng');
     }
   };
 
@@ -80,9 +80,9 @@ const AdminUserManagement: React.FC = () => {
     <div className="admin-users-container">
       <div className="users-header">
         <button className="btn-back" onClick={() => navigate('/admin')}>
-          ← Back to Dashboard
+          ← Quay lại Bảng điều khiển
         </button>
-        <h1>👥 User Management</h1>
+        <h1>👥 Quản lý người dùng</h1>
       </div>
 
       {/* Filters */}
@@ -90,7 +90,7 @@ const AdminUserManagement: React.FC = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search by email or name..."
+            placeholder="Tìm kiếm với email hoặc tên..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -101,25 +101,25 @@ const AdminUserManagement: React.FC = () => {
             className={`filter-btn ${filterRole === 'ALL' ? 'active' : ''}`}
             onClick={() => setFilterRole('ALL')}
           >
-            All ({users.length})
+            Tất cả ({users.length})
           </button>
           <button
             className={`filter-btn ${filterRole === 'MENTOR' ? 'active' : ''}`}
             onClick={() => setFilterRole('MENTOR')}
           >
-            Mentors ({users.filter(u => u.role === 'MENTOR').length})
+            Chuyên gia ({users.filter(u => u.role === 'MENTOR').length})
           </button>
           <button
             className={`filter-btn ${filterRole === 'MENTEE' ? 'active' : ''}`}
             onClick={() => setFilterRole('MENTEE')}
           >
-            Mentees ({users.filter(u => u.role === 'MENTEE').length})
+            Học viên ({users.filter(u => u.role === 'MENTEE').length})
           </button>
           <button
             className={`filter-btn ${filterRole === 'ADMIN' ? 'active' : ''}`}
             onClick={() => setFilterRole('ADMIN')}
           >
-            Admins ({users.filter(u => u.role === 'ADMIN').length})
+            Quản trị viên ({users.filter(u => u.role === 'ADMIN').length})
           </button>
         </div>
       </div>
@@ -131,16 +131,16 @@ const AdminUserManagement: React.FC = () => {
             <tr>
               <th>ID</th>
               <th>Email</th>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Created At</th>
-              <th>Actions</th>
+              <th>Tên</th>
+              <th>Vai trò</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="no-data">No users found</td>
+                <td colSpan={6} className="no-data">Không tìm thấy người dùng</td>
               </tr>
             ) : (
               filteredUsers.map(user => (
@@ -164,19 +164,19 @@ const AdminUserManagement: React.FC = () => {
                         className="btn-view"
                         onClick={() => navigate(`/profile/${user.id}`)}
                       >
-                        View
+                        Xem
                       </button>
                       <button
                         className="btn-permissions"
                         onClick={() => navigate(`/admin/users/${user.id}/permissions`)}
                       >
-                        Permissions
+                        Quyền
                       </button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDeleteUser(user.id, user.email)}
                       >
-                        Delete
+                        Xoá
                       </button>
                     </div>
                   </td>
@@ -189,7 +189,7 @@ const AdminUserManagement: React.FC = () => {
 
       {/* Summary */}
       <div className="summary">
-        <p>Showing {filteredUsers.length} of {users.length} users</p>
+        <p>Hiển thị {filteredUsers.length} trong tổng số {users.length} người dùng</p>
       </div>
     </div>
   );

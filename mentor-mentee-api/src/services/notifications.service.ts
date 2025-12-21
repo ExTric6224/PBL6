@@ -26,7 +26,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new Error('Notification not found or access denied');
+      throw new Error('Không tìm thấy thông báo hoặc không có quyền truy cập');
     }
 
     return await prisma.notification.update({

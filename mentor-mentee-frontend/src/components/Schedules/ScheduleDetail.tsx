@@ -148,7 +148,7 @@ const ScheduleDetail: React.FC = () => {
     return (
       <div className="schedule-detail-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );
@@ -321,18 +321,39 @@ const ScheduleDetail: React.FC = () => {
       {showBookDialog && (
         <div className="modal-overlay" onClick={() => setShowBookDialog(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Đặt lịch</h3>
-            <div className="form-group">
-              <label>Ghi chú cho mentor (tùy chọn)</label>
-              <textarea
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                placeholder="Ví dụ: Tôi muốn học về React hooks..."
-                rows={4}
-                className="form-textarea"
-              />
+            <div className="modal-header">
+              <h2>Đặt lịch hẹn</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => {
+                  setShowBookDialog(false);
+                  setBookingNotes('');
+                }}
+              >
+                ×
+              </button>
             </div>
-            <div className="modal-actions">
+            <div className="modal-body">
+              <p className="modal-description">
+                Vui lòng nhập ghi chú cho mentor (không bắt buộc). 
+                Mentor sẽ xem xét và xác nhận lịch hẹn của bạn.
+              </p>
+              <div className="form-group">
+                <label htmlFor="booking-notes">Ghi chú</label>
+                <textarea
+                  id="booking-notes"
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                  placeholder="Ví dụ: Tôi muốn học về React Hooks và State Management..."
+                  rows={5}
+                  className="form-textarea"
+                />
+                <small className="form-hint">
+                  Ghi chú giúp mentor hiểu rõ hơn về nhu cầu học tập của bạn
+                </small>
+              </div>
+            </div>
+            <div className="modal-footer">
               <button 
                 className="btn btn-secondary"
                 onClick={() => {
@@ -346,7 +367,7 @@ const ScheduleDetail: React.FC = () => {
                 className="btn btn-primary"
                 onClick={handleConfirmBook}
               >
-                Đặt lịch
+                Xác nhận đặt lịch
               </button>
             </div>
           </div>

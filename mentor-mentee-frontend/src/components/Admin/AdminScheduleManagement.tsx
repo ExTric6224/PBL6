@@ -90,7 +90,7 @@ const AdminScheduleManagement: React.FC = () => {
       console.error('Error fetching schedules:', err);
       setToast({
         show: true,
-        message: 'Failed to fetch schedules',
+        message: 'Tải danh sách lịch thất bại',
         type: 'error',
       });
     } finally {
@@ -111,7 +111,7 @@ const AdminScheduleManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Schedule deleted successfully',
+        message: 'Xóa lịch thành công',
         type: 'success',
       });
       fetchSchedules();
@@ -120,7 +120,7 @@ const AdminScheduleManagement: React.FC = () => {
       console.error('Error deleting schedule:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to delete schedule',
+        message: err.response?.data?.error || 'Xóa lịch thất bại',
         type: 'error',
       });
     } finally {
@@ -181,7 +181,7 @@ const AdminScheduleManagement: React.FC = () => {
         description: editFormData.description || undefined,
         startAt: new Date(editFormData.startAt).toISOString(),
         endAt: new Date(editFormData.endAt).toISOString(),
-        capacity: editFormData.capacity,
+        // Không gửi capacity vì luôn là 1
         status: editFormData.status as 'AVAILABLE' | 'BOOKED' | 'CANCELLED',
       };
 
@@ -189,16 +189,28 @@ const AdminScheduleManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Schedule updated successfully',
+        message: 'Cập nhật lịch thành công',
         type: 'success',
       });
       fetchSchedules();
       handleCloseEditModal();
     } catch (err: any) {
       console.error('Error updating schedule:', err);
+      // Handle error response properly
+      let errorMessage = 'Cập nhật lịch thất bại';
+      if (err.response?.data?.error) {
+        // If error is an object, extract message
+        if (typeof err.response.data.error === 'object') {
+          errorMessage = err.response.data.error.message || JSON.stringify(err.response.data.error);
+        } else {
+          errorMessage = err.response.data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to update schedule',
+        message: errorMessage,
         type: 'error',
       });
     }
@@ -235,27 +247,27 @@ const AdminScheduleManagement: React.FC = () => {
   };
 
   if (loading && schedules.length === 0) {
-    return <div className="admin-loading">Loading schedules...</div>;
+    return <div className="admin-loading">Đang tải lịch...</div>;
   }
 
   return (
     <div className="admin-schedule-management">
       <div className="admin-header">
-        <h1>Schedule Management</h1>
-        <p>Manage all schedules in the system</p>
+        <h1>Quản lý lịch</h1>
+        <p>Quản lý tất cả lịch trong hệ thống</p>
       </div>
 
       <div className="admin-controls">
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
-            placeholder="Search schedules by topic, description, or mentor..."
+            placeholder="Tìm kiếm lịch theo chủ đề, mô tả, hoặc mentor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-button">
-            Search
+            Tìm kiếm
           </button>
           {searchTerm && (
             <button
@@ -266,7 +278,7 @@ const AdminScheduleManagement: React.FC = () => {
               }}
               className="clear-button"
             >
-              Clear
+              Xóa
             </button>
           )}
         </form>
@@ -279,10 +291,10 @@ const AdminScheduleManagement: React.FC = () => {
           }}
           className="status-filter"
         >
-          <option value="ALL">All Status</option>
-          <option value="AVAILABLE">Available</option>
-          <option value="BOOKED">Booked</option>
-          <option value="CANCELLED">Cancelled</option>
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="AVAILABLE">Có sẵn</option>
+          <option value="BOOKED">Đã đặt</option>
+          <option value="CANCELLED">Đã hủy</option>
         </select>
       </div>
 
@@ -292,19 +304,19 @@ const AdminScheduleManagement: React.FC = () => {
             <tr>
               <th>ID</th>
               <th>Mentor</th>
-              <th>Topic</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Status</th>
-              <th>Capacity</th>
-              <th>Actions</th>
+              <th>Chủ đề</th>
+              <th>Thời gian bắt đầu</th>
+              <th>Thời gian kết thúc</th>
+              <th>Trạng thái</th>
+              <th>Số chỗ</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {schedules.length === 0 ? (
               <tr>
                 <td colSpan={8} className="no-data">
-                  No schedules found
+                  Không tìm thấy lịch
                 </td>
               </tr>
             ) : (
@@ -325,23 +337,23 @@ const AdminScheduleManagement: React.FC = () => {
                     <button
                       onClick={() => handleViewSchedule(schedule)}
                       className="action-button view-button"
-                      title="View Details"
+                      title="Xem chi tiết"
                     >
-                      View
+                      Xem
                     </button>
                     <button
                       onClick={() => handleEditSchedule(schedule)}
                       className="action-button edit-button"
-                      title="Edit Schedule"
+                      title="Sửa lịch"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDeleteSchedule(schedule.id)}
                       className="action-button delete-button"
-                      title="Delete Schedule"
+                      title="Xóa lịch"
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -358,17 +370,17 @@ const AdminScheduleManagement: React.FC = () => {
             disabled={pagination.page === 1 || pagination.totalPages <= 1}
             className="pagination-button"
           >
-            Previous
+            Trước
           </button>
           <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages} (Total: {pagination.total} schedules)
+            Trang {pagination.page} / {pagination.totalPages} (Tổng: {pagination.total} lịch)
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
             disabled={pagination.page === pagination.totalPages || pagination.totalPages <= 1}
             className="pagination-button"
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -377,17 +389,17 @@ const AdminScheduleManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Schedule Details</h2>
+              <h2>Chi tiết lịch</h2>
               <button onClick={handleCloseModal} className="close-button">
                 ×
               </button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
-                <h3>Schedule #{selectedSchedule.id}</h3>
+                <h3>Lịch #{selectedSchedule.id}</h3>
                 <div className="schedule-meta">
                   <div className="meta-row">
-                    <strong>Status:</strong>
+                    <strong>Trạng thái:</strong>
                     <span className={`status-badge ${getStatusBadge(selectedSchedule.status).class}`}>
                       {getStatusBadge(selectedSchedule.status).text}
                     </span>
@@ -399,50 +411,50 @@ const AdminScheduleManagement: React.FC = () => {
                     </span>
                   </div>
                   <div className="meta-row">
-                    <strong>Topic:</strong>
+                    <strong>Chủ đề:</strong>
                     <span>{selectedSchedule.topic}</span>
                   </div>
                   {selectedSchedule.description && (
                     <div className="meta-row">
-                      <strong>Description:</strong>
+                      <strong>Mô tả:</strong>
                       <span>{selectedSchedule.description}</span>
                     </div>
                   )}
                   <div className="meta-row">
-                    <strong>Start Time:</strong>
+                    <strong>Thời gian bắt đầu:</strong>
                     <span>{formatDateTime(selectedSchedule.startAt)}</span>
                   </div>
                   <div className="meta-row">
-                    <strong>End Time:</strong>
+                    <strong>Thời gian kết thúc:</strong>
                     <span>{formatDateTime(selectedSchedule.endAt)}</span>
                   </div>
                   <div className="meta-row">
-                    <strong>Capacity:</strong>
+                    <strong>Số chỗ:</strong>
                     <span>{selectedSchedule.capacity}</span>
                   </div>
                   <div className="meta-row">
-                    <strong>Created:</strong>
+                    <strong>Ngày tạo:</strong>
                     <span>{formatDateTime(selectedSchedule.createdAt)}</span>
                   </div>
                   {selectedSchedule.updatedAt && (
                     <div className="meta-row">
-                      <strong>Updated:</strong>
+                      <strong>Cập nhật:</strong>
                       <span>{formatDateTime(selectedSchedule.updatedAt)}</span>
                     </div>
                   )}
                   {selectedSchedule.mentor?.mentorProfile && (
                     <>
                       <div className="meta-row">
-                        <strong>Mentor Bio:</strong>
+                        <strong>Giới thiệu Mentor:</strong>
                         <span>{selectedSchedule.mentor.mentorProfile.bio}</span>
                       </div>
                       <div className="meta-row">
-                        <strong>Experience:</strong>
-                        <span>{selectedSchedule.mentor.mentorProfile.experience} years</span>
+                        <strong>Kinh nghiệm:</strong>
+                        <span>{selectedSchedule.mentor.mentorProfile.experience} năm</span>
                       </div>
                       {selectedSchedule.mentor.mentorProfile.expertise && selectedSchedule.mentor.mentorProfile.expertise.length > 0 && (
                         <div className="meta-row">
-                          <strong>Expertise:</strong>
+                          <strong>Chuyên môn:</strong>
                           <div className="expertise-tags">
                             {selectedSchedule.mentor.mentorProfile.expertise.map((topic, index) => (
                               <span key={index} className="expertise-tag">
@@ -459,19 +471,19 @@ const AdminScheduleManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button onClick={handleCloseModal} className="button button-secondary">
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => handleEditSchedule(selectedSchedule)}
                 className="button button-primary"
               >
-                Edit Schedule
+                Sửa lịch
               </button>
               <button
                 onClick={() => handleDeleteSchedule(selectedSchedule.id)}
                 className="button button-danger"
               >
-                Delete Schedule
+                Xóa lịch
               </button>
             </div>
           </div>
@@ -483,7 +495,7 @@ const AdminScheduleManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Schedule</h2>
+              <h2>Sửa lịch</h2>
               <button onClick={handleCloseEditModal} className="close-button">
                 ×
               </button>
@@ -491,7 +503,7 @@ const AdminScheduleManagement: React.FC = () => {
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="edit-topic">Topic *</label>
+                  <label htmlFor="edit-topic">Chủ đề *</label>
                   <input
                     id="edit-topic"
                     type="text"
@@ -499,23 +511,23 @@ const AdminScheduleManagement: React.FC = () => {
                     onChange={(e) => setEditFormData({ ...editFormData, topic: e.target.value })}
                     required
                     className="form-input"
-                    placeholder="Enter schedule topic"
+                    placeholder="Nhập chủ đề lịch"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-description">Description</label>
+                  <label htmlFor="edit-description">Mô tả</label>
                   <textarea
                     id="edit-description"
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                     rows={4}
                     className="form-textarea"
-                    placeholder="Enter schedule description"
+                    placeholder="Nhập mô tả lịch"
                   />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="edit-start">Start Time *</label>
+                    <label htmlFor="edit-start">Thời gian bắt đầu *</label>
                     <input
                       id="edit-start"
                       type="datetime-local"
@@ -526,7 +538,7 @@ const AdminScheduleManagement: React.FC = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="edit-end">End Time *</label>
+                    <label htmlFor="edit-end">Thời gian kết thúc *</label>
                     <input
                       id="edit-end"
                       type="datetime-local"
@@ -539,19 +551,7 @@ const AdminScheduleManagement: React.FC = () => {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="edit-capacity">Capacity *</label>
-                    <input
-                      id="edit-capacity"
-                      type="number"
-                      min="1"
-                      value={editFormData.capacity}
-                      onChange={(e) => setEditFormData({ ...editFormData, capacity: parseInt(e.target.value) })}
-                      required
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="edit-status">Status *</label>
+                    <label htmlFor="edit-status">Trạng thái *</label>
                     <select
                       id="edit-status"
                       value={editFormData.status}
@@ -559,23 +559,23 @@ const AdminScheduleManagement: React.FC = () => {
                       required
                       className="form-select"
                     >
-                      <option value="AVAILABLE">Available</option>
-                      <option value="BOOKED">Booked</option>
-                      <option value="CANCELLED">Cancelled</option>
+                      <option value="AVAILABLE">Có sẵn</option>
+                      <option value="BOOKED">Đã đặt</option>
+                      <option value="CANCELLED">Đã hủy</option>
                     </select>
                   </div>
                 </div>
                 <div className="schedule-meta-info">
                   <p><strong>Mentor:</strong> {getMentorName(scheduleToEdit)}</p>
-                  <p><strong>Created:</strong> {formatDateTime(scheduleToEdit.createdAt)}</p>
+                  <p><strong>Ngày tạo:</strong> {formatDateTime(scheduleToEdit.createdAt)}</p>
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
-                  Cancel
+                  Hủy
                 </button>
                 <button type="submit" className="button button-primary">
-                  Save Changes
+                  Lưu thay đổi
                 </button>
               </div>
             </form>
@@ -585,10 +585,10 @@ const AdminScheduleManagement: React.FC = () => {
 
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        title="Delete Schedule"
-        message="Are you sure you want to delete this schedule? This action cannot be undone and will also delete any related bookings and sessions."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Xóa lịch"
+        message="Bạn có chắc chắn muốn xóa lịch này? Hành động này không thể hoàn tác và sẽ xóa cả các đặt lịch và phiên liên quan."
+        confirmText="Xóa"
+        cancelText="Hủy"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}

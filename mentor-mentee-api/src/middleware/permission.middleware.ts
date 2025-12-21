@@ -118,7 +118,7 @@ export function authorizePermissions(...args: any[]) {
         if (!hasPermission) {
           console.log(`[PERMISSION DENIED] User ${userId} tried to access. Required one of: ${requiredPermissions.join(', ')}`);
           console.log(`  User has: ${Array.from(effectivePermissions).join(', ')}`);
-          return forbiddenError(res, `Insufficient permissions. Required one of: ${requiredPermissions.join(', ')}`);
+          return forbiddenError(res, `Không đủ quyền. Cần một trong: ${requiredPermissions.join(', ')}`);
         }
 
         // console.log(`[PERMISSION GRANTED] User ${userId} has required permission`);
@@ -138,14 +138,14 @@ export function authorizePermissions(...args: any[]) {
             effectivePermissions.has(basePermission);
 
           if (!hasAnyPermission) {
-            return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
+            return forbiddenError(res, `Không đủ quyền: ${requiredPermission}`);
           }
 
           // Verify this is NOT the user's own resource
           if (options.getResourceOwnerId) {
             const resourceOwnerId = await options.getResourceOwnerId(req);
             if (resourceOwnerId === userId) {
-              return forbiddenError(res, 'Cannot use _any permission on your own resources');
+              return forbiddenError(res, 'Không thể sử dụng quyền _any trên tài nguyên của chính bạn');
             }
           }
 
@@ -164,22 +164,22 @@ export function authorizePermissions(...args: any[]) {
             effectivePermissions.has(basePermission);
 
           if (!hasOwnPermission) {
-            return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
+            return forbiddenError(res, `Không đủ quyền: ${requiredPermission}`);
           }
 
           // Verify ownership
           if (!options.getResourceOwnerId) {
-            return forbiddenError(res, 'Ownership verification not configured');
+            return forbiddenError(res, 'Chưa cấu hình xác minh quyền sở hữu');
           }
 
           const resourceOwnerId = await options.getResourceOwnerId(req);
 
           if (resourceOwnerId === null) {
-            return forbiddenError(res, 'Resource not found or ownership cannot be determined');
+            return forbiddenError(res, 'Không tìm thấy tài nguyên hoặc không thể xác định quyền sở hữu');
           }
 
           if (userId !== resourceOwnerId) {
-            return forbiddenError(res, 'You do not own this resource');
+            return forbiddenError(res, 'Bạn không sở hữu tài nguyên này');
           }
 
           return next();
@@ -191,7 +191,7 @@ export function authorizePermissions(...args: any[]) {
         console.log(`[PERMISSION DENIED] User ${userId} tried to access ${requiredPermission}`);
         console.log(`  Required: ${requiredPermission}`);
         console.log(`  User has: ${Array.from(effectivePermissions).join(', ')}`);
-        return forbiddenError(res, `Insufficient permissions: ${requiredPermission}`);
+        return forbiddenError(res, `Không đủ quyền: ${requiredPermission}`);
       }
 
       // console.log(`[PERMISSION GRANTED] User ${userId} has ${requiredPermission}`);
@@ -219,13 +219,13 @@ export function authorizeAnyPermission(requiredPermissions: string[]) {
       const hasAny = requiredPermissions.some(perm => effectivePermissions.has(perm));
 
       if (!hasAny) {
-        return forbiddenError(res, `Insufficient permissions. Required one of: ${requiredPermissions.join(', ')}`);
+        return forbiddenError(res, `Không đủ quyền. Cần một trong: ${requiredPermissions.join(', ')}`);
       }
 
       return next();
     } catch (error) {
       console.error('Permission check error:', error);
-      return forbiddenError(res, 'Permission verification failed');
+      return forbiddenError(res, 'Xác minh quyền thất bại');
     }
   };
 }
@@ -246,13 +246,13 @@ export function authorizeAllPermissions(requiredPermissions: string[]) {
       const hasAll = requiredPermissions.every(perm => effectivePermissions.has(perm));
 
       if (!hasAll) {
-        return forbiddenError(res, `Insufficient permissions. Required all of: ${requiredPermissions.join(', ')}`);
+        return forbiddenError(res, `Không đủ quyền. Cần tất cả: ${requiredPermissions.join(', ')}`);
       }
 
       return next();
     } catch (error) {
       console.error('Permission check error:', error);
-      return forbiddenError(res, 'Permission verification failed');
+      return forbiddenError(res, 'Xác minh quyền thất bại');
     }
   };
 }

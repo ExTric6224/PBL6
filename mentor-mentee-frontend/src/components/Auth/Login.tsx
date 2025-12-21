@@ -32,7 +32,7 @@ const Login: React.FC = () => {
       await login(formData);
       navigate('/dashboard');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Login failed. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -43,8 +43,8 @@ const Login: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to your Menterify account</p>
+          <h2>Chào mừng trở lại</h2>
+          <p>Đăng nhập vào tài khoản Menterify của bạn</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -59,13 +59,13 @@ const Login: React.FC = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="Enter your email"
+              placeholder="Nhập email của bạn"
               disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Mật khẩu</label>
             <input
               type="password"
               id="password"
@@ -73,14 +73,14 @@ const Login: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu của bạn"
               disabled={isLoading}
             />
           </div>
 
           <div className="forgot-password-link">
             <Link to="/forgot-password" className="auth-link">
-              Forgot your password?
+              Quên mật khẩu?
             </Link>
           </div>
 
@@ -89,20 +89,20 @@ const Login: React.FC = () => {
             className="auth-button primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
 
         <div className="auth-footer">
           <p>
-            Don't have an account?{' '}
+            Chưa có tài khoản?{' '}
             <Link to="/register-otp" className="auth-link">
-              Sign up with email verification
+              Đăng ký với xác thực email
             </Link>
           </p>
           <p>
             <Link to="/register" className="auth-link">
-              Quick registration (no email verification)
+              Đăng ký nhanh (không cần xác thực email)
             </Link>
           </p>
         </div>

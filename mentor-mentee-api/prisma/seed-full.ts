@@ -1380,10 +1380,8 @@ Cả hai đều tốt, chọn theo team và project requirements!`,
           data: { status: 'COMPLETED' }
         });
         
-        await prisma.schedule.update({
-          where: { id: booking.scheduleId },
-          data: { status: 'COMPLETED' }
-        });
+        // Schedule keeps its status as BOOKED (no COMPLETED status for schedule)
+        // Only booking and session have COMPLETED status
       }
     }
   }

@@ -307,7 +307,7 @@ const PostList: React.FC = () => {
     return (
       <div className="posts-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );

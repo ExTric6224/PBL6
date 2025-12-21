@@ -96,7 +96,7 @@ const PostDetail: React.FC = () => {
     return (
       <div className="post-detail-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );

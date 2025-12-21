@@ -17,7 +17,7 @@ export class BookingsController {
       return success(res, booking, 201);
     } catch (error: any) {
       if (error.message === 'Schedule not found') {
-        return notFoundError(res, 'Schedule not found');
+        return notFoundError(res, 'Không tìm thấy lịch học');
       }
       if (error.message === 'Schedule is not available' || 
           error.message === 'Schedule is fully booked' ||
@@ -39,7 +39,7 @@ export class BookingsController {
       return success(res, booking);
     } catch (error: any) {
       if (error.message === 'Booking not found or access denied') {
-        return notFoundError(res, 'Booking not found or you do not have permission to confirm it');
+        return notFoundError(res, 'Không tìm thấy lượt đặt lịch hoặc bạn không có quyền xác nhận');
       }
       if (error.message === 'Booking is not in pending status') {
         return conflictError(res, error.message);
@@ -88,7 +88,7 @@ export class BookingsController {
       return success(res, bookings);
     } catch (error: any) {
       if (error.message === 'Mentor profile not found') {
-        return notFoundError(res, 'Mentor profile not found');
+        return notFoundError(res, 'Không tìm thấy hồ sơ mentor');
       }
       throw error;
     }
@@ -101,7 +101,7 @@ export class BookingsController {
       return success(res, { message: 'Booking deleted successfully' });
     } catch (error: any) {
       if (error.message === 'Booking not found') {
-        return notFoundError(res, 'Booking not found');
+        return notFoundError(res, 'Không tìm thấy lượt đặt lịch');
       }
       throw error;
     }
@@ -110,13 +110,15 @@ export class BookingsController {
   async updateBooking(req: AuthenticatedRequest, res: Response) {
     try {
       const bookingId = parseInt(req.params.id, 10);
-      const booking = await bookingsService.updateBooking(bookingId, req.body);
+      const booking = await bookingsService.updateBooking(bookingId, req.body, req.user?.role);
       return success(res, booking);
     } catch (error: any) {
       if (error.message === 'Booking not found') {
-        return notFoundError(res, 'Booking not found');
+        return notFoundError(res, 'Không tìm thấy lượt đặt lịch');
       }
-      if (error.message.includes('Invalid status')) {
+      if (error.message.includes('Invalid status') || 
+          error.message.includes('Cannot edit') ||
+          error.message.includes('Only mentor or admin')) {
         return conflictError(res, error.message);
       }
       throw error;

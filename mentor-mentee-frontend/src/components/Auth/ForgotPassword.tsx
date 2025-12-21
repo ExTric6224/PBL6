@@ -42,12 +42,12 @@ const ForgotPassword: React.FC = () => {
 
     try {
       const response = await forgotPasswordAPI.requestResetCode({ email });
-      setSuccess(`Verification code sent to ${email}. Check your email!`);
+      setSuccess(`Mã xác thực đã được gửi đến ${email}. Kiểm tra email của bạn!`);
       setCurrentStep(Step.VERIFY_CODE);
       setCanResend(false);
       setResendTimer(60); // 60 seconds cooldown
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Failed to send verification code. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Không thể gửi mã xác thực. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -62,10 +62,10 @@ const ForgotPassword: React.FC = () => {
 
     try {
       await forgotPasswordAPI.verifyResetCode({ email, code });
-      setSuccess('Code verified successfully! Please enter your new password.');
+      setSuccess('Xác thực mã thành công! Vui lòng nhập mật khẩu mới của bạn.');
       setCurrentStep(Step.RESET_PASSWORD);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Invalid or expired code. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Mã không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -80,27 +80,27 @@ const ForgotPassword: React.FC = () => {
 
     // Validate passwords match
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Mật khẩu không khớp');
       setIsLoading(false);
       return;
     }
 
     // Validate password length
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       setIsLoading(false);
       return;
     }
 
     try {
       await forgotPasswordAPI.resetPassword({ email, code, newPassword });
-      setSuccess('Password reset successfully! Redirecting to login...');
+      setSuccess('Đặt lại mật khẩu thành công! Đang chuyển đến đăng nhập...');
       setCurrentStep(Step.SUCCESS);
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Failed to reset password. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Không thể đặt lại mật khẩu. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -114,11 +114,11 @@ const ForgotPassword: React.FC = () => {
 
     try {
       await forgotPasswordAPI.resendResetCode({ email });
-      setSuccess('New verification code sent to your email!');
+      setSuccess('Mã xác thực mới đã được gửi đến email của bạn!');
       setCanResend(false);
       setResendTimer(60);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Failed to resend code. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Không thể gửi lại mã. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -129,15 +129,15 @@ const ForgotPassword: React.FC = () => {
     <div className="step-indicator">
       <div className={`step ${currentStep === Step.REQUEST_CODE ? 'active' : ''} ${[Step.VERIFY_CODE, Step.RESET_PASSWORD, Step.SUCCESS].includes(currentStep) ? 'completed' : ''}`}>
         <div className="step-number">1</div>
-        <div className="step-label">Request Code</div>
+        <div className="step-label">Yêu cầu mã</div>
       </div>
       <div className={`step ${currentStep === Step.VERIFY_CODE ? 'active' : ''} ${[Step.RESET_PASSWORD, Step.SUCCESS].includes(currentStep) ? 'completed' : ''}`}>
         <div className="step-number">2</div>
-        <div className="step-label">Verify Code</div>
+        <div className="step-label">Xác thực mã</div>
       </div>
       <div className={`step ${currentStep === Step.RESET_PASSWORD ? 'active' : ''} ${currentStep === Step.SUCCESS ? 'completed' : ''}`}>
         <div className="step-number">3</div>
-        <div className="step-label">Reset Password</div>
+        <div className="step-label">Đặt lại mật khẩu</div>
       </div>
     </div>
   );
@@ -146,8 +146,8 @@ const ForgotPassword: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Forgot Password</h2>
-          <p>Reset your password using email verification</p>
+          <h2>Quên mật khẩu</h2>
+          <p>Đặt lại mật khẩu của bạn bằng xác thực email</p>
         </div>
 
         {renderStepIndicator()}
@@ -159,7 +159,7 @@ const ForgotPassword: React.FC = () => {
             {success && <div className="success-message">{success}</div>}
 
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">Địa chỉ Email</label>
               <input
                 type="email"
                 id="email"
@@ -170,11 +170,11 @@ const ForgotPassword: React.FC = () => {
                   if (error) setError('');
                 }}
                 required
-                placeholder="Enter your email"
+                placeholder="Nhập email của bạn"
                 disabled={isLoading}
               />
               <small className="form-hint">
-                We'll send a 6-digit verification code to this email
+                Chúng tôi sẽ gửi mã xác thực 6 chữ số đến email này
               </small>
             </div>
 
@@ -183,7 +183,7 @@ const ForgotPassword: React.FC = () => {
               className="auth-button primary"
               disabled={isLoading}
             >
-              {isLoading ? 'Sending...' : 'Send Verification Code'}
+              {isLoading ? 'Đang gửi...' : 'Gửi mã xác thực'}
             </button>
           </form>
         )}
@@ -206,7 +206,7 @@ const ForgotPassword: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="code">Verification Code</label>
+              <label htmlFor="code">Mã xác thực</label>
               <input
                 type="text"
                 id="code"
@@ -218,13 +218,13 @@ const ForgotPassword: React.FC = () => {
                   if (error) setError('');
                 }}
                 required
-                placeholder="Enter 6-digit code"
+                placeholder="Nhập mã 6 chữ số"
                 disabled={isLoading}
                 maxLength={6}
                 pattern="\d{6}"
               />
               <small className="form-hint">
-                Enter the 6-digit code sent to your email
+                Nhập mã 6 chữ số đã được gửi đến email của bạn
               </small>
             </div>
 
@@ -233,11 +233,11 @@ const ForgotPassword: React.FC = () => {
               className="auth-button primary"
               disabled={isLoading || code.length !== 6}
             >
-              {isLoading ? 'Verifying...' : 'Verify Code'}
+              {isLoading ? 'Đang xác thực...' : 'Xác thực mã'}
             </button>
 
             <div className="resend-section">
-              <p>Didn't receive the code?</p>
+              <p>Chưa nhận được mã?</p>
               <button
                 type="button"
                 onClick={handleResendCode}
@@ -245,8 +245,8 @@ const ForgotPassword: React.FC = () => {
                 disabled={!canResend || isLoading}
               >
                 {!canResend && resendTimer > 0
-                  ? `Resend in ${resendTimer}s`
-                  : 'Resend Code'}
+                  ? `Gửi lại sau ${resendTimer}s`
+                  : 'Gửi lại mã'}
               </button>
             </div>
           </form>
@@ -259,7 +259,7 @@ const ForgotPassword: React.FC = () => {
             {success && <div className="success-message">{success}</div>}
 
             <div className="form-group">
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">Mật khẩu mới</label>
               <input
                 type="password"
                 id="newPassword"
@@ -270,17 +270,17 @@ const ForgotPassword: React.FC = () => {
                   if (error) setError('');
                 }}
                 required
-                placeholder="Enter new password"
+                placeholder="Nhập mật khẩu mới"
                 disabled={isLoading}
                 minLength={6}
               />
               <small className="form-hint">
-                Password must be at least 6 characters
+                Mật khẩu phải có ít nhất 6 ký tự
               </small>
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">Xác nhận mật khẩu</label>
               <input
                 type="password"
                 id="confirmPassword"
@@ -291,7 +291,7 @@ const ForgotPassword: React.FC = () => {
                   if (error) setError('');
                 }}
                 required
-                placeholder="Confirm new password"
+                placeholder="Xác nhận mật khẩu mới"
                 disabled={isLoading}
                 minLength={6}
               />
@@ -302,7 +302,7 @@ const ForgotPassword: React.FC = () => {
               className="auth-button primary"
               disabled={isLoading}
             >
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+              {isLoading ? 'Đang đặt lại...' : 'Đặt lại mật khẩu'}
             </button>
           </form>
         )}
@@ -312,17 +312,17 @@ const ForgotPassword: React.FC = () => {
           <div className="success-container">
             <div className="success-icon">✓</div>
             <div className="success-message large">
-              Password reset successfully!
+              Đặt lại mật khẩu thành công!
             </div>
-            <p>Redirecting to login page...</p>
+            <p>Đang chuyển đến trang đăng nhập...</p>
           </div>
         )}
 
         <div className="auth-footer">
           <p>
-            Remember your password?{' '}
+            Đã nhớ mật khẩu?{' '}
             <Link to="/login" className="auth-link">
-              Back to Login
+              Quay lại đăng nhập
             </Link>
           </p>
         </div>

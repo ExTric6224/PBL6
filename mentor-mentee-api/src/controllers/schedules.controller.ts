@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import 'express-async-errors';
 import { SchedulesService } from '../services/schedules.service';
-import { success, authError, notFoundError, validationError } from '../utils/responses';
+import { success, authError, notFoundError, validationError, conflictError } from '../utils/responses';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 const schedulesService = new SchedulesService();
@@ -23,7 +23,7 @@ export class SchedulesController {
       
       // Handle validation errors
       if (error.message === 'Mentor profile not found') {
-        return notFoundError(res, 'Mentor profile not found. Please create your profile first.');
+        return notFoundError(res, 'Không tìm thấy hồ sơ mentor. Vui lòng tạo hồ sơ trước.');
       }
       if (error.message === 'Schedule start time must be in the future') {
         return validationError(res, error.message);
@@ -56,19 +56,31 @@ export class SchedulesController {
 
   async updateSchedule(req: AuthenticatedRequest, res: Response) {
     try {
-      if (req.user!.role !== 'MENTOR') {
-        return authError(res, 'Only mentors can update schedules');
+      const scheduleId = parseInt(req.params.id, 10);
+      let schedule;
+
+      // Admin can update any schedule
+      if (req.user!.role === 'ADMIN') {
+        schedule = await schedulesService.adminUpdateSchedule(scheduleId, req.body);
+      } else if (req.user!.role === 'MENTOR') {
+        schedule = await schedulesService.updateSchedule(scheduleId, req.user!.sub, req.body);
+      } else {
+        return authError(res, 'Only mentors and admins can update schedules');
       }
 
-      const scheduleId = parseInt(req.params.id, 10);
-      const schedule = await schedulesService.updateSchedule(scheduleId, req.user!.sub, req.body);
       return success(res, schedule);
     } catch (error: any) {
-      if (error.message === 'Schedule not found or access denied') {
-        return notFoundError(res, 'Schedule not found or you do not have permission to update it');
+      if (error.message === 'Schedule not found or access denied' || error.message === 'Schedule not found') {
+        return notFoundError(res, 'Không tìm thấy lịch học hoặc bạn không có quyền cập nhật');
       }
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found');
+      }
+      if (error.message.includes('Cannot edit') || 
+          error.message.includes('Cannot manually set') ||
+          error.message.includes('overlaps') ||
+          error.message.includes('must be')) {
+        return conflictError(res, error.message);
       }
       throw error;
     }
@@ -81,7 +93,7 @@ export class SchedulesController {
       // Admin can hard delete any schedule
       if (req.user!.role === 'ADMIN') {
         await schedulesService.hardDeleteSchedule(scheduleId);
-        return success(res, { message: 'Schedule deleted successfully' });
+        return success(res, { message: 'Đã xóa lịch học thành công' });
       }
       
       // Mentors can only soft delete (cancel) their own schedules
@@ -93,7 +105,7 @@ export class SchedulesController {
       return success(res, schedule);
     } catch (error: any) {
       if (error.message === 'Schedule not found or access denied' || error.message === 'Schedule not found') {
-        return notFoundError(res, 'Schedule not found or you do not have permission to delete it');
+        return notFoundError(res, 'Không tìm thấy lịch học hoặc bạn không có quyền xóa');
       }
       if (error.message === 'Mentor profile not found') {
         return notFoundError(res, 'Mentor profile not found');
@@ -125,7 +137,7 @@ export class SchedulesController {
       return success(res, schedule);
     } catch (error: any) {
       if (error.message === 'Schedule not found') {
-        return notFoundError(res, 'Schedule not found');
+        return notFoundError(res, 'Không tìm thấy lịch học');
       }
       throw error;
     }

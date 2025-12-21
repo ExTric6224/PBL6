@@ -24,7 +24,7 @@ export class NotificationsController {
       return success(res, notification);
     } catch (error: any) {
       if (error.message === 'Notification not found or access denied') {
-        return notFoundError(res, 'Notification not found or you do not have permission');
+        return notFoundError(res, 'Không tìm thấy thông báo hoặc bạn không có quyền');
       }
       throw error;
     }

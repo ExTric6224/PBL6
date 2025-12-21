@@ -57,16 +57,23 @@ const SessionList: React.FC = () => {
     
     try {
       setActionLoading(sessionToEnd);
-      await sessionApi.endSession({ 
+      console.log('Ending session:', sessionToEnd, 'with notes:', sessionNotes);
+      
+      const result = await sessionApi.endSession({ 
         sessionId: sessionToEnd, 
         notes: sessionNotes.trim() || undefined 
       });
+      
+      console.log('Session ended successfully:', result);
       await loadSessions();
       setShowEndSessionModal(false);
       setSessionToEnd(null);
       setSessionNotes('');
+      alert('Session đã được kết thúc thành công!');
     } catch (err: any) {
       console.error('Failed to end session:', err);
+      console.error('Error response:', err.response?.data);
+      alert(err.response?.data?.error?.message || 'Không thể kết thúc session');
     } finally {
       setActionLoading(null);
     }

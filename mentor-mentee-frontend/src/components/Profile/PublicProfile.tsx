@@ -95,7 +95,8 @@ const PublicProfile: React.FC = () => {
   }, [userId]);
 
   // Check if current user can view feedbacks
-  const canViewFeedbacks = user?.role === 'MENTEE' || user?.permissions?.includes('feedback:view_any') || false;
+  // Both MENTEE and MENTOR can view feedbacks, or users with feedback:view_any permission
+  const canViewFeedbacks = user?.role === 'MENTEE' || user?.role === 'MENTOR' || user?.permissions?.includes('feedback:view_any') || false;
 
   useEffect(() => {
     // Load posts và schedules ngay khi profile được load
@@ -122,7 +123,7 @@ const PublicProfile: React.FC = () => {
       
       // Check if user data exists
       if (!profileData.user) {
-        throw new Error('Invalid profile data');
+        throw new Error('Dữ liệu hồ sơ không hợp lệ');
       }
       
       // Determine profile type based on user role
@@ -141,10 +142,10 @@ const PublicProfile: React.FC = () => {
         setProfile(profileData as MenteeProfile);
         setProfileType('MENTEE');
       } else {
-        throw new Error('Invalid profile type');
+        throw new Error('Loại hồ sơ không hợp lệ');
       }
     } catch (err: any) {
-      console.error('Failed to load profile:', err);
+      console.error('Không thể tải hồ sơ:', err);
     } finally {
       setLoading(false);
     }
@@ -162,7 +163,7 @@ const PublicProfile: React.FC = () => {
         : [];
       setPosts(userPosts);
     } catch (err) {
-      console.error('Error loading posts:', err);
+      console.error('Lỗi khi tải bài viết:', err);
       setPosts([]);
     } finally {
       setLoadingPosts(false);
@@ -178,10 +179,14 @@ const PublicProfile: React.FC = () => {
         mentorId: parseInt(userId),
         limit: 50 
       });
-      // Ensure response.data is an array
-      setSchedules(Array.isArray(response.data) ? response.data : []);
+      console.log('Schedules API response:', response);
+      // API returns PaginatedResponse { data: [], pagination: {} }
+      // But check if response is already the data array
+      const schedulesData = Array.isArray(response) ? response : (response.data || []);
+      console.log('Schedules data:', schedulesData);
+      setSchedules(schedulesData);
     } catch (err) {
-      console.error('Error loading schedules:', err);
+      console.error('Lỗi khi tải lịch học:', err);
       setSchedules([]);
     } finally {
       setLoadingSchedules(false);
@@ -197,7 +202,7 @@ const PublicProfile: React.FC = () => {
       // Response structure: { feedbacks: [], stats: { totalFeedbacks, averageRating } }
       setFeedbacks(response.feedbacks || []);
     } catch (err) {
-      console.error('Error loading feedbacks:', err);
+      console.error('Lỗi khi tải đánh giá:', err);
       setFeedbacks([]);
     } finally {
       setLoadingFeedbacks(false);
@@ -235,7 +240,7 @@ const PublicProfile: React.FC = () => {
     return (
       <div className="public-profile-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );
@@ -343,42 +348,42 @@ const PublicProfile: React.FC = () => {
             <>
               {(profile as MentorProfile).phoneNumber && (
                 <div className="detail-item">
-                  <span className="detail-label">📱 Phone</span>
+                  <span className="detail-label">📱 Điện thoại</span>
                   <span className="detail-value">{(profile as MentorProfile).phoneNumber}</span>
                 </div>
               )}
 
               {(profile as MentorProfile).school && (
                 <div className="detail-item">
-                  <span className="detail-label">🏫 School</span>
+                  <span className="detail-label">🏫 Trường học</span>
                   <span className="detail-value">{(profile as MentorProfile).school}</span>
                 </div>
               )}
               
               {(profile as MentorProfile).degree && (
                 <div className="detail-item">
-                  <span className="detail-label">🎓 Degree</span>
+                  <span className="detail-label">🎓 Bằng cấp</span>
                   <span className="detail-value">{(profile as MentorProfile).degree}</span>
                 </div>
               )}
               
               {(profile as MentorProfile).yearsExp !== undefined && (
                 <div className="detail-item">
-                  <span className="detail-label">💼 Experience</span>
-                  <span className="detail-value">{(profile as MentorProfile).yearsExp} years</span>
+                  <span className="detail-label">💼 Kinh nghiệm</span>
+                  <span className="detail-value">{(profile as MentorProfile).yearsExp} năm</span>
                 </div>
               )}
               
               {(profile as MentorProfile).bio && (
                 <div className="detail-item">
-                  <span className="detail-label">📝 Bio</span>
+                  <span className="detail-label">📝 Giới thiệu</span>
                   <p className="detail-value">{(profile as MentorProfile).bio}</p>
                 </div>
               )}
               
               {(profile as MentorProfile).expertise && Array.isArray((profile as MentorProfile).expertise) && (profile as MentorProfile).expertise.length > 0 && (
                 <div className="detail-item">
-                  <span className="detail-label">🎯 Expertise</span>
+                  <span className="detail-label">🎯 Chuyên môn</span>
                   <div className="topics-display">
                     {(profile as MentorProfile).expertise.map((topic) => (
                       <span key={topic.id} className="topic-badge">
@@ -396,21 +401,21 @@ const PublicProfile: React.FC = () => {
             <>
               {(profile as MenteeProfile).phoneNumber && (
                 <div className="detail-item">
-                  <span className="detail-label">📱 Phone</span>
+                  <span className="detail-label">📱 Điện thoại</span>
                   <span className="detail-value">{(profile as MenteeProfile).phoneNumber}</span>
                 </div>
               )}
 
               {(profile as MenteeProfile).goals && (
                 <div className="detail-item">
-                  <span className="detail-label">🎯 Goals</span>
+                  <span className="detail-label">🎯 Mục tiêu</span>
                   <p className="detail-value">{(profile as MenteeProfile).goals}</p>
                 </div>
               )}
               
               {(profile as MenteeProfile).interests && Array.isArray((profile as MenteeProfile).interests) && (profile as MenteeProfile).interests.length > 0 && (
                 <div className="detail-item">
-                  <span className="detail-label">💡 Interests</span>
+                  <span className="detail-label">💡 Sở thích</span>
                   <div className="topics-display">
                     {(profile as MenteeProfile).interests.map((topic) => (
                       <span key={topic.id} className="topic-badge">
@@ -468,11 +473,11 @@ const PublicProfile: React.FC = () => {
         {activeTab === 'schedules' && profileType === 'MENTOR' && (
           <div className="schedules-section">
             {loadingSchedules ? (
-              <div className="loading-text">Đang tải lịch rảnh...</div>
+              <div className="loading-text">Đang tải lịch học...</div>
             ) : schedules.length === 0 ? (
               <div className="empty-message">
                 <span className="empty-icon">📅</span>
-                <p>Chưa có lịch rảnh nào</p>
+                <p>Chưa có lịch học nào</p>
               </div>
             ) : (
               <div className="schedules-list">

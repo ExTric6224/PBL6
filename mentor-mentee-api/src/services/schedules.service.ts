@@ -26,11 +26,11 @@ export class SchedulesService {
     });
 
     if (!user || user.role !== 'MENTOR') {
-      throw new Error('User is not a mentor');
+      throw new Error('Người dùng không phải là mentor');
     }
 
     if (!user.mentorprofile) {
-      throw new Error('Mentor profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentor');
     }
 
     // Validate schedule times
@@ -40,12 +40,12 @@ export class SchedulesService {
 
     // 1. Check startAt is in the future
     if (startAt <= now) {
-      throw new Error('Schedule start time must be in the future');
+      throw new Error('Thời gian bắt đầu lịch học phải ở tương lai');
     }
 
     // 2. Check endAt > startAt (already validated in schema, but double-check)
     if (endAt <= startAt) {
-      throw new Error('Schedule end time must be after start time');
+      throw new Error('Thời gian kết thúc phải sau thời gian bắt đầu');
     }
 
     // 3. Check reasonable duration (at least 30 minutes, max 8 hours)
@@ -54,46 +54,30 @@ export class SchedulesService {
     const durationHours = durationMinutes / 60;
 
     if (durationMinutes < 30) {
-      throw new Error('Schedule duration must be at least 30 minutes');
+      throw new Error('Thời lượng lịch học phải ít nhất 30 phút');
     }
 
     if (durationHours > 8) {
-      throw new Error('Schedule duration cannot exceed 8 hours');
+      throw new Error('Thời lượng lịch học không được vượt quá 8 giờ');
     }
 
     // 4. Check for overlapping schedules
+    // Hai khoảng thời gian overlap nếu:
+    // - Khoảng mới bắt đầu trước khi khoảng cũ kết thúc VÀ
+    // - Khoảng mới kết thúc sau khi khoảng cũ bắt đầu
     const overlappingSchedules = await prisma.schedule.findMany({
       where: {
         mentorId: mentorUserId,
         status: 'AVAILABLE',
-        OR: [
-          // New schedule starts during existing schedule
-          {
-            AND: [
-              { startAt: { lte: startAt } },
-              { endAt: { gt: startAt } },
-            ],
-          },
-          // New schedule ends during existing schedule
-          {
-            AND: [
-              { startAt: { lt: endAt } },
-              { endAt: { gte: endAt } },
-            ],
-          },
-          // New schedule completely contains existing schedule
-          {
-            AND: [
-              { startAt: { gte: startAt } },
-              { endAt: { lte: endAt } },
-            ],
-          },
+        AND: [
+          { startAt: { lt: endAt } },   // Khoảng cũ bắt đầu trước khi khoảng mới kết thúc
+          { endAt: { gt: startAt } },   // Khoảng cũ kết thúc sau khi khoảng mới bắt đầu
         ],
       },
     });
 
     if (overlappingSchedules.length > 0) {
-      throw new Error('Schedule overlaps with existing schedule(s)');
+      throw new Error('Lịch học trùng với lịch học hiện có');
     }
 
     return await prisma.schedule.create({
@@ -175,11 +159,11 @@ export class SchedulesService {
     });
 
     if (!user || user.role !== 'MENTOR') {
-      throw new Error('User is not a mentor');
+      throw new Error('Người dùng không phải là mentor');
     }
 
     if (!user.mentorprofile) {
-      throw new Error('Mentor profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentor');
     }
 
     // Check if schedule belongs to mentor
@@ -191,7 +175,30 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new Error('Schedule not found or access denied');
+      throw new Error('Không tìm thấy lịch học hoặc không có quyền truy cập');
+    }
+
+    // KHÔNG cho edit nếu schedule đã bị cancelled
+    if (schedule.status === 'CANCELLED') {
+      throw new Error('Không thể chỉnh sửa lịch học đã hủy');
+    }
+
+    // KHÔNG cho edit nếu có booking đã confirmed
+    const hasConfirmedBooking = await prisma.booking.findFirst({
+      where: {
+        scheduleId: scheduleId,
+        status: 'CONFIRMED',
+      },
+    });
+
+    if (hasConfirmedBooking) {
+      throw new Error('Không thể chỉnh sửa lịch học đã có booking xác nhận. Vui lòng hủy booking trước.');
+    }
+
+    // KHÔNG cho edit thời gian nếu đã quá giờ bắt đầu
+    const now = new Date();
+    if ((data.startAt || data.endAt) && schedule.startAt <= now) {
+      throw new Error('Không thể chỉnh sửa thời gian lịch học đã bắt đầu');
     }
 
     // Validate schedule times if being updated
@@ -214,12 +221,12 @@ export class SchedulesService {
 
       // 1. Check startAt is in the future
       if (startAt <= now) {
-        throw new Error('Schedule start time must be in the future');
+        throw new Error('Thời gian bắt đầu lịch học phải ở tương lai');
       }
 
       // 2. Check endAt > startAt
       if (endAt <= startAt) {
-        throw new Error('Schedule end time must be after start time');
+        throw new Error('Thời gian kết thúc phải sau thời gian bắt đầu');
       }
 
       // 3. Check reasonable duration (at least 30 minutes, max 8 hours)
@@ -228,11 +235,11 @@ export class SchedulesService {
       const durationHours = durationMinutes / 60;
 
       if (durationMinutes < 30) {
-        throw new Error('Schedule duration must be at least 30 minutes');
+        throw new Error('Thời lượng lịch học phải ít nhất 30 phút');
       }
 
       if (durationHours > 8) {
-        throw new Error('Schedule duration cannot exceed 8 hours');
+        throw new Error('Thời lượng lịch học không được vượt quá 8 giờ');
       }
 
       // 4. Check for overlapping schedules (excluding current schedule)
@@ -241,31 +248,15 @@ export class SchedulesService {
           mentorId: mentorUserId,
           status: 'AVAILABLE',
           id: { not: scheduleId }, // Exclude current schedule
-          OR: [
-            {
-              AND: [
-                { startAt: { lte: startAt } },
-                { endAt: { gt: startAt } },
-              ],
-            },
-            {
-              AND: [
-                { startAt: { lt: endAt } },
-                { endAt: { gte: endAt } },
-              ],
-            },
-            {
-              AND: [
-                { startAt: { gte: startAt } },
-                { endAt: { lte: endAt } },
-              ],
-            },
+          AND: [
+            { startAt: { lt: endAt } },   // Khoảng cũ bắt đầu trước khi khoảng mới kết thúc
+            { endAt: { gt: startAt } },   // Khoảng cũ kết thúc sau khi khoảng mới bắt đầu
           ],
         },
       });
 
       if (overlappingSchedules.length > 0) {
-        throw new Error('Schedule overlaps with existing schedule(s)');
+        throw new Error('Lịch học trùng với lịch học hiện có');
       }
     }
 
@@ -276,10 +267,101 @@ export class SchedulesService {
     if (data.description !== undefined) {
       updateData.description = data.description;
     }
-    // Capacity is always 1, ignore any update attempts
-    // if (data.capacity !== undefined) {
-    //   updateData.capacity = data.capacity;
-    // }
+    // Capacity is always 1, không cho edit
+    // status chỉ cho đổi giữa AVAILABLE và CANCELLED (không cho đổi thủ công sang BOOKED)
+    if (data.status !== undefined) {
+      if (data.status === 'BOOKED') {
+        throw new Error('Không thể đặt trạng thái lịch học thành BOOKED thủ công. Trạng thái sẽ tự động cập nhật khi booking được xác nhận.');
+      }
+      updateData.status = data.status;
+    }
+
+    return await prisma.schedule.update({
+      where: { id: scheduleId },
+      data: updateData,
+      include: {
+        user: {
+          include: {
+            mentorprofile: includeMentorProfileWithTopics(),
+          },
+        },
+      },
+    });
+  }
+
+  // Admin can update any schedule
+  async adminUpdateSchedule(scheduleId: number, data: UpdateScheduleDto) {
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+    });
+
+    if (!schedule) {
+      throw new Error('Không tìm thấy lịch học');
+    }
+
+    // KHÔNG cho edit nếu schedule đã bị cancelled
+    if (schedule.status === 'CANCELLED') {
+      throw new Error('Không thể chỉnh sửa lịch học đã hủy');
+    }
+
+    // KHÔNG cho edit nếu có booking đã confirmed
+    const hasConfirmedBooking = await prisma.booking.findFirst({
+      where: {
+        scheduleId: scheduleId,
+        status: 'CONFIRMED',
+      },
+    });
+
+    if (hasConfirmedBooking) {
+      throw new Error('Không thể chỉnh sửa lịch học đã có booking xác nhận. Vui lòng hủy booking trước.');
+    }
+
+    // KHÔNG cho edit thời gian nếu đã quá giờ bắt đầu
+    const now = new Date();
+    if ((data.startAt || data.endAt) && schedule.startAt <= now) {
+      throw new Error('Không thể chỉnh sửa thời gian lịch học đã bắt đầu');
+    }
+
+    const updateData: any = {};
+    let startAt = schedule.startAt;
+    let endAt = schedule.endAt;
+
+    if (data.startAt) {
+      startAt = new Date(data.startAt);
+      updateData.startAt = startAt;
+    }
+    if (data.endAt) {
+      endAt = new Date(data.endAt);
+      updateData.endAt = endAt;
+    }
+
+    // Validate times if being changed
+    if (data.startAt || data.endAt) {
+      if (endAt <= startAt) {
+        throw new Error('Thời gian kết thúc phải sau thời gian bắt đầu');
+      }
+
+      const durationMs = endAt.getTime() - startAt.getTime();
+      const durationMinutes = durationMs / (1000 * 60);
+      const durationHours = durationMinutes / 60;
+
+      if (durationMinutes < 30) {
+        throw new Error('Thời lượng lịch học phải ít nhất 30 phút');
+      }
+
+      if (durationHours > 8) {
+        throw new Error('Thời lượng lịch học không được vượt quá 8 giờ');
+      }
+    }
+
+    // Add other fields
+    if (data.topic !== undefined) {
+      updateData.topic = data.topic;
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
+    // Admin can change status freely (including to BOOKED if needed)
     if (data.status !== undefined) {
       updateData.status = data.status;
     }
@@ -305,11 +387,11 @@ export class SchedulesService {
     });
 
     if (!user || user.role !== 'MENTOR') {
-      throw new Error('User is not a mentor');
+      throw new Error('Người dùng không phải là mentor');
     }
 
     if (!user.mentorprofile) {
-      throw new Error('Mentor profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentor');
     }
 
     // Check if schedule belongs to mentor
@@ -321,7 +403,7 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new Error('Schedule not found or access denied');
+      throw new Error('Không tìm thấy lịch học hoặc không có quyền truy cập');
     }
 
     // Cancel schedule and all related bookings in a transaction
@@ -352,11 +434,11 @@ export class SchedulesService {
     });
 
     if (!user || user.role !== 'MENTOR') {
-      throw new Error('User is not a mentor');
+      throw new Error('Người dùng không phải là mentor');
     }
 
     if (!user.mentorprofile) {
-      throw new Error('Mentor profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentor');
     }
 
     const where: any = {
@@ -426,7 +508,7 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new Error('Schedule not found');
+      throw new Error('Không tìm thấy lịch học');
     }
 
     return {
@@ -459,7 +541,7 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new Error('Schedule not found');
+      throw new Error('Không tìm thấy lịch học');
     }
 
     // Delete in transaction with proper order:

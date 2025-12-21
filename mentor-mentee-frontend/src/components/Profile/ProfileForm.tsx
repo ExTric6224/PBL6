@@ -38,12 +38,12 @@ const ProfileForm: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size should not exceed 5MB');
+        alert('Kích thước file không được vượt quá 5MB');
         return;
       }
 
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        alert('Vui lòng chọn file hình ảnh');
         return;
       }
 
@@ -110,7 +110,7 @@ const ProfileForm: React.FC = () => {
         }
       }
     } catch (err: any) {
-      console.log('No existing profile found');
+      console.log('Không tìm thấy hồ sơ hiện có:', err);
       setExistingProfile(null);
     } finally {
       setLoading(false);
@@ -136,28 +136,28 @@ const ProfileForm: React.FC = () => {
     if (mentorData.phoneNumber && mentorData.phoneNumber.trim() !== '') {
       const phoneRegex = /^[+]?[\d\s-()]+$/;
       if (!phoneRegex.test(mentorData.phoneNumber)) {
-        alert('Phone number can only contain digits, spaces, +, -, and parentheses');
+        alert('Số điện thoại chỉ có thể chứa chữ số, khoảng trắng, +, -, và dấu ngoặc');
         return;
       }
       const digitsOnly = mentorData.phoneNumber.replace(/[^\d]/g, '');
       if (digitsOnly.length < 10) {
-        alert('Phone number must be at least 10 digits');
+        alert('Số điện thoại phải có ít nhất 10 chữ số');
         return;
       }
       if (mentorData.phoneNumber.length > 20) {
-        alert('Phone number must not exceed 20 characters');
+        alert('Số điện thoại không được vượt quá 20 ký tự');
         return;
       }
     }
     
     try {
       await profileApi.createOrUpdateMentorProfile(mentorData, avatarFile || undefined);
-      alert('Mentor profile saved successfully!');
+      alert('Đã lưu hồ sơ mentor thành công!');
       setAvatarFile(null);
       setIsEditing(false);
       loadProfile();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to save profile');
+      alert(err.response?.data?.error?.message || 'Không thể lưu hồ sơ');
     }
   };
 
@@ -168,28 +168,28 @@ const ProfileForm: React.FC = () => {
     if (menteeData.phoneNumber && menteeData.phoneNumber.trim() !== '') {
       const phoneRegex = /^[+]?[\d\s-()]+$/;
       if (!phoneRegex.test(menteeData.phoneNumber)) {
-        alert('Phone number can only contain digits, spaces, +, -, and parentheses');
+        alert('Số điện thoại chỉ có thể chứa chữ số, khoảng trắng, +, -, và dấu ngoặc');
         return;
       }
       const digitsOnly = menteeData.phoneNumber.replace(/[^\d]/g, '');
       if (digitsOnly.length < 10) {
-        alert('Phone number must be at least 10 digits');
+        alert('Số điện thoại phải có ít nhất 10 chữ số');
         return;
       }
       if (menteeData.phoneNumber.length > 20) {
-        alert('Phone number must not exceed 20 characters');
+        alert('Số điện thoại không được vượt quá 20 ký tự');
         return;
       }
     }
     
     try {
       await profileApi.createOrUpdateMenteeProfile(menteeData, avatarFile || undefined);
-      alert('Mentee profile saved successfully!');
+      alert('Đã lưu hồ sơ mentee thành công!');
       setAvatarFile(null);
       setIsEditing(false);
       loadProfile();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to save profile');
+      alert(err.response?.data?.error?.message || 'Không thể lưu hồ sơ');
     }
   };
 
@@ -204,7 +204,7 @@ const ProfileForm: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">✨ Loading profile...</div>;
+    return <div className="loading">✨ Đang tải hồ sơ...</div>;
   }
 
   const renderMentorView = () => {
@@ -234,35 +234,35 @@ const ProfileForm: React.FC = () => {
         <div className="profile-details">
           {profile.school && (
             <div className="detail-item">
-              <span className="detail-label">🏫 School</span>
+              <span className="detail-label">🏫 Trường</span>
               <span className="detail-value">{profile.school}</span>
             </div>
           )}
           
           {profile.degree && (
             <div className="detail-item">
-              <span className="detail-label">🎓 Degree</span>
+              <span className="detail-label">🎓 Bằng cấp</span>
               <span className="detail-value">{profile.degree}</span>
             </div>
           )}
           
           {profile.yearsExp !== undefined && (
             <div className="detail-item">
-              <span className="detail-label">💼 Experience</span>
-              <span className="detail-value">{profile.yearsExp} years</span>
+              <span className="detail-label">💼 Kinh nghiệm</span>
+              <span className="detail-value">{profile.yearsExp} năm</span>
             </div>
           )}
           
           {profile.bio && (
             <div className="detail-item">
-              <span className="detail-label">📝 Bio</span>
+              <span className="detail-label">📝 Giới thiệu</span>
               <p className="detail-value">{profile.bio}</p>
             </div>
           )}
           
           {profile.expertise && profile.expertise.length > 0 && (
             <div className="detail-item">
-              <span className="detail-label">🎯 Expertise</span>
+              <span className="detail-label">🎯 Chuyên môn</span>
               <div className="topics-display">
                 {profile.expertise.map((topic) => (
                   <span key={topic.id} className="topic-badge">
@@ -275,7 +275,7 @@ const ProfileForm: React.FC = () => {
         </div>
 
         <button className="btn btn-primary" onClick={handleEditClick}>
-          ✏️ Edit Profile
+          ✏️ Chỉnh sửa hồ sơ
         </button>
       </div>
     );
@@ -308,14 +308,14 @@ const ProfileForm: React.FC = () => {
         <div className="profile-details">
           {profile.goals && (
             <div className="detail-item">
-              <span className="detail-label">🎯 Goals</span>
+              <span className="detail-label">🎯 Mục tiêu</span>
               <p className="detail-value">{profile.goals}</p>
             </div>
           )}
           
           {profile.interests && profile.interests.length > 0 && (
             <div className="detail-item">
-              <span className="detail-label">💡 Interests</span>
+              <span className="detail-label">💡 Sở thích</span>
               <div className="topics-display">
                 {profile.interests.map((topic) => (
                   <span key={topic.id} className="topic-badge">
@@ -328,7 +328,7 @@ const ProfileForm: React.FC = () => {
         </div>
 
         <button className="btn btn-primary" onClick={handleEditClick}>
-          ✏️ Edit Profile
+          ✏️ Chỉnh sửa hồ sơ
         </button>
       </div>
     );
@@ -337,10 +337,10 @@ const ProfileForm: React.FC = () => {
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <h1>👤 {isMentor ? 'Mentor' : 'Mentee'} Profile</h1>
+        <h1>👤 Hồ sơ {isMentor ? 'Mentor' : 'Mentee'}</h1>
         {isEditing && existingProfile && (
           <button className="btn btn-secondary" onClick={handleCancelEdit}>
-            ← Back to Profile
+            ← Quay lại hồ sơ
           </button>
         )}
       </div>
@@ -352,7 +352,7 @@ const ProfileForm: React.FC = () => {
         {isEditing && isMentor && (
           <form className="profile-form" onSubmit={handleMentorSubmit}>
             <div className="avatar-section">
-              <label>Profile Picture</label>
+              <label>Ảnh hồ sơ</label>
               <div className="avatar-upload">
                 <div className="avatar-preview">
                   {avatarPreview ? (
@@ -373,31 +373,31 @@ const ProfileForm: React.FC = () => {
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="mentor-avatar" className="btn btn-secondary">
-                    📁 Choose Image
+                    📁 Chọn ảnh
                   </label>
                   {avatarPreview && (
                     <button type="button" className="btn btn-danger" onClick={removeAvatar}>
-                      🗑️ Remove
+                      🗑️ Xóa
                     </button>
                   )}
-                  <small className="text-muted">Max 5MB, JPG/PNG/WebP</small>
+                  <small className="text-muted">Tối đa 5MB, JPG/PNG/WebP</small>
                 </div>
               </div>
             </div>
 
             <div className="form-group">
-              <label>Full Name *</label>
+              <label>Họ và tên *</label>
               <input
                 type="text"
                 value={mentorData.fullName}
                 onChange={(e) => setMentorData({ ...mentorData, fullName: e.target.value })}
                 required
-                placeholder="Your full name"
+                placeholder="Họ và tên của bạn"
               />
             </div>
 
             <div className="form-group">
-              <label>Phone Number</label>
+              <label>Số điện thoại</label>
               <input
                 type="tel"
                 value={mentorData.phoneNumber || ''}
@@ -405,37 +405,37 @@ const ProfileForm: React.FC = () => {
                 pattern="[+]?[\d\s-()]+"
                 minLength={10}
                 maxLength={20}
-                placeholder="e.g. +84912345678"
-                title="Phone number can only contain digits, spaces, +, -, and parentheses. Must be 10-20 characters."
+                placeholder="Ví dụ: +84912345678"
+                title="Số điện thoại chỉ có thể chứa chữ số, khoảng trắng, +, -, và dấu ngoặc. Phải có 10-20 ký tự."
               />
             </div>
 
             <div className="form-group">
-              <label>School</label>
+              <label>Trường</label>
               <input
                 type="text"
                 value={mentorData.school}
                 onChange={(e) => setMentorData({ ...mentorData, school: e.target.value })}
-                placeholder="e.g. MIT, Stanford, etc."
+                placeholder="Ví dụ: ĐH Bách Khoa, ĐH Công Nghệ..."
               />
             </div>
 
             <div className="form-group">
-              <label>Degree</label>
+              <label>Bằng cấp</label>
               <input
                 type="text"
                 value={mentorData.degree}
                 onChange={(e) => setMentorData({ ...mentorData, degree: e.target.value })}
-                placeholder="e.g. Master of Computer Science"
+                placeholder="Ví dụ: Thạc sĩ Khoa học Máy tính"
               />
             </div>
 
             <div className="form-group">
-              <label>Bio</label>
+              <label>Giới thiệu</label>
               <textarea
                 value={mentorData.bio}
                 onChange={(e) => setMentorData({ ...mentorData, bio: e.target.value })}
-                placeholder="Tell mentees about yourself..."
+                placeholder="Giới thiệu bản thân với mentee..."
                 rows={4}
               />
             </div>
@@ -443,12 +443,12 @@ const ProfileForm: React.FC = () => {
             <TopicSelector
               selectedTopicIds={mentorData.expertise}
               onChange={(topicIds) => setMentorData({ ...mentorData, expertise: topicIds })}
-              label="Expertise *"
-              placeholder="Select your areas of expertise..."
+              label="Chuyên môn *"
+              placeholder="Chọn lĩnh vực chuyên môn của bạn..."
             />
 
             <div className="form-group">
-              <label>Years of Experience</label>
+              <label>Số năm kinh nghiệm</label>
               <div className="experience-input">
                 <input
                   type="number"
@@ -460,17 +460,17 @@ const ProfileForm: React.FC = () => {
                   min="0"
                   max="50"
                 />
-                <span>years</span>
+                <span>năm</span>
               </div>
             </div>
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary">
-                {existingProfile ? '💾 Save Changes' : '✨ Create Profile'}
+                {existingProfile ? '💾 Lưu thay đổi' : '✨ Tạo hồ sơ'}
               </button>
               {existingProfile && (
                 <button type="button" className="btn btn-secondary" onClick={handleCancelEdit}>
-                  Cancel
+                  Huỷ
                 </button>
               )}
             </div>
@@ -480,7 +480,7 @@ const ProfileForm: React.FC = () => {
         {isEditing && isMentee && (
           <form className="profile-form" onSubmit={handleMenteeSubmit}>
             <div className="avatar-section">
-              <label>Profile Picture</label>
+              <label>Ảnh đại diện</label>
               <div className="avatar-upload">
                 <div className="avatar-preview">
                   {avatarPreview ? (
@@ -488,7 +488,7 @@ const ProfileForm: React.FC = () => {
                   ) : (
                     <div className="avatar-placeholder">
                       <span>📷</span>
-                      <p>Add Photo</p>
+                      <p>Thêm ảnh</p>
                     </div>
                   )}
                 </div>
@@ -501,31 +501,31 @@ const ProfileForm: React.FC = () => {
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="mentee-avatar" className="btn btn-secondary">
-                    📁 Choose Image
+                    📁 Chọn ảnh
                   </label>
                   {avatarPreview && (
                     <button type="button" className="btn btn-danger" onClick={removeAvatar}>
-                      🗑️ Remove
+                      🗑️ Xóa
                     </button>
                   )}
-                  <small className="text-muted">Max 5MB, JPG/PNG/WebP</small>
+                  <small className="text-muted">Tối đa 5MB, JPG/PNG/WebP</small>
                 </div>
               </div>
             </div>
 
             <div className="form-group">
-              <label>Full Name *</label>
+              <label>Họ và tên *</label>
               <input
                 type="text"
                 value={menteeData.fullName}
                 onChange={(e) => setMenteeData({ ...menteeData, fullName: e.target.value })}
                 required
-                placeholder="Your full name"
+                placeholder="Họ và tên của bạn"
               />
             </div>
 
             <div className="form-group">
-              <label>Phone Number</label>
+              <label>Số điện thoại</label>
               <input
                 type="tel"
                 value={menteeData.phoneNumber || ''}
@@ -533,25 +533,25 @@ const ProfileForm: React.FC = () => {
                 pattern="[+]?[\d\s-()]+"
                 minLength={10}
                 maxLength={20}
-                placeholder="e.g. +84912345678"
-                title="Phone number can only contain digits, spaces, +, -, and parentheses. Must be 10-20 characters."
+                placeholder="Ví dụ: +84912345678"
+                title="Số điện thoại chỉ có thể chứa chữ số, khoảng trắng, +, -, và dấu ngoặc. Phải có 10-20 ký tự."
               />
             </div>
 
             <TopicSelector
               selectedTopicIds={menteeData.interests}
               onChange={(topicIds) => setMenteeData({ ...menteeData, interests: topicIds })}
-              label="Interests *"
-              placeholder="Select topics you're interested in..."
+              label="Sở thích *"
+              placeholder="Chọn chủ đề bạn quan tâm..."
             />
 
             <div className="form-group">
-              <label>Goals</label>
+              <label>Mục tiêu</label>
               <textarea
                 value={menteeData.goals}
                 onChange={(e) => setMenteeData({ ...menteeData, goals: e.target.value })}
                 required
-                placeholder="What do you want to achieve?"
+                placeholder="Bạn muốn đạt được điều gì?"
                 rows={4}
               />
             </div>

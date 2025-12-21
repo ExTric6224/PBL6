@@ -88,7 +88,7 @@ export async function grantUserPermission(userId: number, permissionCode: string
   });
 
   if (!permission) {
-    throw new Error(`Permission not found: ${permissionCode}`);
+    throw new Error(`Không tìm thấy quyền: ${permissionCode}`);
   }
 
   await prisma.userPermission.upsert({
@@ -120,7 +120,7 @@ export async function revokeUserPermission(userId: number, permissionCode: strin
   });
 
   if (!permission) {
-    throw new Error(`Permission not found: ${permissionCode}`);
+    throw new Error(`Không tìm thấy quyền: ${permissionCode}`);
   }
 
   // Set isGranted to false to explicitly deny this permission
@@ -153,7 +153,7 @@ export async function removeUserPermissionOverride(userId: number, permissionCod
   });
 
   if (!permission) {
-    throw new Error(`Permission not found: ${permissionCode}`);
+    throw new Error(`Không tìm thấy quyền: ${permissionCode}`);
   }
 
   await prisma.userPermission.delete({
@@ -177,7 +177,7 @@ export async function setRolePermissions(roleName: string, permissionCodes: stri
   });
 
   if (!role) {
-    throw new Error(`Role not found: ${roleName}`);
+    throw new Error(`Không tìm thấy vai trò: ${roleName}`);
   }
 
   // Get all permissions by codes
@@ -239,7 +239,7 @@ export async function addPermissionToRole(roleName: string, permissionCode: stri
   });
 
   if (!permission) {
-    throw new Error(`Permission not found: ${permissionCode}`);
+    throw new Error(`Không tìm thấy quyền: ${permissionCode}`);
   }
 
   await prisma.rolePermission.upsert({
@@ -266,7 +266,7 @@ export async function removePermissionFromRole(roleName: string, permissionCode:
   });
 
   if (!role) {
-    throw new Error(`Role not found: ${roleName}`);
+    throw new Error(`Không tìm thấy vai trò: ${roleName}`);
   }
 
   const permission = await prisma.permission.findUnique({
@@ -274,7 +274,7 @@ export async function removePermissionFromRole(roleName: string, permissionCode:
   });
 
   if (!permission) {
-    throw new Error(`Permission not found: ${permissionCode}`);
+    throw new Error(`Không tìm thấy quyền: ${permissionCode}`);
   }
 
   await prisma.rolePermission.delete({

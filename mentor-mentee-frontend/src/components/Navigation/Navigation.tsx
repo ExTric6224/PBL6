@@ -71,33 +71,35 @@ const Navigation: React.FC = () => {
   // Admin có các tab quản lý riêng
   const navItems = user.role === 'ADMIN' 
     ? [
-        { path: '/admin', label: 'Dashboard' },
-        { path: '/admin/users', label: 'Users' },
-        { path: '/admin/posts', label: 'Posts' },
-        { path: '/admin/schedules', label: 'Schedules' },
-        { path: '/admin/bookings', label: 'Bookings' },
-        { path: '/admin/sessions', label: 'Sessions' },
-        { path: '/admin/feedbacks', label: 'Feedbacks' },
-        { path: '/admin/permissions', label: 'Permissions' },
+        { path: '/admin', label: 'Trang Chủ' },
+        { path: '/admin/users', label: 'Người Dùng' },
+        { path: '/admin/posts', label: 'Bài Viết' },
+        { path: '/admin/schedules', label: 'Lịch Trình' },
+        { path: '/admin/bookings', label: 'Đặt Lịch' },
+        { path: '/admin/sessions', label: 'Phiên Học' },
+        { path: '/admin/feedbacks', label: 'Đánh Giá' },
+        { path: '/admin/permissions', label: 'Phân Quyền' },
       ]
-    : user.role === 'MENTEE'
+    : user.role === 'MENTOR'
     ? [
-        { path: '/posts', label: 'Posts' },
-        { path: '/mentors', label: 'Mentors' },
-        { path: '/schedules', label: 'Schedules' },
-        { path: '/bookings', label: 'Bookings' },
-        { path: '/sessions', label: 'Sessions' },
-        { path: '/feedback', label: 'Feedback' },
-        { path: '/profile', label: 'Profile' },
+        { path: '/posts', label: 'Bài Viết' },
+        { path: '/mentors', label: 'Chuyên gia' },
+        { path: '/schedules', label: 'Lịch Trình' },
+        { path: '/bookings', label: 'Đặt Lịch' },
+        { path: '/sessions', label: 'Phiên Học' },
+        { path: '/feedback', label: 'Đánh Giá' },
+        { path: '/notifications', label: 'Thông Báo', hasBadge: true },
+        { path: '/profile', label: 'Hồ Sơ' },
       ]
     : [
-        { path: '/posts', label: 'Posts' },
-        { path: '/schedules', label: 'Schedules' },
-        { path: '/bookings', label: 'Bookings' },
-        { path: '/sessions', label: 'Sessions' },
-        { path: '/feedback', label: 'Feedback' },
-        { path: '/notifications', label: 'Notifications', hasBadge: true },
-        { path: '/profile', label: 'Profile' },
+        { path: '/posts', label: 'Bài Viết' },
+        { path: '/mentors', label: 'Mentor' },
+        { path: '/schedules', label: 'Lịch Trình' },
+        { path: '/bookings', label: 'Đặt Lịch' },
+        { path: '/sessions', label: 'Phiên Học' },
+        { path: '/feedback', label: 'Đánh Giá' },
+        { path: '/notifications', label: 'Thông Báo', hasBadge: true },
+        { path: '/profile', label: 'Hồ Sơ' },
       ];
 
   return (
@@ -153,14 +155,14 @@ const Navigation: React.FC = () => {
             <div className="user-dropdown">
               <button className="dropdown-item" onClick={handleChangePassword}>
                 <span className="item-icon">🔑</span>
-                <span>Change Password</span>
+                <span>Đổi mật khẩu</span>
               </button>
               <button className="dropdown-item logout" onClick={handleLogout}>
                 <span className="item-icon">🚪</span>
-                <span>Logout</span>
+                <span>Đăng xuất</span>
               </button>
             </div>
-          )}
+          )}  
         </div>
 
         {/* Mobile Menu Button */}
@@ -203,7 +205,7 @@ const Navigation: React.FC = () => {
           </ul>
 
           <button className="mobile-logout-btn" onClick={handleLogout}>
-            <span className="logout-text">Logout</span>
+            <span className="logout-text">Đăng xuất</span>
           </button>
         </div>
       </div>

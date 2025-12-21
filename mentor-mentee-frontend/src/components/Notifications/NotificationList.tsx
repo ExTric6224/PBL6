@@ -28,7 +28,7 @@ const NotificationList: React.FC = () => {
       const response = await api.get('/notifications');
       setNotifications(response.data.data || []);
     } catch (err: any) {
-      setError('Failed to load notifications');
+      setError('Không thể tải thông báo');
       console.error('Load notifications error:', err);
     } finally {
       setLoading(false);
@@ -75,8 +75,8 @@ const NotificationList: React.FC = () => {
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 1) return 'Vừa xong';
+    if (diffInHours < 24) return `${diffInHours} giờ trước`;
     return date.toLocaleDateString();
   };
 
@@ -94,7 +94,7 @@ const NotificationList: React.FC = () => {
       <div className="notification-error">
         <p>{error}</p>
         <button onClick={loadNotifications} className="retry-btn">
-          Retry
+          Thử lại
         </button>
       </div>
     );

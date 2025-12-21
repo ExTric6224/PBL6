@@ -86,7 +86,7 @@ const AdminBookingManagement: React.FC = () => {
       console.error('Error fetching bookings:', err);
       setToast({
         show: true,
-        message: 'Failed to fetch bookings',
+        message: 'Tải danh sách đặt lịch thất bại',
         type: 'error',
       });
     } finally {
@@ -112,7 +112,7 @@ const AdminBookingManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Booking deleted successfully',
+        message: 'Xóa đặt lịch thành công',
         type: 'success',
       });
       fetchBookings();
@@ -121,7 +121,7 @@ const AdminBookingManagement: React.FC = () => {
       console.error('Error deleting booking:', err);
       setToast({
         show: true,
-        message: 'Failed to delete booking',
+        message: 'Xóa đặt lịch thất bại',
         type: 'error',
       });
     } finally {
@@ -185,16 +185,28 @@ const AdminBookingManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Booking updated successfully',
+        message: 'Cập nhật đặt lịch thành công',
         type: 'success',
       });
       fetchBookings();
       handleCloseEditModal();
     } catch (err: any) {
       console.error('Error updating booking:', err);
+      // Handle error response properly
+      let errorMessage = 'Cập nhật đặt lịch thất bại';
+      if (err.response?.data?.error) {
+        // If error is an object, extract message
+        if (typeof err.response.data.error === 'object') {
+          errorMessage = err.response.data.error.message || JSON.stringify(err.response.data.error);
+        } else {
+          errorMessage = err.response.data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to update booking',
+        message: errorMessage,
         type: 'error',
       });
     }
@@ -244,27 +256,27 @@ const AdminBookingManagement: React.FC = () => {
   };
 
   if (loading && bookings.length === 0) {
-    return <div className="admin-loading">Loading bookings...</div>;
+    return <div className="admin-loading">Đang tải đặt lịch...</div>;
   }
 
   return (
     <div className="admin-booking-management">
       <div className="admin-header">
-        <h1>Booking Management</h1>
-        <p>Manage all bookings in the system</p>
+        <h1>Quản lý đặt lịch</h1>
+        <p>Quản lý tất cả đặt lịch trong hệ thống</p>
       </div>
 
       <div className="admin-controls">
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
-            placeholder="Search bookings by topic, email, or notes..."
+            placeholder="Tìm kiếm đặt lịch theo chủ đề, email, hoặc ghi chú..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-button">
-            Search
+            Tìm kiếm
           </button>
           {searchTerm && (
             <button
@@ -275,7 +287,7 @@ const AdminBookingManagement: React.FC = () => {
               }}
               className="clear-button"
             >
-              Clear
+              Xóa
             </button>
           )}
         </form>
@@ -288,11 +300,11 @@ const AdminBookingManagement: React.FC = () => {
           }}
           className="status-filter"
         >
-          <option value="ALL">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="CANCELLED">Cancelled</option>
-          <option value="COMPLETED">Completed</option>
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="PENDING">Chờ xác nhận</option>
+          <option value="CONFIRMED">Đã xác nhận</option>
+          <option value="CANCELLED">Đã hủy</option>
+          <option value="COMPLETED">Hoàn thành</option>
         </select>
       </div>
 
@@ -303,18 +315,18 @@ const AdminBookingManagement: React.FC = () => {
               <th>ID</th>
               <th>Mentee</th>
               <th>Mentor</th>
-              <th>Topic</th>
-              <th>Schedule Time</th>
-              <th>Status</th>
-              <th>Created At</th>
-              <th>Actions</th>
+              <th>Chủ đề</th>
+              <th>Thời gian lịch</th>
+              <th>Trạng thái</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {bookings.length === 0 ? (
               <tr>
                 <td colSpan={8} className="no-data">
-                  No bookings found
+                  Không tìm thấy đặt lịch
                 </td>
               </tr>
             ) : (
@@ -335,23 +347,23 @@ const AdminBookingManagement: React.FC = () => {
                     <button
                       onClick={() => handleViewBooking(booking)}
                       className="action-button view-button"
-                      title="View Details"
+                      title="Xem chi tiết"
                     >
-                      View
+                      Xem
                     </button>
                     <button
                       onClick={() => handleEditBooking(booking)}
                       className="action-button edit-button"
-                      title="Edit Booking"
+                      title="Sửa đặt lịch"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDeleteBooking(booking.id)}
                       className="action-button delete-button"
-                      title="Delete Booking"
+                      title="Xóa đặt lịch"
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -368,17 +380,17 @@ const AdminBookingManagement: React.FC = () => {
             disabled={pagination.page === 1}
             className="pagination-button"
           >
-            Previous
+            Trước
           </button>
           <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages} (Total: {pagination.total} bookings)
+            Trang {pagination.page} / {pagination.totalPages} (Tổng: {pagination.total} đặt lịch)
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
             disabled={pagination.page === pagination.totalPages}
             className="pagination-button"
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -387,17 +399,17 @@ const AdminBookingManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Booking Details</h2>
+              <h2>Chi tiết đặt lịch</h2>
               <button onClick={handleCloseModal} className="close-button">
                 ×
               </button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
-                <h3>Booking #{selectedBooking.id}</h3>
+                <h3>Đặt lịch #{selectedBooking.id}</h3>
                 <div className="booking-meta">
                   <div className="meta-row">
-                    <strong>Status:</strong>
+                    <strong>Trạng thái:</strong>
                     <span className={`status-badge ${getStatusBadge(selectedBooking.status).class}`}>
                       {getStatusBadge(selectedBooking.status).text}
                     </span>
@@ -417,17 +429,17 @@ const AdminBookingManagement: React.FC = () => {
                         </span>
                       </div>
                       <div className="meta-row">
-                        <strong>Topic:</strong>
+                        <strong>Chủ đề:</strong>
                         <span>{selectedBooking.schedule.topic}</span>
                       </div>
                       {selectedBooking.schedule.description && (
                         <div className="meta-row">
-                          <strong>Description:</strong>
+                          <strong>Mô tả:</strong>
                           <span>{selectedBooking.schedule.description}</span>
                         </div>
                       )}
                       <div className="meta-row">
-                        <strong>Schedule Time:</strong>
+                        <strong>Thời gian lịch:</strong>
                         <span>
                           {formatDateTime(selectedBooking.schedule.startAt)} - {formatDateTime(selectedBooking.schedule.endAt)}
                         </span>
@@ -436,16 +448,16 @@ const AdminBookingManagement: React.FC = () => {
                   )}
                   {selectedBooking.notes && (
                     <div className="meta-row">
-                      <strong>Notes:</strong>
+                      <strong>Ghi chú:</strong>
                       <span>{selectedBooking.notes}</span>
                     </div>
                   )}
                   <div className="meta-row">
-                    <strong>Created:</strong>
+                    <strong>Ngày tạo:</strong>
                     <span>{formatDateTime(selectedBooking.createdAt)}</span>
                   </div>
                   <div className="meta-row">
-                    <strong>Updated:</strong>
+                    <strong>Cập nhật:</strong>
                     <span>{formatDateTime(selectedBooking.updatedAt)}</span>
                   </div>
                 </div>
@@ -453,19 +465,19 @@ const AdminBookingManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button onClick={handleCloseModal} className="button button-secondary">
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => handleEditBooking(selectedBooking)}
                 className="button button-primary"
               >
-                Edit Booking
+                Sửa đặt lịch
               </button>
               <button
                 onClick={() => handleDeleteBooking(selectedBooking.id)}
                 className="button button-danger"
               >
-                Delete Booking
+                Xóa đặt lịch
               </button>
             </div>
           </div>
@@ -477,7 +489,7 @@ const AdminBookingManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Booking</h2>
+              <h2>Sửa đặt lịch</h2>
               <button onClick={handleCloseEditModal} className="close-button">
                 ×
               </button>
@@ -485,7 +497,7 @@ const AdminBookingManagement: React.FC = () => {
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="edit-status">Status *</label>
+                  <label htmlFor="edit-status">Trạng thái *</label>
                   <select
                     id="edit-status"
                     value={editFormData.status}
@@ -493,36 +505,36 @@ const AdminBookingManagement: React.FC = () => {
                     required
                     className="form-select"
                   >
-                    <option value="PENDING">Pending</option>
-                    <option value="CONFIRMED">Confirmed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="COMPLETED">Completed</option>
+                    <option value="PENDING">Chờ xác nhận</option>
+                    <option value="CONFIRMED">Đã xác nhận</option>
+                    <option value="CANCELLED">Đã hủy</option>
+                    <option value="COMPLETED">Hoàn thành</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-notes">Notes</label>
+                  <label htmlFor="edit-notes">Ghi chú</label>
                   <textarea
                     id="edit-notes"
                     value={editFormData.notes}
                     onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
                     rows={5}
                     className="form-textarea"
-                    placeholder="Add booking notes..."
+                    placeholder="Thêm ghi chú đặt lịch..."
                   />
                 </div>
                 <div className="booking-meta-info">
                   <p><strong>Mentee:</strong> {getUserFullName(bookingToEdit.mentee)}</p>
                   <p><strong>Mentor:</strong> {getUserFullName(bookingToEdit.schedule?.mentor)}</p>
-                  <p><strong>Topic:</strong> {bookingToEdit.schedule?.topic || 'N/A'}</p>
-                  <p><strong>Schedule:</strong> {bookingToEdit.schedule ? formatDateTime(bookingToEdit.schedule.startAt) : 'N/A'}</p>
+                  <p><strong>Chủ đề:</strong> {bookingToEdit.schedule?.topic || 'N/A'}</p>
+                  <p><strong>Lịch:</strong> {bookingToEdit.schedule ? formatDateTime(bookingToEdit.schedule.startAt) : 'N/A'}</p>
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
-                  Cancel
+                  Hủy
                 </button>
                 <button type="submit" className="button button-primary">
-                  Save Changes
+                  Lưu thay đổi
                 </button>
               </div>
             </form>
@@ -532,10 +544,10 @@ const AdminBookingManagement: React.FC = () => {
 
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        title="Delete Booking"
-        message="Are you sure you want to delete this booking? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Xóa đặt lịch"
+        message="Bạn có chắc chắn muốn xóa đặt lịch này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}

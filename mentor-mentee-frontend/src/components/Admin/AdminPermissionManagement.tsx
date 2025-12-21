@@ -56,10 +56,10 @@ const AdminPermissionManagement: React.FC = () => {
       setRoles(rolesResponse.data.data.roles || []);
       setPermissions(permissionsResponse.data.data.permissions || []);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('Failed to load dữ liệu:', error);
       setToast({
         show: true,
-        message: 'Failed to load permissions data',
+        message: 'Không thể tải dữ liệu quyền',
         type: 'error',
       });
     } finally {
@@ -103,14 +103,14 @@ const AdminPermissionManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Permissions updated successfully!',
+        message: 'Quyền đã được cập nhật thành công!',
         type: 'success',
       });
       loadData();
     } catch (error: any) {
       setToast({
         show: true,
-        message: error.response?.data?.error?.message || 'Failed to update permissions',
+        message: error.response?.data?.error?.message || 'Không thể cập nhật quyền',
         type: 'error',
       });
     } finally {
@@ -130,7 +130,7 @@ const AdminPermissionManagement: React.FC = () => {
   if (loading) {
     return (
       <div className="admin-permissions-container">
-        <div className="loading">Loading permissions...</div>
+        <div className="loading">Đang tải quyền...</div>
       </div>
     );
   }
@@ -139,15 +139,15 @@ const AdminPermissionManagement: React.FC = () => {
     <div className="admin-permissions-container">
       <div className="permissions-header">
         <button className="btn-back" onClick={() => navigate('/admin')}>
-          ← Back to Dashboard
+          ← Quay lại Bảng điều khiển
         </button>
-        <h1>🔐 Permission Management</h1>
+        <h1>🔐 Quản lý quyền</h1>
       </div>
 
       <div className="permissions-content">
         {/* Roles List */}
         <div className="roles-panel">
-          <h2>Roles ({roles.length})</h2>
+          <h2>Vai trò ({roles.length})</h2>
           <div className="roles-list">
             {roles.map(role => (
               <div
@@ -157,13 +157,13 @@ const AdminPermissionManagement: React.FC = () => {
               >
                 <div className="role-header">
                   <h3>{role.name}</h3>
-                  <span className="user-count">{role.userCount} users</span>
+                  <span className="user-count">{role.userCount} người dùng</span>
                 </div>
                 {role.description && (
                   <p className="role-description">{role.description}</p>
                 )}
                 <div className="role-stats">
-                  <span>{role.permissions.length} permissions</span>
+                  <span>{role.permissions.length} quyền</span>
                 </div>
               </div>
             ))}
@@ -176,9 +176,9 @@ const AdminPermissionManagement: React.FC = () => {
             <>
               <div className="panel-header">
                 <div>
-                  <h2>Permissions for {selectedRole.name}</h2>
+                  <h2>Quyền cho {selectedRole.name}</h2>
                   <p className="subtitle">
-                    {selectedRole.permissions.length} of {permissions.length} permissions assigned
+                    {selectedRole.permissions.length} của {permissions.length} quyền được gán
                   </p>
                 </div>
                 <button
@@ -186,7 +186,7 @@ const AdminPermissionManagement: React.FC = () => {
                   onClick={handleSavePermissions}
                   disabled={saving}
                 >
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </button>
               </div>
 
@@ -224,7 +224,7 @@ const AdminPermissionManagement: React.FC = () => {
             </>
           ) : (
             <div className="no-selection">
-              <p>← Select a role to manage its permissions</p>
+              <p>← Chọn 1 vai trò để quản lý quyền</p>
             </div>
           )}
         </div>

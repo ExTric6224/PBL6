@@ -97,7 +97,7 @@ const MentorRecommendations: React.FC = () => {
     return (
       <div className="mentor-recommendations-container">
         <div className="loading-message">
-          Loading...
+          Đang tải...
         </div>
       </div>
     );

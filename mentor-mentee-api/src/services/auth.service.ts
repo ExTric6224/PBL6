@@ -11,7 +11,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new Error('Người dùng đã tồn tại');
     }
 
     // Hash password
@@ -57,13 +57,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new Error('Thông tin đăng nhập không đúng');
     }
 
     // Verify password
     const isValidPassword = await comparePassword(data.password, user.password);
     if (!isValidPassword) {
-      throw new Error('Invalid credentials');
+      throw new Error('Thông tin đăng nhập không đúng');
     }
 
     // Generate JWT token
@@ -94,7 +94,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Không tìm thấy người dùng');
     }
 
     // Get user permissions from RBAC
@@ -117,18 +117,18 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Không tìm thấy người dùng');
     }
 
     // Verify current password
     const isValidPassword = await comparePassword(currentPassword, user.password);
     if (!isValidPassword) {
-      throw new Error('Current password is incorrect');
+      throw new Error('Mật khẩu hiện tại không đúng');
     }
 
     // Check if new password is different
     if (currentPassword === newPassword) {
-      throw new Error('New password must be different from current password');
+      throw new Error('Mật khẩu mới phải khác mật khẩu hiện tại');
     }
 
     // Hash new password

@@ -124,11 +124,7 @@ export class SessionsService {
             data: { status: 'COMPLETED' },
           });
 
-          // Update schedule to COMPLETED
-          await tx.schedule.update({
-            where: { id: session.booking.schedule.id },
-            data: { status: 'COMPLETED' },
-          });
+          // Schedule remains as BOOKED (schedule doesn't have COMPLETED status)
 
           return updatedSession;
         });
@@ -158,7 +154,7 @@ export class SessionsService {
     });
 
     if (!booking) {
-      throw new Error('Booking not found, not confirmed, or access denied');
+      throw new Error('Không tìm thấy lượt đặt lịch, chưa được xác nhận, hoặc không có quyền truy cập');
     }
 
     // Check if session already exists
@@ -184,7 +180,7 @@ export class SessionsService {
           },
         });
       }
-      throw new Error('Session already started');
+      throw new Error('Buổi học đã bắt đầu');
     }
 
     return await prisma.session.create({
@@ -223,11 +219,11 @@ export class SessionsService {
     });
 
     if (!session) {
-      throw new Error('Session not found or access denied');
+      throw new Error('Không tìm thấy buổi học hoặc không có quyền truy cập');
     }
 
     if (session.endedAt) {
-      throw new Error('Session has already ended');
+      throw new Error('Buổi học đã kết thúc');
     }
 
     // Update session, booking, and schedule in a transaction
@@ -256,11 +252,8 @@ export class SessionsService {
         data: { status: 'COMPLETED' },
       });
 
-      // Update schedule to COMPLETED
-      await tx.schedule.update({
-        where: { id: session.booking.schedule.id },
-        data: { status: 'COMPLETED' },
-      });
+      // Schedule remains as BOOKED (schedule doesn't have COMPLETED status)
+      // The schedule is still considered "used" but stays BOOKED
 
       return updatedSession;
     });
@@ -510,7 +503,7 @@ export class SessionsService {
     });
 
     if (!session) {
-      throw new Error('Session not found');
+      throw new Error('Không tìm thấy buổi học');
     }
 
     // Delete in transaction: feedback -> session
@@ -530,19 +523,37 @@ export class SessionsService {
   }
 
   // Update session (Admin can update any session)
-  async updateSession(sessionId: number, data: any) {
+  async updateSession(sessionId: number, data: any, userRole?: string) {
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
+      include: {
+        feedback: true,
+      },
     });
 
     if (!session) {
-      throw new Error('Session not found');
+      throw new Error('Không tìm thấy buổi học');
+    }
+
+    // CHỈ admin mới được edit session
+    if (userRole && userRole !== 'ADMIN') {
+      throw new Error('Chỉ admin mới có thể chỉnh sửa buổi học');
+    }
+
+    // KHÔNG cho edit session đã có feedback
+    if (session.feedback && session.feedback.length > 0) {
+      throw new Error('Không thể chỉnh sửa buổi học đã có đánh giá');
     }
 
     // Validate status if provided
     const validStatuses = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
     if (data.status && !validStatuses.includes(data.status)) {
-      throw new Error('Invalid status. Must be one of: ' + validStatuses.join(', '));
+      throw new Error('Trạng thái không hợp lệ. Phải là một trong: ' + validStatuses.join(', '));
+    }
+
+    // KHÔNG cho đổi từ COMPLETED sang bất kỳ trạng thái nào khác
+    if (data.status && session.status === 'COMPLETED' && data.status !== 'COMPLETED') {
+      throw new Error('Không thể thay đổi trạng thái của buổi học đã hoàn thành. Buổi học hoàn thành là cuối cùng.');
     }
 
     // Update session
@@ -552,6 +563,60 @@ export class SessionsService {
     if (data.startedAt !== undefined) updateData.startedAt = data.startedAt ? new Date(data.startedAt) : null;
     if (data.endedAt !== undefined) updateData.endedAt = data.endedAt ? new Date(data.endedAt) : null;
 
+    // Nếu admin đổi status sang COMPLETED, cần update booking sang COMPLETED
+    if (data.status === 'COMPLETED' && session.status !== 'COMPLETED') {
+      if (!updateData.endedAt) {
+        updateData.endedAt = new Date(); // Set endedAt nếu chưa có
+      }
+      
+      // Update session và booking trong transaction
+      return await prisma.$transaction(async (tx) => {
+        // Update session
+        const updatedSession = await tx.session.update({
+          where: { id: sessionId },
+          data: updateData,
+          include: {
+            booking: {
+              include: {
+                schedule: true,
+              },
+            },
+            user_session_mentorIdTouser: {
+              select: {
+                id: true,
+                email: true,
+                mentorprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+            user_session_menteeIdTouser: {
+              select: {
+                id: true,
+                email: true,
+                menteeprofile: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Update booking to COMPLETED
+        await tx.booking.update({
+          where: { id: updatedSession.bookingId },
+          data: { status: 'COMPLETED' },
+        });
+
+        return updatedSession;
+      });
+    }
+
+    // Normal update (không đổi sang COMPLETED)
     return await prisma.session.update({
       where: { id: sessionId },
       data: updateData,

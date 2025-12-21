@@ -27,11 +27,11 @@ const Register: React.FC = () => {
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Mật khẩu không khớp');
       return false;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       return false;
     }
     return true;
@@ -53,7 +53,7 @@ const Register: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || 'Registration failed. Please try again.';
+      const errorMessage = err.response?.data?.error?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -64,8 +64,8 @@ const Register: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Join Menterify</h2>
-          <p>Create your account to get started</p>
+          <h2>Tham gia Menterify</h2>
+          <p>Tạo tài khoản của bạn để bắt đầu</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -80,13 +80,13 @@ const Register: React.FC = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="Enter your email"
+              placeholder="Nhập email của bạn"
               disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="role">I want to be a:</label>
+            <label htmlFor="role">Tôi muốn trở thành:</label>
             <select
               id="role"
               name="role"
@@ -95,13 +95,13 @@ const Register: React.FC = () => {
               required
               disabled={isLoading}
             >
-              <option value="MENTEE">Mentee (Looking for guidance)</option>
-              <option value="MENTOR">Mentor (Providing guidance)</option>
+              <option value="MENTEE">Mentee (Tìm kiếm sự hướng dẫn)</option>
+              <option value="MENTOR">Mentor (Cung cấp sự hướng dẫn)</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Mật khẩu</label>
             <input
               type="password"
               id="password"
@@ -109,14 +109,14 @@ const Register: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu của bạn"
               disabled={isLoading}
               minLength={6}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">Xác nhận mật khẩu</label>
             <input
               type="password"
               id="confirmPassword"
@@ -124,7 +124,7 @@ const Register: React.FC = () => {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              placeholder="Confirm your password"
+              placeholder="Xác nhận mật khẩu của bạn"
               disabled={isLoading}
               minLength={6}
             />
@@ -135,21 +135,21 @@ const Register: React.FC = () => {
             className="auth-button primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
           </button>
         </form>
 
         <div className="auth-footer">
           <p>
-            Already have an account?{' '}
+            Đã có tài khoản?{' '}
             <Link to="/login" className="auth-link">
-              Sign in here
+              Đăng nhập tại đây
             </Link>
           </p>
           <p>
-            Want email verification?{' '}
+            Muốn xác thực email?{' '}
             <Link to="/register-otp" className="auth-link">
-              Register with OTP
+              Đăng ký với OTP
             </Link>
           </p>
         </div>

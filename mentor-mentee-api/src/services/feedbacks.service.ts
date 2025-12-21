@@ -27,11 +27,11 @@ export class FeedbacksService {
     });
 
     if (!session) {
-      throw new Error('Session not found or access denied');
+      throw new Error('Không tìm thấy buổi học hoặc không có quyền truy cập');
     }
 
     if (!session.endedAt) {
-      throw new Error('Cannot provide feedback for ongoing session');
+      throw new Error('Không thể đánh giá buổi học đang diễn ra');
     }
 
     // Check if feedback already exists
@@ -40,7 +40,7 @@ export class FeedbacksService {
     });
 
     if (existingFeedback) {
-      throw new Error('Feedback already provided for this session');
+      throw new Error('Đã có đánh giá cho buổi học này');
     }
 
     return await prisma.feedback.create({
@@ -261,12 +261,12 @@ export class FeedbacksService {
     });
 
     if (!feedback) {
-      throw new Error('Feedback not found');
+      throw new Error('Không tìm thấy đánh giá');
     }
 
     // Validate rating if provided
     if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
-      throw new Error('Rating must be between 1 and 5');
+      throw new Error('Đánh giá phải từ 1 đến 5');
     }
 
     const updatedFeedback = await prisma.feedback.update({
@@ -329,7 +329,7 @@ export class FeedbacksService {
     });
 
     if (!feedback) {
-      throw new Error('Feedback not found');
+      throw new Error('Không tìm thấy đánh giá');
     }
 
     await prisma.feedback.delete({

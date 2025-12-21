@@ -126,7 +126,7 @@ const AdminPostManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Post deleted successfully',
+        message: 'Xóa bài viết thành công',
         type: 'success',
       });
       fetchPosts(); // Refresh list
@@ -135,7 +135,7 @@ const AdminPostManagement: React.FC = () => {
       console.error('Error deleting post:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to delete post',
+        message: err.response?.data?.error || 'Xóa bài viết thất bại',
         type: 'error',
       });
     } finally {
@@ -198,7 +198,7 @@ const AdminPostManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Post updated successfully',
+        message: 'Cập nhật bài viết thành công',
         type: 'success',
       });
       fetchPosts();
@@ -207,7 +207,7 @@ const AdminPostManagement: React.FC = () => {
       console.error('Error updating post:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to update post',
+        message: err.response?.data?.error || 'Cập nhật bài viết thất bại',
         type: 'error',
       });
     }
@@ -245,27 +245,27 @@ const AdminPostManagement: React.FC = () => {
   };
 
   if (loading && posts.length === 0) {
-    return <div className="admin-loading">Loading posts...</div>;
+    return <div className="admin-loading">Đang tải bài viết...</div>;
   }
 
   return (
     <div className="admin-post-management">
       <div className="admin-header">
-        <h1>Post Management</h1>
-        <p>Manage all posts in the system</p>
+        <h1>Quản lý bài viết</h1>
+        <p>Quản lý tất cả bài viết trong hệ thống</p>
       </div>
 
       <div className="admin-controls">
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
-            placeholder="Search posts by title or content..."
+            placeholder="Tìm kiếm bài viết theo tiêu đề hoặc nội dung..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-button">
-            Search
+            Tìm kiếm
           </button>
           {searchTerm && (
             <button
@@ -276,7 +276,7 @@ const AdminPostManagement: React.FC = () => {
               }}
               className="clear-button"
             >
-              Clear
+              Xóa
             </button>
           )}
         </form>
@@ -289,19 +289,19 @@ const AdminPostManagement: React.FC = () => {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Role</th>
-              <th>Likes</th>
-              <th>Created At</th>
-              <th>Actions</th>
+              <th>Tiêu đề</th>
+              <th>Tác giả</th>
+              <th>Vai trò</th>
+              <th>Lượt thích</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {posts.length === 0 ? (
               <tr>
                 <td colSpan={7} className="no-data">
-                  No posts found
+                  Không tìm thấy bài viết
                 </td>
               </tr>
             ) : (
@@ -321,23 +321,23 @@ const AdminPostManagement: React.FC = () => {
                     <button
                       onClick={() => handleViewPost(post)}
                       className="action-button view-button"
-                      title="View Details"
+                      title="Xem chi tiết"
                     >
-                      View
+                      Xem
                     </button>
                     <button
                       onClick={() => handleEditPost(post)}
                       className="action-button edit-button"
-                      title="Edit Post"
+                      title="Sửa bài viết"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDeletePost(post.id)}
                       className="action-button delete-button"
-                      title="Delete Post"
+                      title="Xóa bài viết"
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -354,17 +354,17 @@ const AdminPostManagement: React.FC = () => {
             disabled={pagination.page === 1}
             className="pagination-button"
           >
-            Previous
+            Trước
           </button>
           <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages} (Total: {pagination.total} posts)
+            Trang {pagination.page} / {pagination.totalPages} (Tổng: {pagination.total} bài viết)
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
             disabled={pagination.page === pagination.totalPages}
             className="pagination-button"
           >
-            Next
+            Sau
           </button>
         </div>
       )}
@@ -373,7 +373,7 @@ const AdminPostManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Post Details</h2>
+              <h2>Chi tiết bài viết</h2>
               <button onClick={handleCloseModal} className="close-button">
                 ×
               </button>
@@ -383,32 +383,32 @@ const AdminPostManagement: React.FC = () => {
                 <h3>{selectedPost.title}</h3>
                 <div className="post-meta">
                   <span>
-                    <strong>Author:</strong> {getUserFullName(selectedPost.user)} ({selectedPost.user.email})
+                    <strong>Tác giả:</strong> {getUserFullName(selectedPost.user)} ({selectedPost.user.email})
                   </span>
                   <span>
-                    <strong>Role:</strong>{' '}
+                    <strong>Vai trò:</strong>{' '}
                     <span className={`role-badge role-${selectedPost.user.role.toLowerCase()}`}>
                       {selectedPost.user.role}
                     </span>
                   </span>
                   <span>
-                    <strong>Likes:</strong> {selectedPost.likesCount}
+                    <strong>Lượt thích:</strong> {selectedPost.likesCount}
                   </span>
                   <span>
-                    <strong>Created:</strong> {new Date(selectedPost.createdAt).toLocaleString()}
+                    <strong>Ngày tạo:</strong> {new Date(selectedPost.createdAt).toLocaleString()}
                   </span>
                   <span>
-                    <strong>Updated:</strong> {new Date(selectedPost.updatedAt).toLocaleString()}
+                    <strong>Cập nhật:</strong> {new Date(selectedPost.updatedAt).toLocaleString()}
                   </span>
                 </div>
               </div>
               <div className="detail-section">
-                <h4>Content:</h4>
+                <h4>Nội dung:</h4>
                 <div className="post-content">{parseMarkdown(selectedPost.content)}</div>
               </div>
               {selectedPost.images && selectedPost.images.length > 0 && (
                 <div className="detail-section">
-                  <h4>Images:</h4>
+                  <h4>Hình ảnh:</h4>
                   <div className="post-images">
                     {selectedPost.images.map((image) => (
                       <img
@@ -424,19 +424,19 @@ const AdminPostManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button onClick={handleCloseModal} className="button button-secondary">
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => handleEditPost(selectedPost)}
                 className="button button-primary"
               >
-                Edit Post
+                Sửa bài viết
               </button>
               <button
                 onClick={() => handleDeletePost(selectedPost.id)}
                 className="button button-danger"
               >
-                Delete Post
+                Xóa bài viết
               </button>
             </div>
           </div>
@@ -448,7 +448,7 @@ const AdminPostManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Post</h2>
+              <h2>Sửa bài viết</h2>
               <button onClick={handleCloseEditModal} className="close-button">
                 ×
               </button>
@@ -456,7 +456,7 @@ const AdminPostManagement: React.FC = () => {
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="edit-title">Title *</label>
+                  <label htmlFor="edit-title">Tiêu đề *</label>
                   <input
                     id="edit-title"
                     type="text"
@@ -464,11 +464,11 @@ const AdminPostManagement: React.FC = () => {
                     onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                     required
                     className="form-input"
-                    placeholder="Enter post title"
+                    placeholder="Nhập tiêu đề bài viết"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-content">Content *</label>
+                  <label htmlFor="edit-content">Nội dung *</label>
                   <textarea
                     id="edit-content"
                     value={editFormData.content}
@@ -476,7 +476,7 @@ const AdminPostManagement: React.FC = () => {
                     required
                     rows={10}
                     className="form-textarea"
-                    placeholder="Enter post content"
+                    placeholder="Nhập nội dung bài viết"
                   />
                 </div>
                 <div className="form-group">
@@ -486,20 +486,20 @@ const AdminPostManagement: React.FC = () => {
                       checked={editFormData.isPublic}
                       onChange={(e) => setEditFormData({ ...editFormData, isPublic: e.target.checked })}
                     />
-                    <span>Public Post</span>
+                    <span>Bài viết công khai</span>
                   </label>
                 </div>
                 <div className="post-meta-info">
-                  <p><strong>Author:</strong> {getUserFullName(postToEdit.user)}</p>
-                  <p><strong>Created:</strong> {new Date(postToEdit.createdAt).toLocaleString()}</p>
+                  <p><strong>Tác giả:</strong> {getUserFullName(postToEdit.user)}</p>
+                  <p><strong>Ngày tạo:</strong> {new Date(postToEdit.createdAt).toLocaleString()}</p>
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
-                  Cancel
+                  Hủy
                 </button>
                 <button type="submit" className="button button-primary">
-                  Save Changes
+                  Lưu thay đổi
                 </button>
               </div>
             </form>
@@ -510,10 +510,10 @@ const AdminPostManagement: React.FC = () => {
       {/* Confirm Dialog */}
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        title="Delete Post"
-        message="Are you sure you want to delete this post? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Xóa bài viết"
+        message="Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}

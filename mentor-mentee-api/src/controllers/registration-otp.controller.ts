@@ -22,10 +22,10 @@ export class RegistrationOtpController {
       const result = await service.verifyCode(req.body);
       return success(res, result);
     } catch (e: any) {
-      if (e.message === 'Verification not found') return badRequestError(res, 'Please request a code first');
-      if (e.message === 'Code expired') return badRequestError(res, 'Code expired, please request a new one');
+      if (e.message === 'Verification not found') return badRequestError(res, 'Vui lòng yêu cầu mã trước');
+      if (e.message === 'Code expired') return badRequestError(res, 'Mã đã hết hạn, vui lòng yêu cầu mã mới');
       if (e.message === 'Too many attempts') return tooManyRequestError(res, 'Too many attempts, request a new code later');
-      if (e.message === 'Invalid code') return badRequestError(res, 'Invalid code');
+      if (e.message === 'Invalid code') return badRequestError(res, 'Mã không đúng');
       throw e;
     }
   }
@@ -35,7 +35,7 @@ export class RegistrationOtpController {
       const data = await service.resendCode(req.body);
       return success(res, data);
     } catch (e: any) {
-      if (e.message === 'Verification not found') return badRequestError(res, 'Please request a code first');
+      if (e.message === 'Verification not found') return badRequestError(res, 'Vui lòng yêu cầu mã trước');
       if (e.message === 'Too many requests') return tooManyRequestError(res, 'Please wait before resending');
       throw e;
     }

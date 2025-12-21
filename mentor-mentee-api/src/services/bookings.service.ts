@@ -19,17 +19,17 @@ export class BookingsService {
     });
 
     if (!schedule) {
-      throw new Error('Schedule not found');
+      throw new Error('Không tìm thấy lịch học');
     }
 
     if (schedule.status !== 'AVAILABLE') {
-      throw new Error('Schedule is not available');
+      throw new Error('Lịch học không khả dụng');
     }
 
     // For 1-1 booking: Check if there's already a confirmed or pending booking
     // Since capacity is always 1, we only need to check if any active booking exists
     if (schedule.booking.length > 0) {
-      throw new Error('This schedule is already booked');
+      throw new Error('Lịch học này đã được đặt');
     }
 
     // Check if this mentee already booked this schedule (redundant check, but good for clarity)
@@ -47,7 +47,7 @@ export class BookingsService {
       if (existingBooking.status === 'CANCELLED') {
         throw new Error('Bạn đã đặt 1 lần và bị từ chối, không thể đặt nữa');
       }
-      throw new Error('You have already booked this schedule');
+      throw new Error('Bạn đã đặt lịch học này rồi');
     }
 
     // Create booking - this is a 1-1 booking (one mentor, one mentee)
@@ -91,8 +91,8 @@ export class BookingsService {
     await notificationsService.createNotification(
       booking.schedule.user.id,
       'booking_request',
-      'New Booking Request',
-      `${booking.user.email} has requested to book your session on ${bookingTime}.`
+      'Yêu cầu đặt lịch mới',
+      `${booking.user.email} đã yêu cầu đặt buổi học của bạn vào ${bookingTime}.`
     );
 
     return booking;
@@ -119,11 +119,11 @@ export class BookingsService {
     });
 
     if (!booking) {
-      throw new Error('Booking not found or access denied');
+      throw new Error('Không tìm thấy lượt đặt lịch hoặc không có quyền truy cập');
     }
 
     if (booking.status !== 'PENDING') {
-      throw new Error('Booking is not in pending status');
+      throw new Error('Lượt đặt lịch không ở trạng thái chờ xác nhận');
     }
 
     // For 1-1 booking: Confirm the booking and mark schedule as BOOKED
@@ -166,8 +166,8 @@ export class BookingsService {
     await notificationsService.createNotification(
       updatedBooking.user.id,
       'booking_confirmed',
-      'Booking Confirmed',
-      `Your booking with ${updatedBooking.schedule.user.email} on ${confirmedTime} has been confirmed.`
+      'Đặt lịch đã được xác nhận',
+      `Lượt đặt lịch của bạn với ${updatedBooking.schedule.user.email} vào ${confirmedTime} đã được xác nhận.`
     );
 
     return updatedBooking;
@@ -204,11 +204,11 @@ export class BookingsService {
     const isScheduleOwner = booking.schedule.user.id === userId;
 
     if (!isBookingOwner && !isScheduleOwner) {
-      throw new Error('Access denied');
+      throw new Error('Không có quyền truy cập');
     }
 
     if (booking.status === 'CANCELLED') {
-      throw new Error('Booking is already cancelled');
+      throw new Error('Lượt đặt lịch đã bị hủy');
     }
 
     // For 1-1 booking: Cancel the booking and free up the schedule if it was confirmed
@@ -442,7 +442,7 @@ export class BookingsService {
     });
 
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error('Không tìm thấy lượt đặt lịch');
     }
 
     // If booking was CONFIRMED and schedule is BOOKED, set schedule back to AVAILABLE
@@ -476,19 +476,46 @@ export class BookingsService {
     });
   }
 
-  async updateBooking(bookingId: number, data: any) {
+  async updateBooking(bookingId: number, data: any, userRole?: string) {
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
+      include: {
+        schedule: true,
+        session: true,
+      },
     });
 
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error('Không tìm thấy lượt đặt lịch');
     }
 
     // Validate status if provided
     const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
     if (data.status && !validStatuses.includes(data.status)) {
-      throw new Error('Invalid status. Must be one of: ' + validStatuses.join(', '));
+      throw new Error('Trạng thái không hợp lệ. Phải là một trong: ' + validStatuses.join(', '));
+    }
+
+    // KHÔNG cho edit nếu đã có session IN_PROGRESS hoặc COMPLETED
+    if (booking.session && ['IN_PROGRESS', 'COMPLETED'].includes(booking.session.status)) {
+      throw new Error('Không thể chỉnh sửa lượt đặt lịch có buổi học đang diễn ra hoặc đã hoàn thành');
+    }
+
+    // KHÔNG cho edit nếu đã quá thời gian
+    const now = new Date();
+    if (booking.schedule.endAt < now) {
+      throw new Error('Không thể chỉnh sửa lượt đặt lịch cho lịch học đã qua');
+    }
+
+    // CHỈ mentor hoặc admin mới đổi được status (mentee không được tự confirm)
+    if (data.status && data.status !== booking.status) {
+      if (userRole && userRole !== 'MENTOR' && userRole !== 'ADMIN') {
+        throw new Error('Chỉ mentor hoặc admin mới có thể thay đổi trạng thái đặt lịch');
+      }
+      
+      // KHÔNG cho đổi thủ công sang COMPLETED (chỉ tự động khi session kết thúc)
+      if (data.status === 'COMPLETED') {
+        throw new Error('Không thể đặt thủ công trạng thái đặt lịch thành HOÀN THÀNH. Đặt lịch sẽ tự động hoàn thành khi buổi học kết thúc.');
+      }
     }
 
     // Update booking

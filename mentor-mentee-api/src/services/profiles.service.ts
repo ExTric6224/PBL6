@@ -88,7 +88,7 @@ export class ProfilesService {
     } else {
       // Create new profile - ensure required fields are present
       if (!data.fullName) {
-        throw new Error('Full name is required for new mentor profile');
+        throw new Error('Họ tên là bắt buộc khi tạo hồ sơ mentor');
       }
       
       const newProfile = await prisma.mentorprofile.create({
@@ -176,7 +176,7 @@ export class ProfilesService {
     });
 
     if (!profile) {
-      throw new Error('Mentor profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentor');
     }
 
     // Transform expertise to array of topics
@@ -274,7 +274,7 @@ export class ProfilesService {
     } else {
       // Create new profile - ensure required fields are present
       if (!data.fullName) {
-        throw new Error('Full name is required for new mentee profile');
+        throw new Error('Họ tên là bắt buộc khi tạo hồ sơ mentee');
       }
       
       const newProfile = await prisma.menteeprofile.create({
@@ -359,7 +359,7 @@ export class ProfilesService {
     });
 
     if (!profile) {
-      throw new Error('Mentee profile not found');
+      throw new Error('Không tìm thấy hồ sơ mentee');
     }
 
     // Transform interests to array of topics
@@ -383,7 +383,7 @@ export class ProfilesService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Không tìm thấy người dùng');
     }
 
     // Based on role, get the appropriate profile
@@ -391,16 +391,16 @@ export class ProfilesService {
       try {
         return await this.getMentorProfile(userId);
       } catch (error) {
-        throw new Error('Profile not found');
+        throw new Error('Không tìm thấy hồ sơ');
       }
     } else if (user.role === 'MENTEE') {
       try {
         return await this.getMenteeProfile(userId);
       } catch (error) {
-        throw new Error('Profile not found');
+        throw new Error('Không tìm thấy hồ sơ');
       }
     } else {
-      throw new Error('Profile not found');
+      throw new Error('Không tìm thấy hồ sơ');
     }
   }
 }

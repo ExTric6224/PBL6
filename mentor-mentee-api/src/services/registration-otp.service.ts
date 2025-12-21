@@ -21,7 +21,7 @@ export class RegistrationOtpService {
     // 1) Nếu email đã là user thực sự -> báo trùng
     const existedUser = await prisma.user.findUnique({ where: { email } });
     if (existedUser) {
-      throw new Error('User already exists');
+      throw new Error('Người dùng đã tồn tại');
     }
 
     // 2) Throttle resend
@@ -31,7 +31,7 @@ export class RegistrationOtpService {
     if (existing) {
       const diffSec = (now.getTime() - new Date(existing.lastSentAt).getTime()) / 1000;
       if (diffSec < RESEND_INTERVAL_SECONDS) {
-        throw new Error('Too many requests'); // 429 hợp lý ở controller
+        throw new Error('Quá nhiều yêu cầu'); // 429 hợp lý ở controller
       }
     }
 
@@ -79,7 +79,7 @@ export class RegistrationOtpService {
       
       // Don't throw error in development, allow the flow to continue
       if (process.env.NODE_ENV === 'production') {
-        throw new Error('Failed to send verification email');
+        throw new Error('Không thể gửi email xác thực');
       }
     }
 
@@ -99,12 +99,12 @@ export class RegistrationOtpService {
         where: { email },
         data: { attempts: { increment: 1 }, updatedAt: new Date() },
       });
-      throw new Error('Code expired');
+      throw new Error('Mã đã hết hạn');
     }
 
     // Quá số lần thử?
     if (rec.attempts >= MAX_ATTEMPTS) {
-      throw new Error('Too many attempts');
+      throw new Error('Quá nhiều lần thử');
     }
 
     // So sánh mã
@@ -114,7 +114,7 @@ export class RegistrationOtpService {
         where: { email },
         data: { attempts: { increment: 1 }, updatedAt: new Date() },
       });
-      throw new Error('Invalid code');
+      throw new Error('Mã không đúng');
     }
 
     // Mã đúng → tạo user, xong xóa bản ghi xác thực
@@ -158,12 +158,12 @@ export class RegistrationOtpService {
   async resendCode(params: { email: string }) {
     const { email } = params;
     const rec = await prisma.emailVerification.findUnique({ where: { email } });
-    if (!rec) throw new Error('Verification not found');
+    if (!rec) throw new Error('Không tìm thấy mã xác thực');
 
     const now = new Date();
     const diffSec = (now.getTime() - new Date(rec.lastSentAt).getTime()) / 1000;
     if (diffSec < RESEND_INTERVAL_SECONDS) {
-      throw new Error('Too many requests');
+      throw new Error('Quá nhiều yêu cầu');
     }
 
     const code = generateCode();

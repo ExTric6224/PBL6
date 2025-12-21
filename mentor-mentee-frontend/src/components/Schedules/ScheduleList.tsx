@@ -38,6 +38,9 @@ const ScheduleList: React.FC = () => {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'upcoming'>('upcoming');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingNotes, setBookingNotes] = useState('');
+  const [scheduleToBook, setScheduleToBook] = useState<number | null>(null);
 
   const isMentor = user?.role === 'MENTOR';
 
@@ -194,14 +197,32 @@ const ScheduleList: React.FC = () => {
   };
 
   const handleBookSchedule = async (scheduleId: number) => {
-    const notes = prompt('Nhập ghi chú cho mentor (tùy chọn):');
+    setScheduleToBook(scheduleId);
+    setShowBookingModal(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!scheduleToBook) return;
+    
     try {
-      await bookingApi.createBooking({ scheduleId, notes: notes || undefined });
+      await bookingApi.createBooking({ 
+        scheduleId: scheduleToBook, 
+        notes: bookingNotes || undefined 
+      });
       alert('Đặt lịch thành công! Chờ mentor xác nhận.');
+      setShowBookingModal(false);
+      setBookingNotes('');
+      setScheduleToBook(null);
       loadSchedules();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Không thể đặt lịch');
     }
+  };
+
+  const handleCloseBookingModal = () => {
+    setShowBookingModal(false);
+    setBookingNotes('');
+    setScheduleToBook(null);
   };
 
   const formatDateTime = (dateString: string) => {
@@ -321,7 +342,7 @@ const ScheduleList: React.FC = () => {
   };
 
   if (loading && schedules.length === 0) {
-    return <div className="loading-message">Loading...</div>;
+    return <div className="loading-message">Đang tải...</div>;
   }
 
   const filteredSchedules = getFilteredAndSortedSchedules();
@@ -583,6 +604,52 @@ const ScheduleList: React.FC = () => {
           </div>
         )}
         </>
+      )}
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="modal-overlay" onClick={handleCloseBookingModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Đặt lịch hẹn</h2>
+              <button className="modal-close" onClick={handleCloseBookingModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-description">
+                Vui lòng nhập ghi chú cho mentor (không bắt buộc). 
+                Mentor sẽ xem xét và xác nhận lịch hẹn của bạn.
+              </p>
+              <div className="form-group">
+                <label htmlFor="booking-notes">Ghi chú</label>
+                <textarea
+                  id="booking-notes"
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                  placeholder="Ví dụ: Tôi muốn học về React Hooks và State Management..."
+                  rows={5}
+                  className="form-textarea"
+                />
+                <small className="form-hint">
+                  Ghi chú giúp mentor hiểu rõ hơn về nhu cầu học tập của bạn
+                </small>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={handleCloseBookingModal}
+              >
+                Hủy
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleConfirmBooking}
+              >
+                Xác nhận đặt lịch
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

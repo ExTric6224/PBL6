@@ -88,7 +88,7 @@ const AdminFeedbackManagement: React.FC = () => {
       console.error('Error fetching feedbacks:', err);
       setToast({
         show: true,
-        message: 'Failed to fetch feedbacks',
+        message: 'Lấy đánh giá thất bại',
         type: 'error',
       });
     } finally {
@@ -109,7 +109,7 @@ const AdminFeedbackManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Feedback deleted successfully',
+        message: 'Xoá đánh giá thành công',
         type: 'success',
       });
       fetchFeedbacks();
@@ -118,7 +118,7 @@ const AdminFeedbackManagement: React.FC = () => {
       console.error('Error deleting feedback:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to delete feedback',
+        message: err.response?.data?.error || 'Xoá đánh giá thất bại',
         type: 'error',
       });
     } finally {
@@ -182,7 +182,7 @@ const AdminFeedbackManagement: React.FC = () => {
 
       setToast({
         show: true,
-        message: 'Feedback updated successfully',
+        message: 'Cập nhật đánh giá thành công',
         type: 'success',
       });
       fetchFeedbacks();
@@ -191,7 +191,7 @@ const AdminFeedbackManagement: React.FC = () => {
       console.error('Error updating feedback:', err);
       setToast({
         show: true,
-        message: err.response?.data?.error || 'Failed to update feedback',
+        message: err.response?.data?.error || 'Cập nhật đánh giá thất bại',
         type: 'error',
       });
     }
@@ -227,27 +227,27 @@ const AdminFeedbackManagement: React.FC = () => {
   };
 
   if (loading && feedbacks.length === 0) {
-    return <div className="admin-loading">Loading feedbacks...</div>;
+    return <div className="admin-loading">Đang tải đánh giá...</div>;
   }
 
   return (
     <div className="admin-feedback-management">
       <div className="admin-header">
-        <h1>Feedback Management</h1>
-        <p>Manage all feedbacks in the system</p>
+        <h1>Quản lý đánh giá</h1>
+        <p>Quản lý tất cả các đánh giá trong hệ thống</p>
       </div>
 
       <div className="admin-controls">
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
-            placeholder="Search feedbacks by mentor, mentee, or comment..."
+            placeholder="Tìm kiếm với email, tên hoặc bình luận..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-button">
-            Search
+            Tìm kiếm
           </button>
           {searchTerm && (
             <button
@@ -258,7 +258,7 @@ const AdminFeedbackManagement: React.FC = () => {
               }}
               className="clear-button"
             >
-              Clear
+              Xoá
             </button>
           )}
         </form>
@@ -271,12 +271,12 @@ const AdminFeedbackManagement: React.FC = () => {
           }}
           className="rating-filter"
         >
-          <option value="ALL">All Ratings</option>
-          <option value="5">5 Stars</option>
-          <option value="4">4 Stars</option>
-          <option value="3">3 Stars</option>
-          <option value="2">2 Stars</option>
-          <option value="1">1 Star</option>
+          <option value="ALL">Tất cả đánh giá</option>
+          <option value="5">5 Sao</option>
+          <option value="4">4 Sao</option>
+          <option value="3">3 Sao</option>
+          <option value="2">2 Sao</option>
+          <option value="1">1 Sao</option>
         </select>
       </div>
 
@@ -285,19 +285,19 @@ const AdminFeedbackManagement: React.FC = () => {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Mentor</th>
-              <th>Mentee</th>
-              <th>Rating</th>
-              <th>Comment</th>
-              <th>Created At</th>
-              <th>Actions</th>
+              <th>Chuyên gia</th>
+              <th>Học viên</th>
+              <th>Đánh giá</th>
+              <th>Bình luận</th>
+              <th>Thời gian tạo</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {feedbacks.length === 0 ? (
               <tr>
                 <td colSpan={7} className="no-data">
-                  No feedbacks found
+                  Không có đánh giá nào
                 </td>
               </tr>
             ) : (
@@ -319,21 +319,21 @@ const AdminFeedbackManagement: React.FC = () => {
                       className="action-button view-button"
                       title="View Details"
                     >
-                      View
+                      Xem
                     </button>
                     <button
                       onClick={() => handleEditFeedback(feedback)}
                       className="action-button edit-button"
                       title="Edit Feedback"
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       onClick={() => handleDeleteFeedback(feedback.id)}
                       className="action-button delete-button"
                       title="Delete Feedback"
                     >
-                      Delete
+                      Xoá
                     </button>
                   </td>
                 </tr>
@@ -350,17 +350,17 @@ const AdminFeedbackManagement: React.FC = () => {
             disabled={pagination.page === 1}
             className="pagination-button"
           >
-            Previous
+            Trước
           </button>
           <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages} (Total: {pagination.total} feedbacks)
+            Trang {pagination.page} trên {pagination.totalPages} (Tổng: {pagination.total} đánh giá)
           </span>
           <button
             onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
             disabled={pagination.page === pagination.totalPages}
             className="pagination-button"
           >
-            Next
+            Tiếp
           </button>
         </div>
       )}
@@ -369,34 +369,34 @@ const AdminFeedbackManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Feedback Details</h2>
+              <h2>Chi tiết đánh giá</h2>
               <button onClick={handleCloseModal} className="close-button">
                 ×
               </button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
-                <h3>Feedback #{selectedFeedback.id}</h3>
+                <h3>Đánh giá #{selectedFeedback.id}</h3>
                 <div className="feedback-meta">
                   <div className="meta-row">
-                    <strong>Rating:</strong>
+                    <strong>Đánh giá:</strong>
                     <span className="rating-stars large">{renderStars(selectedFeedback.rating)}</span>
                   </div>
                   <div className="meta-row">
-                    <strong>Mentor:</strong>
+                    <strong>Chuyên gia:</strong>
                     <span>
                       {getUserFullName(selectedFeedback.mentor, selectedFeedback.mentor?.mentorprofile)} ({selectedFeedback.mentor?.email})
                     </span>
                   </div>
                   <div className="meta-row">
-                    <strong>Mentee:</strong>
+                    <strong>Học viên:</strong>
                     <span>
                       {getUserFullName(selectedFeedback.mentee, selectedFeedback.mentee?.menteeprofile)} ({selectedFeedback.mentee?.email})
                     </span>
                   </div>
                   {selectedFeedback.comment && (
                     <div className="meta-row">
-                      <strong>Comment:</strong>
+                      <strong>Bình luận:</strong>
                       <p className="comment-full">{selectedFeedback.comment}</p>
                     </div>
                   )}
@@ -407,12 +407,12 @@ const AdminFeedbackManagement: React.FC = () => {
                     </div>
                   )}
                   <div className="meta-row">
-                    <strong>Created At:</strong>
+                    <strong>Ngày tạo:</strong>
                     <span>{formatDateTime(selectedFeedback.createdAt)}</span>
                   </div>
                   {selectedFeedback.mentor?.mentorprofile?.bio && (
                     <div className="meta-row">
-                      <strong>Mentor Bio:</strong>
+                      <strong>Tiểu sử Mentor:</strong>
                       <span>{selectedFeedback.mentor.mentorprofile.bio}</span>
                     </div>
                   )}
@@ -421,19 +421,19 @@ const AdminFeedbackManagement: React.FC = () => {
             </div>
             <div className="modal-footer">
               <button onClick={handleCloseModal} className="button button-secondary">
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => handleEditFeedback(selectedFeedback)}
                 className="button button-primary"
               >
-                Edit Feedback
+                Chỉnh sửa đánh giá
               </button>
               <button
                 onClick={() => handleDeleteFeedback(selectedFeedback.id)}
                 className="button button-danger"
               >
-                Delete Feedback
+                Xoá đánh giá
               </button>
             </div>
           </div>
@@ -445,7 +445,7 @@ const AdminFeedbackManagement: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseEditModal}>
           <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Feedback</h2>
+              <h2>Chỉnh sửa đánh giá</h2>
               <button onClick={handleCloseEditModal} className="close-button">
                 ×
               </button>
@@ -453,7 +453,7 @@ const AdminFeedbackManagement: React.FC = () => {
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="edit-rating">Rating *</label>
+                  <label htmlFor="edit-rating">Đánh giá *</label>
                   <select
                     id="edit-rating"
                     value={editFormData.rating}
@@ -461,15 +461,15 @@ const AdminFeedbackManagement: React.FC = () => {
                     required
                     className="form-select"
                   >
-                    <option value={5}>5 Stars - ⭐⭐⭐⭐⭐</option>
-                    <option value={4}>4 Stars - ⭐⭐⭐⭐</option>
-                    <option value={3}>3 Stars - ⭐⭐⭐</option>
-                    <option value={2}>2 Stars - ⭐⭐</option>
-                    <option value={1}>1 Star - ⭐</option>
+                    <option value={5}>5 Sao - ⭐⭐⭐⭐⭐</option>
+                    <option value={4}>4 Sao - ⭐⭐⭐⭐</option>
+                    <option value={3}>3 Sao - ⭐⭐⭐</option>
+                    <option value={2}>2 Sao - ⭐⭐</option>
+                    <option value={1}>1 Sao - ⭐</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-comment">Comment</label>
+                  <label htmlFor="edit-comment">Bình luận</label>
                   <textarea
                     id="edit-comment"
                     value={editFormData.comment}
@@ -489,10 +489,10 @@ const AdminFeedbackManagement: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={handleCloseEditModal} className="button button-secondary">
-                  Cancel
+                  Huỷ
                 </button>
                 <button type="submit" className="button button-primary">
-                  Save Changes
+                  Lưu
                 </button>
               </div>
             </form>

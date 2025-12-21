@@ -106,10 +106,10 @@ const BookingList: React.FC = () => {
     
     try {
       await bookingApi.confirmBooking(selectedBookingId);
-      setSuccessDialog({ isOpen: true, message: 'Booking confirmed successfully!' });
+      setSuccessDialog({ isOpen: true, message: 'Đã xác nhận booking thành công!' });
       loadBookings();
     } catch (err: any) {
-      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to confirm booking' });
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Không thể xác nhận booking' });
     }
   };
 
@@ -119,10 +119,10 @@ const BookingList: React.FC = () => {
     
     try {
       await bookingApi.cancelBooking(selectedBookingId);
-      setSuccessDialog({ isOpen: true, message: 'Booking cancelled.' });
+      setSuccessDialog({ isOpen: true, message: 'Đã hủy booking.' });
       loadBookings();
     } catch (err: any) {
-      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Failed to cancel booking' });
+      setErrorDialog({ isOpen: true, message: err.response?.data?.error?.message || 'Không thể hủy booking' });
     }
   };
   const handleStartSession = async () => {
@@ -154,7 +154,7 @@ const BookingList: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading bookings...</div>;
+    return <div className="loading">Đang tải booking...</div>;
   }
 
   const filteredBookings = getFilteredAndSortedBookings();
@@ -338,7 +338,7 @@ const BookingList: React.FC = () => {
         title="Bắt đầu Session"
         message="Bạn có chắc chắn muốn bắt đầu session ngay bây giờ không?"
         confirmText="OK"
-        cancelText="Cancel"
+        cancelText="Hủy"
         onConfirm={handleStartSession}
         onCancel={() => setShowStartSessionConfirm(false)}
         type="info"
@@ -348,9 +348,9 @@ const BookingList: React.FC = () => {
       <ConfirmDialog
         isOpen={showConfirmBookingDialog}
         title="Xác nhận Booking"
-        message="Confirm this booking?"
-        confirmText="Confirm"
-        cancelText="Cancel"
+        message="Xác nhận booking này?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
         onConfirm={handleConfirmBooking}
         onCancel={() => setShowConfirmBookingDialog(false)}
         type="info"
@@ -360,9 +360,9 @@ const BookingList: React.FC = () => {
       <ConfirmDialog
         isOpen={showCancelBookingDialog}
         title="Hủy Booking"
-        message="Cancel this booking?"
-        confirmText="Yes"
-        cancelText="No"
+        message="Hủy booking này?"
+        confirmText="Có"
+        cancelText="Không"
         onConfirm={handleCancelBooking}
         onCancel={() => setShowCancelBookingDialog(false)}
         type="danger"
