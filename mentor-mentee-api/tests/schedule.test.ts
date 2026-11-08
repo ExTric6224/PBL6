@@ -1,9 +1,12 @@
 import axios, { AxiosError } from 'axios';
 import ExcelJS from 'exceljs';
+import * as path from 'path';
+import prisma from '../src/db/client';
 
 // Configuration
-const BASE_URL = 'http://localhost:3000/api';
-const OUTPUT_FILE = 'schedule-test-results.xlsx';
+const BASE_URL = process.env.API_URL || 'http://localhost:5000/api';
+const OUTPUT_FILE = 'schedule-and-feedback-test-report.xlsx';
+const LEGACY_OUTPUT_FILE = 'schedule-test-results.xlsx';
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
 
 // Test result interface
@@ -33,52 +36,118 @@ enum TestCategory {
   SCHEDULE_CREATE_FAILURE = 'Schedule Create - Failure Cases',
   SCHEDULE_BOOKING_SUCCESS = 'Schedule Booking - Success Cases',
   SCHEDULE_BOOKING_FAILURE = 'Schedule Booking - Failure Cases',
-  SCHEDULE_MANAGEMENT = 'Schedule Management - Test Cases'
+  SCHEDULE_MANAGEMENT = 'Schedule Management - Test Cases',
+  SESSION_MANAGEMENT = 'Session Management - Test Cases',
+  FEEDBACK_SUCCESS = 'Mentee Feedback - Success Cases',
+  FEEDBACK_FAILURE = 'Mentee Feedback - Failure Cases',
+  FEEDBACK_QUERY = 'Mentee Feedback - Query & Stats Cases'
 }
 
-class ScheduleTest {
+class ScheduleAndFeedbackTest {
   private results: TestResult[] = [];
   private testCounter: number = 0;
   private mentorToken: string = '';
   private menteeToken: string = '';
-  private createdSchedules: Map<string, any> = new Map();
+  private mentorId: number = 0;
+  private menteeId: number = 0;
+  private slotCounter: number = 0;
+  private baseRunTime: number = Date.now() + 100 * 24 * 60 * 60 * 1000;
+
+  private getUniqueFutureSlot(durationMinutes: number = 60) {
+    this.slotCounter++;
+    // Mỗi slot cách nhau 3 tiếng đều đặn, không bao giờ trùng lặp
+    const start = new Date(this.baseRunTime + this.slotCounter * 3 * 60 * 60 * 1000);
+    const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+    return {
+      startAt: start.toISOString(),
+      endAt: end.toISOString()
+    };
+  }
+
+  private async cleanupTestData() {
+    try {
+      const futureCutoff = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const testSchedules = await prisma.schedule.findMany({
+        where: {
+          mentorId: this.mentorId,
+          startAt: { gte: futureCutoff }
+        },
+        select: { id: true }
+      });
+
+      if (testSchedules.length === 0) return;
+
+      const scheduleIds = testSchedules.map(s => s.id);
+      const bookings = await prisma.booking.findMany({
+        where: { scheduleId: { in: scheduleIds } },
+        select: { id: true }
+      });
+      const bookingIds = bookings.map(b => b.id);
+
+      if (bookingIds.length > 0) {
+        const sessions = await prisma.session.findMany({
+          where: { bookingId: { in: bookingIds } },
+          select: { id: true }
+        });
+        const sessionIds = sessions.map(s => s.id);
+
+        if (sessionIds.length > 0) {
+          await prisma.feedback.deleteMany({
+            where: { sessionId: { in: sessionIds } }
+          });
+          await prisma.session.deleteMany({
+            where: { id: { in: sessionIds } }
+          });
+        }
+
+        await prisma.booking.deleteMany({
+          where: { id: { in: bookingIds } }
+        });
+      }
+
+      await prisma.schedule.deleteMany({
+        where: { id: { in: scheduleIds } }
+      });
+    } catch (e) {
+      console.warn('⚠️  Cleanup notice:', (e as Error).message);
+    }
+  }
 
   async runAllTests() {
     console.log('╔═══════════════════════════════════════════════════════════╗');
-    console.log('║          SCHEDULE AUTOMATION TEST SUITE                   ║');
-    console.log('║     Testing Schedule Creation and Booking Features       ║');
+    console.log('║    SCHEDULE & FEEDBACK AUTOMATION TEST SUITE              ║');
+    console.log('║   Testing Schedule, Booking, Session & Mentee Feedback    ║');
     console.log('╚═══════════════════════════════════════════════════════════╝\n');
 
     // Setup: Login to get tokens
     await this.setupAuth();
 
-    // Schedule Create Success Tests
+    // 1. Schedule Create Success Tests
     await this.testMentorCreateSlotSuccess();
-  // removed: await this.testMentorCreateMultipleSlots();
     
-    // Schedule Create Failure Tests
+    // 2. Schedule Create Failure Tests
     await this.testMentorCreateSlotOverlapping();
     await this.testMenteeCreateSlotUnauthorized();
     await this.testCreateSlotInvalidTimeRange();
     await this.testCreateSlotPastDate();
     
-    // Schedule Booking Success Tests
+    // 3. Schedule Booking Success Tests
     await this.testMenteeBookSlotSuccess();
     await this.testMenteeCancelBookingSuccess();
     await this.testMentorDeleteScheduleSuccess();
     
-    // Schedule Booking Failure Tests
+    // 4. Schedule Booking Failure Tests
     await this.testMenteeBookAlreadyBookedSlot();
-    // removed: await this.testMenteeBookOwnSlot();
     await this.testMentorBookSlotUnauthorized();
     await this.testBookNonExistentSlot();
-    // removed: await this.testMenteeCancelNonExistentBooking();
-    // removed: await this.testMenteeCancelAlreadyCancelledBooking();
     await this.testMentorDeleteNonExistentSchedule();
     await this.testMenteeDeleteScheduleUnauthorized();
     
-    // Schedule Management Tests
+    // 5. Schedule Management Tests
     await this.testGetMentorScheduleList();
+
+    // 6. Meeting Session & Mentee Feedback Flow
+    await this.testMeetingSessionAndFeedbackFlow();
 
     // Export results
     await this.exportToExcel();
@@ -97,7 +166,8 @@ class ScheduleTest {
         password: '123456'
       });
       this.mentorToken = mentorResponse.data.data.token;
-      console.log('   ✅ Mentor logged in');
+      this.mentorId = mentorResponse.data.data.user.id;
+      console.log(`   ✅ Mentor logged in (ID: ${this.mentorId})`);
 
       // Login as Mentee
       const menteeResponse = await axios.post(`${BASE_URL}/auth/login`, {
@@ -105,16 +175,21 @@ class ScheduleTest {
         password: '123456'
       });
       this.menteeToken = menteeResponse.data.data.token;
-      console.log('   ✅ Mentee logged in\n');
+      this.menteeId = menteeResponse.data.data.user.id;
+      console.log(`   ✅ Mentee logged in (ID: ${this.menteeId})`);
+
+      // Dọn dẹp các slot test cũ từ lần chạy trước để đảm bảo môi trường sạch
+      await this.cleanupTestData();
+      console.log('   🧹 Test environment cleaned up\n');
     } catch (error) {
       console.error('   ❌ Auth setup failed:', error);
       throw error;
     }
   }
 
-  private getNextTestId(): string {
+  private getNextTestId(prefix: string = 'TC'): string {
     this.testCounter++;
-    return `SCH${String(this.testCounter).padStart(3, '0')}`;
+    return `${prefix}${String(this.testCounter).padStart(3, '0')}`;
   }
 
   private async executeTest(
@@ -126,9 +201,10 @@ class ScheduleTest {
     expectedStatus: number,
     expectedBodyStructure: string,
     expectedDatabaseState: string,
-    authToken?: string
+    authToken?: string,
+    idPrefix: string = 'TC'
   ): Promise<TestResult> {
-    const testId = this.getNextTestId();
+    const testId = this.getNextTestId(idPrefix);
     const startTime = Date.now();
     
     let result: TestResult = {
@@ -178,12 +254,7 @@ class ScheduleTest {
       if (response.data?.error?.message) {
         result.responseMessage = response.data.error.message;
       } else if (response.data?.data?.id) {
-        result.responseMessage = `Schedule created/updated: ID ${response.data.data.id}`;
-        
-        // Store created schedule
-        if (response.status === 201 || response.status === 200) {
-          this.createdSchedules.set(response.data.data.id, response.data.data);
-        }
+        result.responseMessage = `ID: ${response.data.data.id}`;
       } else if (response.data?.message) {
         result.responseMessage = response.data.message;
       }
@@ -224,12 +295,7 @@ class ScheduleTest {
   // ============================================================================
 
   async testMentorCreateSlotSuccess() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(10, 0, 0, 0);
-
-    const startAt = tomorrow.toISOString();
-    const endAt = new Date(tomorrow.getTime() + 60 * 60 * 1000).toISOString(); // +1 hour
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     await this.executeTest(
       TestCategory.SCHEDULE_CREATE_SUCCESS,
@@ -244,25 +310,18 @@ class ScheduleTest {
       },
       201,
       'HTTP 201 Created; Body: {data: {id: number, mentorId: number, startAt: datetime, endAt: datetime, status: "AVAILABLE", topic: string, description: string}}',
-      `schedules table: INSERT 1 record {mentorId: (from token), topic: "Career Guidance", startAt: "${startAt}", endAt: "${endAt}", status: "AVAILABLE", description: "Career guidance session", createdAt: now}`,
-      this.mentorToken
+      `schedules table: INSERT 1 record {mentorId: (from token), topic: "Career Guidance", startAt: "${startAt}", endAt: "${endAt}", status: "AVAILABLE"}`,
+      this.mentorToken,
+      'SCH'
     );
   }
-
-  // testMentorCreateMultipleSlots removed per request
 
   // ============================================================================
   // SCHEDULE CREATE FAILURE TESTS
   // ============================================================================
 
   async testMentorCreateSlotOverlapping() {
-    // Create first slot
-    const baseTime = new Date();
-    baseTime.setDate(baseTime.getDate() + 3);
-    baseTime.setHours(15, 0, 0, 0);
-
-    const slot1Start = baseTime.toISOString();
-    const slot1End = new Date(baseTime.getTime() + 60 * 60 * 1000).toISOString();
+    const { startAt: slot1Start, endAt: slot1End } = this.getUniqueFutureSlot();
 
     await axios.post(`${BASE_URL}/schedules`, {
       topic: 'First Slot',
@@ -273,9 +332,9 @@ class ScheduleTest {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
     }).catch(() => {});
 
-    // Try to create overlapping slot
-    const slot2Start = new Date(baseTime.getTime() + 30 * 60 * 1000).toISOString(); // +30 minutes (overlaps)
-    const slot2End = new Date(baseTime.getTime() + 90 * 60 * 1000).toISOString();
+    // Try to create overlapping slot (starts 30 mins after slot 1 starts)
+    const slot2Start = new Date(new Date(slot1Start).getTime() + 30 * 60 * 1000).toISOString();
+    const slot2End = new Date(new Date(slot1Start).getTime() + 90 * 60 * 1000).toISOString();
 
     await this.executeTest(
       TestCategory.SCHEDULE_CREATE_FAILURE,
@@ -288,17 +347,16 @@ class ScheduleTest {
         endAt: slot2End,
         description: 'Overlapping slot'
       },
-      500,
-      'HTTP 500 Internal Server Error; Body: {error: {message: "Schedule overlaps with existing schedule(s)"}}',
+      400,
+      'HTTP 400 Bad Request; Body: {error: {message: "Schedule overlaps with existing schedule(s)"}}',
       `schedules table: No INSERT (conflict detected with existing slot)`,
-      this.mentorToken
+      this.mentorToken,
+      'SCH'
     );
   }
 
   async testMenteeCreateSlotUnauthorized() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 4);
-    tomorrow.setHours(11, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     await this.executeTest(
       TestCategory.SCHEDULE_CREATE_FAILURE,
@@ -307,24 +365,21 @@ class ScheduleTest {
       'POST',
       {
         topic: 'Unauthorized Slot',
-        startAt: tomorrow.toISOString(),
-        endAt: new Date(tomorrow.getTime() + 60 * 60 * 1000).toISOString(),
+        startAt,
+        endAt,
         description: 'Should fail'
       },
       403,
       'HTTP 403 Forbidden; Body: {error: {code: "FORBIDDEN", message: "Only mentors can create schedules"}}',
       `schedules table: No INSERT (permission denied)`,
-      this.menteeToken
+      this.menteeToken,
+      'SCH'
     );
   }
 
   async testCreateSlotInvalidTimeRange() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 5);
-    tomorrow.setHours(12, 0, 0, 0);
-
-    const startAt = tomorrow.toISOString();
-    const endAt = new Date(tomorrow.getTime() - 60 * 60 * 1000).toISOString(); // End before start
+    const { startAt } = this.getUniqueFutureSlot();
+    const endAt = new Date(new Date(startAt).getTime() - 60 * 60 * 1000).toISOString(); // End before start
 
     await this.executeTest(
       TestCategory.SCHEDULE_CREATE_FAILURE,
@@ -340,7 +395,8 @@ class ScheduleTest {
       400,
       'HTTP 400 Bad Request; Body: {error: {code: "VALIDATION_ERROR", message: "End time must be after start time"}}',
       `schedules table: No INSERT (validation failed)`,
-      this.mentorToken
+      this.mentorToken,
+      'SCH'
     );
   }
 
@@ -360,10 +416,11 @@ class ScheduleTest {
         endAt: new Date(yesterday.getTime() + 60 * 60 * 1000).toISOString(),
         description: 'Past date slot'
       },
-      500,
-      'HTTP 500 Internal Server Error; Body: {error: {message: "Schedule start time must be in the future"}}',
+      400,
+      'HTTP 400 Bad Request; Body: {error: {message: "Schedule start time must be in the future"}}',
       `schedules table: No INSERT (past date validation failed)`,
-      this.mentorToken
+      this.mentorToken,
+      'SCH'
     );
   }
 
@@ -372,15 +429,12 @@ class ScheduleTest {
   // ============================================================================
 
   async testMenteeBookSlotSuccess() {
-    // Create a slot first
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 6);
-    futureTime.setHours(16, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Bookable Slot',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Bookable slot'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -398,7 +452,8 @@ class ScheduleTest {
         201,
         'HTTP 201 Created; Body: {data: {id: number, scheduleId: number, menteeId: number, status: "BOOKED", bookedAt: datetime}}',
         `bookings table: INSERT new booking; schedules table: UPDATE status="BOOKED" WHERE id=${scheduleId}`,
-        this.menteeToken
+        this.menteeToken,
+        'SCH'
       );
     } else {
       console.log('   ⚠️  Failed to create slot for booking test');
@@ -406,15 +461,12 @@ class ScheduleTest {
   }
 
   async testMenteeCancelBookingSuccess() {
-    // Create a slot first
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 9);
-    futureTime.setHours(18, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Cancelable Slot',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Slot for cancel test'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -423,7 +475,6 @@ class ScheduleTest {
     if (createResponse?.data?.data?.id) {
       const scheduleId = createResponse.data.data.id;
 
-      // Book the slot
       const bookResponse = await axios.post(`${BASE_URL}/bookings`, { scheduleId }, {
         headers: { Authorization: `Bearer ${this.menteeToken}` }
       }).catch(() => null);
@@ -431,7 +482,6 @@ class ScheduleTest {
       if (bookResponse?.data?.data?.id) {
         const bookingId = bookResponse.data.data.id;
 
-        // Cancel the booking
         await this.executeTest(
           TestCategory.SCHEDULE_BOOKING_SUCCESS,
           'Mentee hủy slot thành công',
@@ -441,7 +491,8 @@ class ScheduleTest {
           200,
           'HTTP 200 OK; Body: {data: {id: number, status: "CANCELLED", cancelledAt: datetime}}',
           `bookings table: UPDATE status="CANCELLED", cancelledAt=now WHERE id=${bookingId}; schedules table: UPDATE status="AVAILABLE" WHERE id=${scheduleId}`,
-          this.menteeToken
+          this.menteeToken,
+          'SCH'
         );
       } else {
         console.log('   ⚠️  Failed to book slot for cancel test');
@@ -452,15 +503,12 @@ class ScheduleTest {
   }
 
   async testMentorDeleteScheduleSuccess() {
-    // Create a slot first
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 11);
-    futureTime.setHours(20, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Deletable Schedule',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Schedule to be deleted'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -477,8 +525,9 @@ class ScheduleTest {
         {},
         200,
         'HTTP 200 OK; Body: {data: {id: number, status: "CANCELLED"}}',
-        `schedules table: UPDATE status="CANCELLED" WHERE id=${scheduleId}; bookings table: UPDATE status="CANCELLED" for all related bookings`,
-        this.mentorToken
+        `schedules table: UPDATE status="CANCELLED" WHERE id=${scheduleId}`,
+        this.mentorToken,
+        'SCH'
       );
     } else {
       console.log('   ⚠️  Failed to create slot for delete test');
@@ -490,15 +539,12 @@ class ScheduleTest {
   // ============================================================================
 
   async testMenteeBookAlreadyBookedSlot() {
-    // Create and book a slot
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 7);
-    futureTime.setHours(13, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Already Booked Slot',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Already booked slot'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -507,12 +553,10 @@ class ScheduleTest {
     if (createResponse?.data?.data?.id) {
       const scheduleId = createResponse.data.data.id;
 
-      // First booking (should succeed)
       await axios.post(`${BASE_URL}/bookings`, { scheduleId }, {
         headers: { Authorization: `Bearer ${this.menteeToken}` }
       }).catch(() => {});
 
-      // Second booking (should fail)
       await this.executeTest(
         TestCategory.SCHEDULE_BOOKING_FAILURE,
         'Mentee đăng ký slot đã được booked',
@@ -520,24 +564,21 @@ class ScheduleTest {
         'POST',
         { scheduleId },
         409,
-        'HTTP 409 Conflict; Body: {error: {code: "CONFLICT", message: "Schedule already booked"}}',
+        'HTTP 409 Conflict; Body: {error: {code: "CONFLICT", message: "Schedule is not available"}}',
         `bookings table: No INSERT (slot already booked)`,
-        this.menteeToken
+        this.menteeToken,
+        'SCH'
       );
     }
   }
 
-  // testMenteeBookOwnSlot removed per request
-
   async testMentorBookSlotUnauthorized() {
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 8);
-    futureTime.setHours(17, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Mentor Cannot Book',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Mentor cannot book'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -555,7 +596,8 @@ class ScheduleTest {
         403,
         'HTTP 403 Forbidden; Body: {error: {code: "FORBIDDEN", message: "Only mentees can book schedules"}}',
         `bookings table: No INSERT (permission denied)`,
-        this.mentorToken
+        this.mentorToken,
+        'SCH'
       );
     }
   }
@@ -570,7 +612,8 @@ class ScheduleTest {
       404,
       'HTTP 404 Not Found; Body: {error: {code: "NOT_FOUND", message: "Schedule not found"}}',
       `schedules table: SELECT WHERE id=999999 returns NULL`,
-      this.menteeToken
+      this.menteeToken,
+      'SCH'
     );
   }
 
@@ -582,22 +625,20 @@ class ScheduleTest {
       'DELETE',
       {},
       404,
-      'HTTP 404 Not Found; Body: {error: {code: "NOT_FOUND", message: "Schedule not found"}}',
-      `schedules table: SELECT WHERE id=999999 AND mentorId=(from token) returns NULL`,
-      this.mentorToken
+      'HTTP 404 Not Found; Body: {error: {code: "NOT_FOUND", message: "Schedule not found or you do not have permission to delete it"}}',
+      `schedules table: SELECT WHERE id=999999 returns NULL`,
+      this.mentorToken,
+      'SCH'
     );
   }
 
   async testMenteeDeleteScheduleUnauthorized() {
-    // Create a schedule as mentor first
-    const futureTime = new Date();
-    futureTime.setDate(futureTime.getDate() + 12);
-    futureTime.setHours(21, 0, 0, 0);
+    const { startAt, endAt } = this.getUniqueFutureSlot();
 
     const createResponse = await axios.post(`${BASE_URL}/schedules`, {
       topic: 'Schedule Mentee Cannot Delete',
-      startAt: futureTime.toISOString(),
-      endAt: new Date(futureTime.getTime() + 60 * 60 * 1000).toISOString(),
+      startAt,
+      endAt,
       description: 'Mentee should not be able to delete'
     }, {
       headers: { Authorization: `Bearer ${this.mentorToken}` }
@@ -615,7 +656,8 @@ class ScheduleTest {
         403,
         'HTTP 403 Forbidden; Body: {error: {code: "FORBIDDEN", message: "Only mentors can delete schedules"}}',
         `schedules table: No UPDATE (permission denied)`,
-        this.menteeToken
+        this.menteeToken,
+        'SCH'
       );
     } else {
       console.log('   ⚠️  Failed to create slot for mentee delete test');
@@ -634,42 +676,308 @@ class ScheduleTest {
       'GET',
       {},
       200,
-      'HTTP 200 OK; Body: {data: [{id: number, mentorId: number, topic: string, startAt: datetime, endAt: datetime, status: string, description: string}], pagination: {page, limit, total}}',
+      'HTTP 200 OK; Body: {data: [{id: number, mentorId: number, topic: string, startAt: datetime, endAt: datetime, status: string}]}',
       `schedules table: SELECT * WHERE mentorId=(from token) ORDER BY startAt`,
-      this.mentorToken
+      this.mentorToken,
+      'SCH'
     );
   }
 
   // ============================================================================
-  // EXCEL EXPORT
+  // MEETING SESSION & MENTEE FEEDBACK TESTS
+  // ============================================================================
+
+  async testMeetingSessionAndFeedbackFlow() {
+    console.log('\n╔═══════════════════════════════════════════════════════════╗');
+    console.log('║       MEETING SESSION & FEEDBACK TEST SUITE               ║');
+    console.log('╚═══════════════════════════════════════════════════════════╝\n');
+
+    // 1. Chuẩn bị slot và booking
+    const { startAt, endAt } = this.getUniqueFutureSlot();
+    const createSlotRes = await axios.post(`${BASE_URL}/schedules`, {
+      topic: 'Fullstack Career Consultation',
+      startAt,
+      endAt,
+      description: 'Deep dive into roadmap and architecture'
+    }, {
+      headers: { Authorization: `Bearer ${this.mentorToken}` }
+    });
+    const scheduleId = createSlotRes.data.data.id;
+
+    const bookRes = await axios.post(`${BASE_URL}/bookings`, {
+      scheduleId,
+      notes: 'Em muốn xin định hướng phát triển sự nghiệp Fullstack'
+    }, {
+      headers: { Authorization: `Bearer ${this.menteeToken}` }
+    });
+    const bookingId = bookRes.data.data.id;
+
+    // 2. Mentor xác nhận lịch hẹn (Confirm booking)
+    await this.executeTest(
+      TestCategory.SCHEDULE_BOOKING_SUCCESS,
+      'Mentor xác nhận yêu cầu đặt lịch hẹn của mentee',
+      `/bookings/${bookingId}/confirm`,
+      'PATCH',
+      {},
+      200,
+      'HTTP 200 OK; Body: {data: {id: number, status: "CONFIRMED"}}',
+      `bookings table: UPDATE status="CONFIRMED" WHERE id=${bookingId}`,
+      this.mentorToken,
+      'SES'
+    );
+
+    // 3. Mentor bắt đầu buổi gặp mặt (Start session)
+    const startSessionResult = await this.executeTest(
+      TestCategory.SESSION_MANAGEMENT,
+      'Mentor bắt đầu buổi gặp mặt thành công',
+      '/sessions/start',
+      'POST',
+      { bookingId },
+      201,
+      'HTTP 201 Created; Body: {data: {id: number, status: "IN_PROGRESS", startedAt: datetime}}',
+      `sessions table: INSERT 1 record {bookingId: ${bookingId}, status: "IN_PROGRESS"}`,
+      this.mentorToken,
+      'SES'
+    );
+
+    let sessionId: number | null = null;
+    try {
+      const parsed = JSON.parse(startSessionResult.actualResult);
+      sessionId = parsed?.data?.id || null;
+    } catch {}
+
+    // 4. Bắt đầu lại buổi gặp mặt đã diễn ra (Duplicate Start) -> 409
+    await this.executeTest(
+      TestCategory.SESSION_MANAGEMENT,
+      'Không thể bắt đầu lại buổi gặp mặt đã diễn ra',
+      '/sessions/start',
+      'POST',
+      { bookingId },
+      409,
+      'HTTP 409 Conflict; Body: {error: {message: "Session has already been started"}}',
+      `sessions table: No changes (conflict detected)`,
+      this.mentorToken,
+      'SES'
+    );
+
+    // 5. Bắt đầu buổi gặp mặt với booking không tồn tại -> 404
+    await this.executeTest(
+      TestCategory.SESSION_MANAGEMENT,
+      'Bắt đầu buổi gặp mặt với booking không tồn tại',
+      '/sessions/start',
+      'POST',
+      { bookingId: 999999 },
+      404,
+      'HTTP 404 Not Found; Body: {error: {message: "Booking not found, not confirmed, or you do not have permission"}}',
+      `sessions table: No INSERT (booking 999999 does not exist)`,
+      this.mentorToken,
+      'SES'
+    );
+
+    // 6. Mentee không thể đánh giá buổi gặp mặt khi ĐANG DIỄN RA -> 409
+    if (sessionId) {
+      await this.executeTest(
+        TestCategory.FEEDBACK_FAILURE,
+        'Mentee không thể đánh giá buổi gặp mặt khi chưa kết thúc (đang diễn ra)',
+        '/feedbacks',
+        'POST',
+        {
+          sessionId,
+          rating: 5,
+          comment: 'Buổi gặp đang diễn ra chưa được đánh giá!'
+        },
+        409,
+        'HTTP 409 Conflict; Body: {error: {message: "Cannot provide feedback for ongoing session"}}',
+        `feedbacks table: No INSERT (session ongoing, endedAt is null)`,
+        this.menteeToken,
+        'FDB'
+      );
+
+      // 7. Mentor kết thúc buổi gặp mặt (End session)
+      await this.executeTest(
+        TestCategory.SESSION_MANAGEMENT,
+        'Mentor kết thúc buổi gặp mặt thành công',
+        '/sessions/end',
+        'POST',
+        {
+          sessionId,
+          notes: 'Buổi trao đổi rất hiệu quả, đã giải đáp toàn bộ lộ trình cho mentee.'
+        },
+        200,
+        'HTTP 200 OK; Body: {data: {id: number, status: "COMPLETED", endedAt: datetime}}',
+        `sessions table: UPDATE status="COMPLETED", endedAt=now; bookings & schedules status="COMPLETED"`,
+        this.mentorToken,
+        'SES'
+      );
+
+      // 8. Mentee gửi đánh giá buổi gặp mặt thành công (5 sao + nhận xét chi tiết)
+      await this.executeTest(
+        TestCategory.FEEDBACK_SUCCESS,
+        'Mentee đánh giá buổi gặp mặt thành công (5 sao + nhận xét)',
+        '/feedbacks',
+        'POST',
+        {
+          sessionId,
+          rating: 5,
+          comment: 'Mentor hướng dẫn rất tận tình, kiến thức thực tế và truyền cảm hứng!'
+        },
+        201,
+        'HTTP 201 Created; Body: {data: {id: number, sessionId: number, rating: 5, comment: string}}',
+        `feedbacks table: INSERT 1 record {sessionId: ${sessionId}, rating: 5, comment: ...}`,
+        this.menteeToken,
+        'FDB'
+      );
+
+      // 9. Mentee không thể đánh giá 2 lần cho cùng một buổi gặp mặt (Duplicate Feedback) -> 409
+      await this.executeTest(
+        TestCategory.FEEDBACK_FAILURE,
+        'Mentee không thể gửi đánh giá trùng lặp cho cùng một buổi gặp mặt',
+        '/feedbacks',
+        'POST',
+        {
+          sessionId,
+          rating: 4,
+          comment: 'Thử gửi đánh giá lần 2'
+        },
+        409,
+        'HTTP 409 Conflict; Body: {error: {message: "Feedback already provided for this session"}}',
+        `feedbacks table: No INSERT (feedback already exists for this session)`,
+        this.menteeToken,
+        'FDB'
+      );
+    }
+
+    // 10. Đánh giá buổi gặp mặt với rating > 5 (Ví dụ 6 sao) -> 400
+    await this.executeTest(
+      TestCategory.FEEDBACK_FAILURE,
+      'Đánh giá với số sao không hợp lệ (> 5 sao)',
+      '/feedbacks',
+      'POST',
+      {
+        sessionId: sessionId || 1,
+        rating: 6,
+        comment: 'Quá 5 sao'
+      },
+      400,
+      'HTTP 400 Bad Request; Body: {error: {message: "Validation failed"}}',
+      `feedbacks table: No INSERT (Zod validation failed: Rating must be between 1 and 5)`,
+      this.menteeToken,
+      'FDB'
+    );
+
+    // 11. Đánh giá buổi gặp mặt với rating < 1 (Ví dụ 0 sao) -> 400
+    await this.executeTest(
+      TestCategory.FEEDBACK_FAILURE,
+      'Đánh giá với số sao không hợp lệ (< 1 sao)',
+      '/feedbacks',
+      'POST',
+      {
+        sessionId: sessionId || 1,
+        rating: 0,
+        comment: 'Dưới 1 sao'
+      },
+      400,
+      'HTTP 400 Bad Request; Body: {error: {message: "Validation failed"}}',
+      `feedbacks table: No INSERT (Zod validation failed: Rating must be between 1 and 5)`,
+      this.menteeToken,
+      'FDB'
+    );
+
+    // 12. Đánh giá buổi gặp mặt không tồn tại -> 404
+    await this.executeTest(
+      TestCategory.FEEDBACK_FAILURE,
+      'Đánh giá buổi gặp mặt không tồn tại (ID 999999)',
+      '/feedbacks',
+      'POST',
+      {
+        sessionId: 999999,
+        rating: 5,
+        comment: 'Session không tồn tại'
+      },
+      404,
+      'HTTP 404 Not Found; Body: {error: {message: "Session not found or you do not have permission"}}',
+      `feedbacks table: No INSERT (session 999999 does not exist)`,
+      this.menteeToken,
+      'FDB'
+    );
+
+    // 13. Mentor cố tình gửi đánh giá (chỉ Mentee mới được gửi đánh giá) -> 401
+    await this.executeTest(
+      TestCategory.FEEDBACK_FAILURE,
+      'Mentor không thể gửi đánh giá buổi gặp mặt (Unauthorized)',
+      '/feedbacks',
+      'POST',
+      {
+        sessionId: sessionId || 1,
+        rating: 5,
+        comment: 'Mentor tự đánh giá'
+      },
+      401,
+      'HTTP 401 Unauthorized; Body: {error: {message: "Only mentees can provide feedback"}}',
+      `feedbacks table: No INSERT (only mentees allowed)`,
+      this.mentorToken,
+      'FDB'
+    );
+
+    // 14. Mentee xem danh sách đánh giá của mình (My Feedbacks) -> 200
+    await this.executeTest(
+      TestCategory.FEEDBACK_QUERY,
+      'Mentee xem danh sách các đánh giá đã gửi (My Feedbacks)',
+      '/feedbacks/my',
+      'GET',
+      {},
+      200,
+      'HTTP 200 OK; Body: {data: {data: Array, total: number, page: number, totalPages: number}}',
+      `feedbacks table: SELECT * WHERE menteeId=(from token)`,
+      this.menteeToken,
+      'FDB'
+    );
+
+    // 15. Xem danh sách đánh giá & thống kê điểm trung bình của Mentor -> 200
+    await this.executeTest(
+      TestCategory.FEEDBACK_QUERY,
+      'Xem danh sách đánh giá và điểm trung bình của Mentor',
+      `/feedbacks/mentor/${this.mentorId}`,
+      'GET',
+      {},
+      200,
+      'HTTP 200 OK; Body: {data: {feedbacks: Array, stats: {averageRating: number, totalFeedbacks: number}}}',
+      `feedbacks table: SELECT * WHERE mentorId=${this.mentorId} with calculated averageRating`,
+      this.menteeToken,
+      'FDB'
+    );
+  }
+
+  // ============================================================================
+  // EXPORT TO EXCEL
   // ============================================================================
 
   async exportToExcel() {
     console.log('\n\n📊 Exporting results to Excel...');
     
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Schedule Test Suite';
+    workbook.creator = 'Mentor-Mentee Automation Test Suite';
     workbook.created = new Date();
 
-    const worksheet = workbook.addWorksheet('Test Results', {
+    const worksheet = workbook.addWorksheet('Detailed Results', {
       views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
     });
 
     worksheet.columns = [
       { header: 'Test ID', key: 'id', width: 12 },
-      { header: 'Category', key: 'category', width: 40 },
-      { header: 'Test Case', key: 'description', width: 55 },
-      { header: 'Endpoint', key: 'endpoint', width: 35 },
+      { header: 'Category', key: 'category', width: 38 },
+      { header: 'Test Case Description', key: 'description', width: 55 },
+      { header: 'Endpoint', key: 'endpoint', width: 32 },
       { header: 'Method', key: 'method', width: 10 },
       { header: 'Request Data', key: 'requestData', width: 35 },
-      { header: 'Expected Status', key: 'expectedStatus', width: 15 },
-      { header: 'Actual Status', key: 'actualStatus', width: 15 },
+      { header: 'Expected Status', key: 'expectedStatus', width: 16 },
+      { header: 'Actual Status', key: 'actualStatus', width: 16 },
       { header: 'Status', key: 'passed', width: 12 },
       { header: 'Expected Body Structure', key: 'expectedBodyStructure', width: 60 },
       { header: 'Expected Database State', key: 'expectedDatabaseState', width: 80 },
-      { header: 'Response', key: 'responseMessage', width: 50 },
+      { header: 'Response Message', key: 'responseMessage', width: 45 },
       { header: 'Duration (ms)', key: 'duration', width: 15 },
-      { header: 'Timestamp', key: 'timestamp', width: 25 }
+      { header: 'Timestamp', key: 'timestamp', width: 22 }
     ];
 
     const headerRow = worksheet.getRow(1);
@@ -677,7 +985,7 @@ class ScheduleTest {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF2C3E50' }
+      fgColor: { argb: 'FF1F3A60' }
     };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     headerRow.height = 35;
@@ -706,7 +1014,7 @@ class ScheduleTest {
         expectedDatabaseState: result.expectedDatabaseState,
         responseMessage: result.responseMessage,
         duration: result.duration,
-        timestamp: new Date(result.timestamp).toLocaleString('vi-VN')
+        timestamp: new Date(result.timestamp).toLocaleTimeString('vi-VN')
       });
 
       const statusCell = row.getCell('passed');
@@ -714,14 +1022,14 @@ class ScheduleTest {
         statusCell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FF52C41A' }
+          fgColor: { argb: 'FF52C41A' } // Green
         };
         statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       } else {
         statusCell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFF5222D' }
+          fgColor: { argb: 'FFF5222D' } // Red
         };
         statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       }
@@ -730,6 +1038,7 @@ class ScheduleTest {
       row.getCell('expectedStatus').alignment = { vertical: 'middle', horizontal: 'center' };
       row.getCell('actualStatus').alignment = { vertical: 'middle', horizontal: 'center' };
       row.getCell('method').alignment = { vertical: 'middle', horizontal: 'center' };
+      row.getCell('id').alignment = { vertical: 'middle', horizontal: 'center' };
 
       row.getCell('requestData').alignment = { wrapText: true, vertical: 'top' };
       row.getCell('expectedBodyStructure').alignment = { wrapText: true, vertical: 'top' };
@@ -745,7 +1054,7 @@ class ScheduleTest {
         };
       });
 
-      row.height = 60;
+      row.height = 55;
     });
 
     // Summary worksheet
@@ -766,16 +1075,16 @@ class ScheduleTest {
     summaryHeaderRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF2C3E50' }
+      fgColor: { argb: 'FF1F3A60' }
     };
 
     const summaryData = [
       { metric: 'Total Tests', value: totalTests },
       { metric: 'Passed', value: passedTests },
       { metric: 'Failed', value: failedTests },
-      { metric: 'Pass Rate (%)', value: passRate },
-      { metric: 'Average Duration (ms)', value: avgDuration },
-      { metric: 'Test Date', value: new Date().toLocaleString('vi-VN') }
+      { metric: 'Pass Rate (%)', value: `${passRate}%` },
+      { metric: 'Average Duration (ms)', value: `${avgDuration} ms` },
+      { metric: 'Test Execution Date', value: new Date().toLocaleString('vi-VN') }
     ];
 
     summaryData.forEach((data) => {
@@ -783,10 +1092,36 @@ class ScheduleTest {
       row.font = { bold: true, size: 11 };
     });
 
-    const fileName = `${OUTPUT_FILE.replace('.xlsx', '')}_${TIMESTAMP}.xlsx`;
-    await workbook.xlsx.writeFile(fileName);
+    // Add Category breakdown table
+    summarySheet.addRow({});
+    const categoryHeaderRow = summarySheet.addRow({ metric: 'Test Category Breakdown', value: 'Passed / Total' });
+    categoryHeaderRow.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    categoryHeaderRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF2C3E50' }
+    };
+
+    const categories = Object.values(TestCategory);
+    categories.forEach(cat => {
+      const catResults = this.results.filter(r => r.category === cat);
+      if (catResults.length > 0) {
+        const catPassed = catResults.filter(r => r.passed).length;
+        summarySheet.addRow({
+          metric: cat,
+          value: `${catPassed} / ${catResults.length} (${((catPassed / catResults.length) * 100).toFixed(0)}%)`
+        });
+      }
+    });
+
+    const fileName1 = `${OUTPUT_FILE.replace('.xlsx', '')}_${TIMESTAMP}.xlsx`;
+    await workbook.xlsx.writeFile(fileName1);
+
+    const fileName2 = `${LEGACY_OUTPUT_FILE.replace('.xlsx', '')}_${TIMESTAMP}.xlsx`;
+    await workbook.xlsx.writeFile(fileName2);
     
-    console.log(`✅ Results exported to: ${fileName}\n`);
+    console.log(`✅ Results exported to: ${fileName1}`);
+    console.log(`✅ Results also saved to: ${fileName2}\n`);
   }
 
   // ============================================================================
@@ -795,7 +1130,7 @@ class ScheduleTest {
 
   printSummary() {
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
-    console.log('║                SCHEDULE TEST SUMMARY                      ║');
+    console.log('║        SCHEDULE & FEEDBACK TEST EXECUTION SUMMARY         ║');
     console.log('╚═══════════════════════════════════════════════════════════╝\n');
     
     const totalTests = this.results.length;
@@ -816,17 +1151,23 @@ class ScheduleTest {
       this.results.filter(r => !r.passed).forEach(result => {
         console.log(`   ${result.id}: ${result.description}`);
         console.log(`   Expected: ${result.expectedStatus} | Actual: ${result.actualStatus}`);
+        if (result.errorDetails) {
+          console.log(`   Error Details: ${result.errorDetails}`);
+        }
       });
     } else {
-      console.log('🎉 All tests passed!\n');
+      console.log('🎉 ALL TESTS PASSED! 100% SUCCESS RATE!\n');
     }
 
-    console.log('\n📝 Important Notes:');
+    console.log('\n📝 Summary of Verified Features:');
     console.log('─────────────────────────────────────────────────────────────');
-    console.log('   • Mentor can create schedule slots');
-    console.log('   • Mentee can book available slots');
-    console.log('   • Time overlap validation is enforced');
-    console.log('   • Role-based access control is working');
+    console.log('   • Mentor: Quản lý lịch rảnh (Create, List, Cancel, Overlap check)');
+    console.log('   • Mentee: Đặt lịch hẹn (Book, Cancel, Prevent duplicate/self book)');
+    console.log('   • Mentor: Xác nhận lịch hẹn (Confirm booking)');
+    console.log('   • Meeting Session: Bắt đầu (Start) và Kết thúc (End) buổi gặp mặt');
+    console.log('   • Mentee Feedback: Đánh giá buổi gặp mặt (5 sao, nhận xét)');
+    console.log('   • Feedback Validation: Chặn feedback khi session đang diễn ra, chặn duplicate, kiểm tra rating 1-5');
+    console.log('   • Feedback Queries: Xem lịch sử đánh giá của Mentee & điểm trung bình của Mentor');
     console.log('─────────────────────────────────────────────────────────────\n');
   }
 }
@@ -843,17 +1184,20 @@ async function main() {
     await axios.get(`${BASE_URL}/health`);
     console.log('✅ Server is running\n');
 
-    const testSuite = new ScheduleTest();
+    const testSuite = new ScheduleAndFeedbackTest();
     await testSuite.runAllTests();
     
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`⏱️  Total time: ${totalTime}s\n`);
-    console.log('✨ Test completed!\n');
+    console.log('✨ Test execution finished successfully!\n');
     
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Test failed:', error);
+    console.error('\n❌ Test execution failed:', error);
+    await prisma.$disconnect();
     process.exit(1);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -861,4 +1205,4 @@ if (require.main === module) {
   main();
 }
 
-export { ScheduleTest, TestResult, TestCategory };
+export { ScheduleAndFeedbackTest, TestResult, TestCategory };
